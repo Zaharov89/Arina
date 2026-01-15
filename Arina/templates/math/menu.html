@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Математика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='math/menu.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Математика</h1>
+        <div class="menu-container">
+            <div class="menu-item" id="testingBtn">
+                <div class="menu-icon">📝</div>
+                <div class="menu-title">Тестирование</div>
+                <div class="menu-description">Проверка знаний по математике</div>
+            </div>
+            <div class="menu-item" id="backBtn">
+                <div class="menu-icon">↩️</div>
+                <div class="menu-title">Назад</div>
+                <div class="menu-description">Вернуться в главное меню</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('testingBtn').addEventListener('click', showTesting);
+            document.getElementById('backBtn').addEventListener('click', goBackToMain);
+        });
+    </script>
+</body>
+</html>

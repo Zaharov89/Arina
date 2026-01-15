@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мой словарик — Английский</title>
+    <link rel="stylesheet" href="/static/shared.css">
+    <link rel="stylesheet" href="/static/english/vocabulary.css">
+    <script src="/static/js/english-common.js" defer></script>
+</head>
+<script>
+  window.CLASS2_WORDS = {{ class2_words | tojson }};
+  window.CLASS3_WORDS = {{ class3_words | tojson }};
+</script>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h2 class="vocabulary-title">Мой словарик</h2>
+        <table class="vocabulary-table">
+            <thead>
+                <tr>
+                    <th>Английский</th>
+                    <th>Транскрипция</th>
+                    <th>Русский перевод</th>
+                    <th>Произношение</th>
+                </tr>
+            </thead>
+            <tbody id="vocabularyTableBody"></tbody>
+        </table>
+        <div class="pagination" id="vocabularyPagination"></div>
+        <button class="back-btn" onclick="goBackToMenu()">Назад</button>
+    </div>
+</body>
+</html>

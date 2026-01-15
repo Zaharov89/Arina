@@ -1,0 +1,7 @@
+#!/mnt/e/Programs_for_work/PyCharm/eduson_project/Arina/venv/bin/python
+import sys
+from buildozer.scripts.client import main
+if __name__ == '__main__':
+    if sys.argv[0].endswith('.exe'):
+        sys.argv[0] = sys.argv[0][:-4]
+    sys.exit(main())

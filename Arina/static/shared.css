@@ -1,0 +1,78 @@
+/* ============= ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ СТРАНИЦ ============= */
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: linear-gradient(135deg, #f4f1ee 0%, #e3eaf5 100%);
+    color: #222;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+#dateTimeBar {
+    width: 100%;
+    padding: 12px 0;
+    font-weight: 500;
+    font-size: 16px;
+    text-align: center;
+    background: #e3eaf5;
+    border-bottom: 2px solid #cfe0f6;
+    box-shadow: 0 2px 6px rgba(120,140,170,0.08);
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.subject-title {
+    text-align: center;
+    color: #27407a;
+    font-size: 36px;
+    margin: 20px 0 30px 0;
+    font-weight: 700;
+}
+
+/* === КНОПКИ НАЗАД === */
+.back-btn {
+    margin: 20px auto 0 auto;
+    padding: 12px 30px;
+    background: #e74c3c;
+    color: white;
+    width: fit-content;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-align: center;
+}
+
+.back-btn:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* === ОБЩИЕ БЛОКИ === */
+.settings-box,
+.test-block,
+.rules-container,
+.vocabulary-container {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(48,100,150,0.15);
+    margin-bottom: 30px;
+}
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .subject-title {
+        font-size: 28px;
+    }
+}

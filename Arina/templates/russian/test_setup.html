@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест — Настройка — Русский</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/test-setup.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Русский язык</h1>
+
+        <!-- Шаг 1: Выбор класса -->
+        <div id="testStep1" class="settings-box">
+            <h3>Настройки теста — Шаг 1/2</h3>
+            <div class="settings-row">
+                <div class="setting">
+                    <label>Класс:</label>
+                    <select id="classSelect">
+                        <option value="2">2 класс</option>
+                        <option value="3">3 класс</option>
+                        <option value="all">Все слова</option>
+                    </select>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn prev-btn" onclick="goBackToMenu()">Назад</button>
+                <button class="nav-btn next-btn" onclick="goToStep2()">Далее</button>
+            </div>
+        </div>
+
+        <!-- Шаг 2: Количество слов -->
+        <div id="testStep2" class="settings-box" style="display: none;">
+            <h3>Настройки теста — Шаг 2/2</h3>
+            <div class="settings-row">
+                <div class="setting">
+                    <label>Количество слов:</label>
+                    <div class="questions-options" id="wordCountButtons">
+                        <button class="question-btn active" data-count="25">25</button>
+                        <button class="question-btn" data-count="50">50</button>
+                        <button class="question-btn" data-count="100">100</button>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn prev-btn" onclick="goToStep1()">Назад</button>
+                <button class="nav-btn next-btn" onclick="startRussianTest()">Начать тест</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Обработчик выбора количества слов
+        document.getElementById('wordCountButtons').addEventListener('click', function(e) {
+            if (e.target.classList.contains('question-btn')) {
+                // Убираем активный класс у всех
+                document.querySelectorAll('.question-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Добавляем активный класс к нажатой
+                e.target.classList.add('active');
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Дневник ученика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <style>
+        .stats-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        .subject-stats {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .subject-stats:last-child {
+            border-bottom: none;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #295bb2;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #295bb2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .back-btn:hover {
+            background-color: #1d4a9e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="pageTitle">Загрузка дневника...</h2>
+        <div id="statsContent"></div>
+        <a href="/subjects?student={{ request.args.get('student', 'Арина') }}" class="back-btn">← Назад</a>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentName = urlParams.get('student');
+
+        if (!studentName) {
+            document.getElementById('pageTitle').textContent = 'Ошибка';
+            document.getElementById('statsContent').innerHTML = `
+                <p style="color: red;">Не указан ученик (параметр 'student')</p>
+                <a href="/subjects" class="back-btn">← Назад к предметам</a>
+            `;
+        } else {
+            document.getElementById('pageTitle').textContent = `Дневник: ${studentName}`;
+        }
+
+        if (studentName) {
+            fetch(`/api/stats?student=${encodeURIComponent(studentName)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('statsContent').innerHTML = `<p style="color: red;">Ошибка: ${data.error}</p>`;
+                        return;
+                    }
+
+                    let html = '';
+                    function formatGrade(value) {
+                        if (value === 0) return "0";
+                        return parseFloat(value).toFixed(1).replace('.', ',');
+                    }
+
+                    // Математика
+                    html += `
+                        <div class="subject-stats">
+                            <h3>Математика</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div>Средний бал (месяц)</div>
+                                    <div class="stat-value">${formatGrade(data.math?.month_avg || 0)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Дней (месяц)</div>
+                                    <div class="stat-value">${data.math?.month_days || 0}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Средний бал (год)</div>
+                                    <div class="stat-value">${formatGrade(data.math?.year_avg || 0)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Дней (год)</div>
+                                    <div class="stat-value">${data.math?.year_days || 0}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Русский язык
+                    html += `
+                        <div class="subject-stats">
+                            <h3>Русский язык</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div>Средний бал (месяц)</div>
+                                    <div class="stat-value">${formatGrade(data.russian?.month_avg || 0)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Дней (месяц)</div>
+                                    <div class="stat-value">${data.russian?.month_days || 0}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Средний бал (год)</div>
+                                    <div class="stat-value">${formatGrade(data.russian?.year_avg || 0)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Дней (год)</div>
+                                    <div class="stat-value">${data.russian?.year_days || 0}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Английский язык
+                    html += `
+                        <div class="subject-stats">
+                            <h3>Английский язык</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div>Средний бал (месяц)</div>
+                                    <div class="stat-value">${formatGrade(data.english?.month_avg || 0)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Дней (месяц)</div>
+                                    <div class="stat-value">${data.english?.month_days || 0}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Средний бал (год)</div>
+                                    <div class="stat-value">${formatGrade(data.english?.year_avg || 0)}</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>Дней (год)</div>
+                                    <div class="stat-value">${data.english?.year_days || 0}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('statsContent').innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById('statsContent').innerHTML = `<p style="color: red;">Ошибка загрузки данных: ${err.message}</p>`;
+                });
+        }
+    </script>
+</body>
+</html>

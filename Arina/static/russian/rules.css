@@ -1,0 +1,8 @@
+/* === ЗАГОЛОВОК ПРАВИЛ === */
+.rules-title {
+    color: #27407a;
+    font-size: 28px;
+    margin: 0 0 25px 0;
+    text-align: center;
+    font-weight: 600;
+}
