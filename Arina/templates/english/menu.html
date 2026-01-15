@@ -31,12 +31,19 @@
                 <div class="menu-title">Правила</div>
                 <div class="menu-description">Основные правила английского языка</div>
             </div>
-            <div class="menu-item" onclick="goBackToMain()">
+            <div class="menu-item" onclick="goBackToSubjects()">
                 <div class="menu-icon">↩️</div>
                 <div class="menu-title">Назад</div>
-                <div class="menu-description">Вернуться в главное меню</div>
+                <div class="menu-description">Вернуться к выбору предмета</div>
             </div>
         </div>
     </div>
+
+    <script>
+        function goBackToSubjects() {
+            const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
+            window.location.href = `/subjects?student=${encodeURIComponent(student)}`;
+        }
+    </script>
 </body>
 </html>

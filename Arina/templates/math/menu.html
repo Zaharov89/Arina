@@ -19,16 +19,21 @@
             <div class="menu-item" id="backBtn">
                 <div class="menu-icon">↩️</div>
                 <div class="menu-title">Назад</div>
-                <div class="menu-description">Вернуться в главное меню</div>
+                <div class="menu-description">Вернуться к выбору предмета</div>
             </div>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
     <script>
+        function goBackToSubjects() {
+            const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
+            window.location.href = `/subjects?student=${encodeURIComponent(student)}`;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('testingBtn').addEventListener('click', showTesting);
-            document.getElementById('backBtn').addEventListener('click', goBackToMain);
+            document.getElementById('backBtn').addEventListener('click', goBackToSubjects);
         });
     </script>
 </body>
