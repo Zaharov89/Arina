@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Правила — Английский</title>
+    <link rel="stylesheet" href="/static/shared.css">
+    <link rel="stylesheet" href="/static/english/rules.css">
+    <script src="/static/js/english-common.js" defer></script>
+</head>
+<script>
+  window.CLASS2_WORDS = {{ class2_words | tojson }};
+  window.CLASS3_WORDS = {{ class3_words | tojson }};
+</script>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <!-- Выбор правила -->
+        <div id="rulesSelection" class="rules-container">
+            <h2 class="rules-title">Выберите правило</h2>
+            <div class="rules-grid">
+                <div class="rule-card" onclick="showRuleImage(['Pronouns_1.png', 'pronouns_2.png'], 'Местоимения')">
+                    <h3 class="rule-title">Местоимения</h3>
+                    <div class="rule-content">Смотреть правило по местоимениям</div>
+                </div>
+                <div class="rule-card" onclick="showRuleImage('demonstrative_pronouns.png', 'Указательные местоимения')">
+                    <h3 class="rule-title">Указательные местоимения</h3>
+                    <div class="rule-content">Смотреть правило по указательным местоимениям</div>
+                </div>
+                <div class="rule-card" onclick="showRuleImage('plural.png', 'Множественное число')">
+                    <h3 class="rule-title">Множественное число</h3>
+                    <div class="rule-content">Смотреть правило по множественному числу</div>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBackToMenu()">Назад</button>
+        </div>
+
+        <!-- Отображение картинки правила -->
+        <div id="ruleImageDisplay" class="rules-container" style="display: none; text-align: center;">
+            <h2 class="rules-title" id="ruleTitle">Правило</h2>
+            <div id="ruleImageContainer"></div>
+            <button class="back-btn" onclick="showRulesSelection()">Назад</button>
+        </div>
+    </div>
+</body>
+</html>

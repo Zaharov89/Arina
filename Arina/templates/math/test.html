@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест — Математика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='math/test.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <div id="testBlock" class="test-block">
+            <div class="question-counter" id="questionCounter">Пример №1 из 25</div>
+            <div class="question-container">
+                <div class="question-text" id="exampleDisplay">Загрузка...</div>
+            </div>
+            <div id="speedTimerBar" class="speed-timer-bar" style="display: none;">
+                <div class="speed-timer-progress"></div>
+            </div>
+            <input type="number" id="answerInput" class="answer-input" placeholder="Введите ответ">
+            <div id="resultMessage" class="result-message"></div>
+            <div class="test-buttons">
+                <button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>
+                <button id="nextBtn" class="test-btn" onclick="nextQuestion()" disabled>Далее</button>
+                <button id="finishBtn" class="test-btn" onclick="finishTest()">Закончить тест</button>
+            </div>
+            <div class="test-timer" id="testTimer">Время: 0:00</div>
+        </div>
+    </div>
+
+    <script>
+        // Передаём настройки из Flask
+        window.testSettings = {{ test_settings | tojson }};
+        window.totalQuestions = {{ total_questions }};
+    </script>
+    <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
+</body>
+</html>

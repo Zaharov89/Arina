@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Выбор ученика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+    <div class="selection-container">
+        <h2>🎓 Кто ты?</h2>
+        <p>Выбери своего ученика, чтобы начать обучение</p>
+
+        <div class="students-grid">
+            <a href="/subjects?student=Арина" class="student-card">
+                <img src="/static/img/arina.png" alt="Арина">
+                <div class="student-name">Арина</div>
+            </a>
+
+            <a href="/subjects?student=Артем" class="student-card">
+                <img src="/static/img/artem.png" alt="Артем">
+                <div class="student-name">Артем</div>
+            </a>
+
+            <a href="/subjects?student=Тестовый" class="student-card">
+                <img src="/static/img/test.png" alt="Папа">
+                <div class="student-name">Папа</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

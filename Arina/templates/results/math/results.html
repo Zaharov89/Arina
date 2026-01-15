@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Результаты теста — Математика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='results/math/results.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+
+    <div class="container">
+        <!-- Основной блок с результатами -->
+        <div class="main-box">
+            <h3 class="result-title" id="resultTitle">Результаты теста по Математике</h3>
+
+        <!-- ЗВЁЗДЫ -->
+        <div class="star-container" id="starContainer">
+            <img class="star" data-index="0" src="/static/img/star_empty.png" alt="Звезда">
+            <img class="star" data-index="1" src="/static/img/star_empty.png" alt="Звезда">
+            <img class="star" data-index="2" src="/static/img/star_empty.png" alt="Звезда">
+            <img class="star" data-index="3" src="/static/img/star_empty.png" alt="Звезда">
+            <img class="star" data-index="4" src="/static/img/star_empty.png" alt="Звезда">
+        </div>
+
+            <!-- МЕТКА "НА СКОРОСТЬ" -->
+            <div class="speed-mode-label" id="speedModeLabel" style="display: none;">
+                Тест проходил на скорость!
+            </div>
+
+            <!-- НОВОЕ: Предупреждение о пустых ответах -->
+            <div class="warning-message" id="warningMessage">
+                ⚠️ Вы не прорешали ни одного примера!
+            </div>
+
+            <div class="stats-container">
+                <div class="stats-left">
+                    <div class="results-grid">
+                        <div class="result-item correct-answers">
+                            <div class="result-label">Правильных ответов</div>
+                            <div class="result-value" id="correctAnswersValue">0 из 0</div>
+                        </div>
+
+                        <div class="result-item percentage">
+                            <div class="result-label">Процент правильных ответов</div>
+                            <div class="result-value" id="percentageValue">0%</div>
+                        </div>
+
+                        <div class="result-item time-stats">
+                            <div class="result-label">Среднее время на ответ</div>
+                            <div class="result-value" id="avgTimeValue">0.0 сек</div>
+                        </div>
+
+                        <div class="result-item record">
+                            <div class="result-label">Длительность тренировки</div>
+                            <div class="result-value" id="totalTimeValue">0 секунд</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grade-box">
+                    <div class="grade-label">Общая оценка</div>
+                    <div class="grade" id="finalGrade">5</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">Ошибки:</div>
+            <div class="wrong-list" id="testWrongAnswersBlock">
+                <!-- Здесь будут отображаться ошибки -->
+            </div>
+        </div>
+
+        <!-- Блок с кнопками -->
+        <div class="buttons-container">
+            <button id="restartButton" class="btn">Начать заново</button>
+            <a href="/math" class="btn menu-btn">Вернуться в меню</a>
+        </div>
+    </div>
+
+<script>
+    // Функция для отображения даты и времени
+    function renderDateBar() {
+        const now = new Date();
+        const monthsRu = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+        document.getElementById("dateTimeBar").textContent =
+            `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ` +
+            `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+    }
+    renderDateBar();
+
+    // Функция для вычисления оценки на основе процента ошибок
+    function calculateGrade(errorPercentage) {
+        if (errorPercentage <= 5) return 5;
+        if (errorPercentage <= 15) return 4;
+        if (errorPercentage <= 30) return 3;
+        return 2;
+    }
+
+    // Функция для правильного склонения слов
+    function getSecondsWord(seconds) {
+        if (!seconds || seconds < 0) seconds = 0;
+        const lastDigit = seconds % 10;
+        const lastTwoDigits = seconds % 100;
+
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'секунд';
+        if (lastDigit === 1) return 'секунда';
+        if (lastDigit >= 2 && lastDigit <= 4) return 'секунды';
+        return 'секунд';
+    }
+
+    function getMinutesWord(minutes) {
+        if (!minutes || minutes < 0) minutes = 0;
+        const lastDigit = minutes % 10;
+        const lastTwoDigits = minutes % 100;
+
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'минут';
+        if (lastDigit === 1) return 'минута';
+        if (lastDigit >= 2 && lastDigit <= 4) return 'минуты';
+        return 'минут';
+    }
+
+    // Функция для форматирования времени
+    function formatTime(seconds) {
+        if (!seconds || seconds < 0) seconds = 0;
+
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+
+        if (mins === 0 && secs === 0) return "0 секунд";
+        if (mins === 0) return `${secs} ${getSecondsWord(secs)}`;
+        if (secs === 0) return `${mins} ${getMinutesWord(mins)}`;
+        return `${mins} ${getMinutesWord(mins)} ${secs} ${getSecondsWord(secs)}`;
+    }
+
+    // Функция для форматирования примера (для математики)
+    function formatExample(item) {
+        if (item.a !== undefined && item.op && item.b !== undefined) {
+            return `${item.a} ${item.op} ${item.b} = ?`;
+        }
+
+        if (item.expr) {
+            return `${item.expr} = ?`;
+        }
+
+        if (item.equation) {
+            return item.equation;
+        }
+
+        return `Пример ${item.index || 1}`;
+    }
+
+    // === АВТОМАТИЧЕСКАЯ ОТПРАВКА В GOOGLE ТАБЛИЦУ ===
+    function autoSaveToGoogle() {
+        const totalQuestions = parseInt(localStorage.getItem('totalQuestions')) || 0;
+        const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
+        const studentName = new URLSearchParams(window.location.search).get('student') || 'Арина';
+
+        if (totalQuestions <= 0) return;
+
+        const scorePercent = Math.round((correctAnswers / totalQuestions) * 100);
+
+        fetch('/api/save_result', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subject: 'math',
+                score_percent: scorePercent,
+                studentName: studentName
+            })
+        }).catch(err => {
+            console.error("Не удалось сохранить результат в Google Таблицу:", err);
+        });
+    }
+
+    // === АНИМАЦИЯ ЗВЁЗД ===
+    function animateStars(grade) {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < grade) {
+                setTimeout(() => {
+                    star.src = '/static/img/star_filled.png';
+                    star.classList.add('filled');
+                }, index * 350); // Задержка 350мс между звёздами
+            }
+        });
+    }
+
+    // Основная функция отображения результатов
+    document.addEventListener('DOMContentLoaded', function() {
+        // Проверяем, есть ли данные в localStorage
+        const totalQuestions = parseInt(localStorage.getItem('totalQuestions')) || 0;
+        const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
+        const wrongAnswers = parseInt(localStorage.getItem('wrongAnswers')) || 0;
+        const timeSpent = parseInt(localStorage.getItem('timeSpent')) || 0;
+
+        if (totalQuestions <= 0) {
+            document.getElementById('resultTitle').textContent = 'Ошибка';
+            document.getElementById('statsContainer').innerHTML = `
+                <p style="color: red;">Нет данных для отображения. Вернитесь к тесту.</p>
+                <a href="/math" class="btn menu-btn">← Назад к тесту</a>
+            `;
+            return;
+        }
+
+        // НОВОЕ: Проверка на пустые ответы
+        const answeredQuestions = correctAnswers + wrongAnswers;
+        const warningMessage = document.getElementById('warningMessage');
+
+        if (answeredQuestions === 0 && totalQuestions > 0) {
+            warningMessage.style.display = 'block';
+        } else {
+            warningMessage.style.display = 'none';
+        }
+
+        // Получаем время
+        let timeSpentValue = timeSpent;
+        if (timeSpentValue <= 0 && totalQuestions > 0) {
+            timeSpentValue = totalQuestions * 2;
+        }
+
+        const wrongAnswersList = JSON.parse(localStorage.getItem('wrongAnswersList') || '[]');
+
+        // Проверка режима "на скорость"
+        const isSpeedMode = localStorage.getItem('isSpeedMode') === 'true';
+        if (isSpeedMode) {
+            document.getElementById('speedModeLabel').style.display = 'block';
+        }
+
+        // Вычисляем проценты
+        const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+        const errorPercentage = 100 - percentage;
+
+        // Вычисляем оценку
+        const grade = calculateGrade(errorPercentage);
+
+        // Устанавливаем заголовок
+        document.getElementById('resultTitle').textContent = `Результаты теста по Математике`;
+
+        // Заполняем результаты
+        document.getElementById('correctAnswersValue').textContent = `${correctAnswers} из ${totalQuestions}`;
+        document.getElementById('percentageValue').textContent = `${percentage}%`;
+
+        // Среднее время на ответ
+        const avgTime = totalQuestions > 0 ? (timeSpentValue / totalQuestions).toFixed(1) : 0;
+        document.getElementById('avgTimeValue').textContent = `${avgTime} сек`;
+
+        // Длительность тренировки
+        document.getElementById('totalTimeValue').textContent = formatTime(timeSpentValue);
+
+        // Устанавливаем оценку
+        const gradeElement = document.getElementById('finalGrade');
+        gradeElement.textContent = grade;
+        gradeElement.className = `grade grade-${grade}`;
+
+        // Анимация звёзд
+        animateStars(grade);
+
+        // Отображаем ошибки
+        renderWrongAnswers(wrongAnswersList, answeredQuestions);
+
+        // Отправляем результат
+        autoSaveToGoogle();
+
+        // Обработчик кнопки "Начать заново"
+        document.getElementById('restartButton').addEventListener('click', function() {
+            window.location.href = '/math';
+        });
+    });
+
+    function renderWrongAnswers(wrongAnswersList, answeredQuestions) {
+        const wrongBlock = document.getElementById('testWrongAnswersBlock');
+
+        if (answeredQuestions === 0) {
+            wrongBlock.innerHTML = `
+                <div class="no-errors">
+                    <div>📝 Вы не ответили ни на один вопрос</div>
+                    <div>Попробуйте пройти тест еще раз</div>
+                </div>
+            `;
+            return;
+        }
+
+        if (!wrongAnswersList || wrongAnswersList.length === 0) {
+            wrongBlock.innerHTML = `
+                <div class="no-errors">
+                    <div>🎉 Все ответы верны!</div>
+                    <div>Отличная работа!</div>
+                </div>
+            `;
+            return;
+        }
+
+        let html = "";
+        wrongAnswersList.forEach((item, index) => {
+            const exampleText = formatExample(item);
+            let correctAnswer = item.correctAnswer !== undefined ? item.correctAnswer : (item.correct !== undefined ? item.correct : 'Не указан');
+            let userAnswer = item.userAnswer !== undefined ? item.userAnswer : 'Не указан';
+
+            html += `
+                <div class="wrong-item">
+                    <div class="example-text">${index + 1}. ${exampleText}</div>
+                    <div class="answer-row">Ваш ответ: <span class="user-answer">${userAnswer}</span></div>
+                    <div class="answer-row">Правильный ответ: <span class="correct-answer">${correctAnswer}</span></div>
+                </div>
+            `;
+        });
+        wrongBlock.innerHTML = html;
+    }
+    </script>
+</body>
+</html>

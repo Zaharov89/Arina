@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест — Английский</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='english/test.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <div id="testBlock" class="test-block">
+            <div class="question-counter" id="questionCounter">Слово №1 из {{ total_words }}</div>
+            <div class="question-container">
+                <div class="question-text" id="questionDisplay">Загрузка...</div>
+                <button class="question-sound-btn" id="questionSoundBtn" onclick="speakCurrentQuestionWord()">🔊</button>
+            </div>
+            <input type="text" id="answerInput" class="answer-input" placeholder="Введите перевод">
+            <div id="resultMessage" class="result-message"></div>
+            <div class="test-buttons">
+                <button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>
+                <button id="nextBtn" class="test-btn" onclick="nextQuestion()" disabled>Далее</button>
+                <button id="finishBtn" class="test-btn" onclick="finishTest()">Закончить тест</button>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <div class="test-timer" id="testTimer">Время: 0:00</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      window.CLASS2_WORDS = {{ class2_words | tojson }};
+      window.CLASS3_WORDS = {{ class3_words | tojson }};
+      window.testWords = {{ test_words | tojson }};
+      window.totalWords = {{ total_words }};
+      window.testType = "{{ test_type }}";
+    </script>
+
+    <script src="{{ url_for('static', filename='js/english-common.js') }}"></script>
+</body>
+</html>

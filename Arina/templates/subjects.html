@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Выбор предмета</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <style>
+        /* Дополнительные стили для меню предметов */
+        h2 {
+            margin: 36px 0 20px 0;
+            font-size: 29px;
+            font-weight: 600;
+            color: #295bb2;
+            letter-spacing: .5px;
+            text-align: center;
+        }
+
+        .subject-col {
+            margin: 0 auto;
+            max-width: 430px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .main-btn.subject-btn {
+            background: #5d92e0;
+            color: #fff;
+            width: 100%;
+            font-size: 1.13em;
+            font-weight: 600;
+            border: none;
+            border-radius: 9px;
+            padding: 19px 0;
+            margin: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 12px #669ff610;
+            transition: background .18s, color .16s;
+            text-align: center;
+        }
+
+        .main-btn.subject-btn:hover {
+            background: #3877bc !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Какой предмет будете повторять?</h2>
+        <div class="subject-col">
+            <a href="/stats?student={{ student }}" class="main-btn subject-btn" style="background: #e67e22; border: 2px solid #d35400; text-decoration: none; display: inline-block;">Дневник
+            <a href="/math?student={{ student }}"><button class="main-btn subject-btn">Математика</button></a>
+            <a href="/russian?student={{ student }}"><button class="main-btn subject-btn">Русский язык (словарные слова)</button></a>
+            <a href="/english/menu?student={{ student }}"><button class="main-btn subject-btn">Английский язык</button></a>
+        </div>
+    </div>
+</body>
+</html>

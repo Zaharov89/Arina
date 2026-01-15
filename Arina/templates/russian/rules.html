@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Правила — Русский язык</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/rules.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <div id="rulesSection" class="rules-container">
+            <h2 class="rules-title">Правила русского языка</h2>
+            <p style="text-align: center; font-size: 18px; color: #5a6c8d;">
+                Правила пока недоступны
+            </p>
+            <button class="back-btn" onclick="goBackToMenu()">Назад</button>
+        </div>
+    </div>
+
+    <script>
+        window.CLASS1_WORDS = {{ class1_words | tojson }};
+        window.CLASS2_WORDS = {{ class2_words | tojson }};
+        window.CLASS3_WORDS = {{ class3_words | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+</body>
+</html>

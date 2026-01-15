@@ -1,0 +1,133 @@
+/* === НАСТРОЙКИ ТЕСТА === */
+.settings-box h3 {
+    color: #27407a;
+    font-size: 28px;
+    margin: 0 0 25px 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+.settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.setting {
+    flex: 1;
+    min-width: 200px;
+}
+
+.setting label {
+    display: block;
+    margin-bottom: 8px;
+    color: #5a6c8d;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.setting select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #cfe0f6;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #fff;
+    color: #222;
+    cursor: pointer;
+}
+
+/* === ЧЕКБОКСЫ === */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transform: scale(1.4);
+}
+
+.checkbox-container label {
+    font-size: 18px;
+    color: #3866b9;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.questions-options {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.question-btn {
+    padding: 15px 25px;
+    font-size: 18px;
+    font-weight: 600;
+    background: #fff;
+    color: #27407a;
+    border: 2px solid #cfe0f6;
+    border-radius: 10px;
+    cursor: pointer;
+    min-width: 80px;
+}
+
+.question-btn:hover {
+    border-color: #5d92e0;
+    background: #f8fafd;
+    transform: translateY(-2px);
+}
+
+.question-btn.active {
+    background: #5d92e0;
+    color: white;
+    border-color: #5d92e0;
+}
+
+/* === КНОПКИ НАВИГАЦИИ === */
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.nav-btn {
+    padding: 12px 20px;
+    min-width: 100px;
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-btn.prev-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.nav-btn.prev-btn:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+.nav-btn.next-btn {
+    background: #5d92e0;
+    color: white;
+}
+
+.nav-btn.next-btn:hover {
+    background: #4a7bc9;
+    transform: translateY(-2px);
+}

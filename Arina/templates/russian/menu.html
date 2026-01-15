@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Русский язык</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/menu.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Русский язык</h1>
+        <div class="menu-container">
+            <div class="menu-item" onclick="showTesting()">
+                <div class="menu-icon">📝</div>
+                <div class="menu-title">Тестирование</div>
+                <div class="menu-description">Проверка знаний словарных слов</div>
+            </div>
+            <div class="menu-item" onclick="showRules()">
+                <div class="menu-icon">📘</div>
+                <div class="menu-title">Правила</div>
+                <div class="menu-description">Основные правила русского языка</div>
+            </div>
+            <div class="menu-item" onclick="goBackToMain()">
+                <div class="menu-icon">↩️</div>
+                <div class="menu-title">Назад</div>
+                <div class="menu-description">Вернуться в главное меню</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.CLASS1_WORDS = {{ class1_words | tojson }};
+        window.CLASS2_WORDS = {{ class2_words | tojson }};
+        window.CLASS3_WORDS = {{ class3_words | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+</body>
+</html>

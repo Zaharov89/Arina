@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Английский язык</title>
+    <link rel="stylesheet" href="/static/shared.css">
+    <link rel="stylesheet" href="/static/english/menu.css">
+    <script src="/static/js/english-common.js" defer></script>
+</head>
+<script>
+  window.CLASS2_WORDS = {{ class2_words | tojson }};
+  window.CLASS3_WORDS = {{ class3_words | tojson }};
+</script>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Английский язык</h1>
+        <div class="menu-container">
+            <div class="menu-item" onclick="showVocabulary()">
+                <div class="menu-icon">📚</div>
+                <div class="menu-title">Мой словарик</div>
+                <div class="menu-description">Просмотр и изучение английских слов с произношением</div>
+            </div>
+            <div class="menu-item" onclick="showTesting()">
+                <div class="menu-icon">📝</div>
+                <div class="menu-title">Тестирование</div>
+                <div class="menu-description">Проверка знаний английских слов</div>
+            </div>
+            <div class="menu-item" onclick="showRulesSelection()">
+                <div class="menu-icon">📘</div>
+                <div class="menu-title">Правила</div>
+                <div class="menu-description">Основные правила английского языка</div>
+            </div>
+            <div class="menu-item" onclick="goBackToMain()">
+                <div class="menu-icon">↩️</div>
+                <div class="menu-title">Назад</div>
+                <div class="menu-description">Вернуться в главное меню</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
