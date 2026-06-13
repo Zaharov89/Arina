@@ -4,13 +4,19 @@ import threading
 import time
 
 # === ЯВНЫЕ ИМПОРТЫ ДЛЯ PYINSTALLER (НЕ УДАЛЯТЬ!) ===
+import Arina.russian_language.class_1_tasks
+import Arina.russian_language.class_1_topics
 import Arina.russian_language.class_2
 import Arina.russian_language.class_3
 import Arina.english_language.class_2
 import Arina.english_language.class_3
 import Arina.math.class_1
+import Arina.math.class_1_tasks
+import Arina.math.class_1_topics
 import Arina.math.class_2
 import Arina.math.class_3
+import Arina.world.class_1_tasks
+import Arina.world.class_1_topics
 import Arina.utils.safe_math
 # ===================================================
 
