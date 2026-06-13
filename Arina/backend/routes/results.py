@@ -18,3 +18,8 @@ def results_russian():
 @results_bp.route("/results/math")
 def results_math():
     return render_template("results/math/results.html", student=get_student())
+
+
+@results_bp.route("/results/world")
+def results_world():
+    return render_template("results/world/results.html", student=get_student())
