@@ -8,6 +8,7 @@ from Arina.backend.routes.pages import pages_bp
 from Arina.backend.routes.results import results_bp
 from Arina.backend.routes.russian import russian_bp
 from Arina.backend.routes.vocabulary_api import vocabulary_api_bp
+from Arina.backend.routes.world import world_bp
 from Arina.auth.routes import auth_bp
 from Arina.config import FLASK_HOST, FLASK_PORT
 from Arina.database.routes import database_bp
@@ -38,6 +39,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(english_bp)
     app.register_blueprint(russian_bp)
     app.register_blueprint(math_bp)
+    app.register_blueprint(world_bp)
     app.register_blueprint(results_bp)
     app.register_blueprint(vocabulary_api_bp)
     app.register_blueprint(stats_bp)
