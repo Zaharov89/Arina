@@ -95,7 +95,7 @@ def generate_living_nonliving_task() -> dict:
         make_choice_task("Что относится к неживой природе?", ["берёза", "рыба", "вода"], "вода", "living_nonliving"),
         make_choice_task("Выбери живой объект:", ["песок", "воробей", "воздух"], "воробей", "living_nonliving"),
         make_choice_task("Выбери неживой объект:", ["гриб", "трава", "камень"], "камень", "living_nonliving"),
-        make_text_task("Кто растёт, дышит и питается: кошка или камень?", "кошка", "living_nonliving"),
+        make_text_task("Кто растёт, дышит и питается?", "кошка", "living_nonliving"),
     ]
     return random.choice(tasks)
 
@@ -106,7 +106,7 @@ def generate_plants_task() -> dict:
         make_choice_task("Что является деревом?", ["яблоня", "одуванчик", "трава"], "яблоня", "plants"),
         make_choice_task("Что является кустарником?", ["смородина", "берёза", "ромашка"], "смородина", "plants"),
         make_choice_task("Какая часть растения находится в земле?", ["корень", "цветок", "лист"], "корень", "plants"),
-        make_text_task("Как называется зелёная часть растения: лист или камень?", "лист", "plants"),
+        make_text_task("Как называется зелёная часть растения?", "лист", "plants"),
     ]
     return random.choice(tasks)
 
@@ -117,7 +117,7 @@ def generate_animals_task() -> dict:
         make_choice_task("Какое животное дикое?", ["кошка", "собака", "медведь"], "медведь", "animals"),
         make_choice_task("Кто относится к птицам?", ["воробей", "карась", "муравей"], "воробей", "animals"),
         make_choice_task("Кто относится к рыбам?", ["карась", "ворона", "заяц"], "карась", "animals"),
-        make_text_task("Кто живёт рядом с человеком: корова или волк?", "корова", "animals"),
+        make_text_task("Какое домашнее животное даёт молоко?", "корова", "animals"),
     ]
     return random.choice(tasks)
 
@@ -139,7 +139,7 @@ def generate_time_task() -> dict:
         make_choice_task("Что идёт после понедельника?", ["вторник", "пятница", "суббота"], "вторник", "time"),
         make_choice_task("Когда обычно спят?", ["ночью", "утром", "днём"], "ночью", "time"),
         make_choice_task("Когда мы обычно завтракаем?", ["утром", "ночью", "вечером"], "утром", "time"),
-        make_number_task("Сколько частей суток: утро, день, вечер, ночь?", 4, "time"),
+        make_number_task("Сколько частей суток?", 4, "time"),
     ]
     return random.choice(tasks)
 
@@ -150,7 +150,7 @@ def generate_family_school_task() -> dict:
         make_choice_task("Что нужно сделать, если хочешь ответить на уроке?", ["поднять руку", "кричать", "убежать"], "поднять руку", "family_school"),
         make_choice_task("Кто учит детей в школе?", ["учитель", "врач", "повар"], "учитель", "family_school"),
         make_choice_task("Как надо вести себя на уроке?", ["внимательно", "шумно", "грубо"], "внимательно", "family_school"),
-        make_text_task("Как называется группа близких людей: семья или улица?", "семья", "family_school"),
+        make_text_task("Как называется группа близких людей?", "семья", "family_school"),
     ]
     return random.choice(tasks)
 
@@ -172,7 +172,7 @@ def generate_health_task() -> dict:
         make_choice_task("Когда чистят зубы?", ["утром и вечером", "только зимой", "никогда"], "утром и вечером", "health"),
         make_choice_task("Что помогает быть здоровым?", ["зарядка", "грязные руки", "мало сна"], "зарядка", "health"),
         make_choice_task("Что полезнее?", ["яблоко", "много конфет"], "яблоко", "health"),
-        make_text_task("Чем моют руки: мылом или песком?", "мылом", "health"),
+        make_text_task("Чем моют руки?", "мылом", "health"),
     ]
     return random.choice(tasks)
 
