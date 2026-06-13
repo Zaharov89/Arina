@@ -14,8 +14,9 @@ except ImportError:
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-template_folder = os.path.join(current_dir, "..", "templates")
-static_folder = os.path.join(current_dir, "..", "static")
+frontend_dir = os.path.join(current_dir, "..", "frontend")
+template_folder = os.path.join(frontend_dir, "templates")
+static_folder = os.path.join(frontend_dir, "static")
 
 stats_bp = Blueprint(
     "stats",
