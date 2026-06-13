@@ -59,6 +59,19 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
     return example_type if example_type in allowed_for_class_3 else "all"
 
 
+def normalize_used_questions(raw_used_questions: Any) -> list[str]:
+    if not isinstance(raw_used_questions, list):
+        return []
+
+    normalized = []
+    for question in raw_used_questions:
+        question_text = str(question).strip()
+        if question_text:
+            normalized.append(question_text)
+
+    return normalized[-300:]
+
+
 def build_allowed_ops(example_type: str) -> list[str]:
     return {
         "addsub": ["+", "-"],
@@ -211,11 +224,12 @@ def generate_example():
     table_num = data.get("table_num", "all")
     include_equation = bool(data.get("include_equation"))
     include_parentheses = bool(data.get("include_parentheses"))
+    used_questions = normalize_used_questions(data.get("used_questions"))
 
     allowed_ops = build_allowed_ops(example_type)
 
     if class_num == 1:
-        math = MathExamplesClass1(example_type, table_num)
+        math = MathExamplesClass1(example_type, table_num, used_questions=used_questions)
         example = math.generate_example()
 
         if "question" in example and "correct" in example:
