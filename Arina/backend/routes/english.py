@@ -1,6 +1,6 @@
 import random
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, abort, render_template, request
 
 from Arina.backend.routes.common import get_int_arg, get_student
 from Arina.english_language.class_2 import class2Words
@@ -8,15 +8,34 @@ from Arina.english_language.class_3 import class3Words
 
 english_bp = Blueprint("english", __name__)
 
+SUPPORTED_ENGLISH_CLASSES = list(range(1, 12))
+IMPLEMENTED_TEST_CLASSES = {2, 3}
+IMPLEMENTED_LEARNING_CLASSES = set()
+
 
 @english_bp.route("/english/menu")
 def english_menu():
     student = get_student()
     return render_template(
         "english/menu.html",
-        class2_words=class2Words,
-        class3_words=class3Words,
+        classes=SUPPORTED_ENGLISH_CLASSES,
+        implemented_test_classes=IMPLEMENTED_TEST_CLASSES,
+        implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES,
         student=student,
+    )
+
+
+@english_bp.route("/english/class/<int:class_num>")
+def english_class_page(class_num: int):
+    if class_num not in SUPPORTED_ENGLISH_CLASSES:
+        abort(404)
+
+    return render_template(
+        "english/class_page.html",
+        student=get_student(),
+        class_num=class_num,
+        is_first_class=class_num == 1,
+        is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES,
     )
 
 
