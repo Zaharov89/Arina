@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результаты теста — Окружающий мир</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='results/math/results.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <div class="main-box">
+            <h3 class="result-title" id="resultTitle">Результаты теста — Окружающий мир</h3>
+            <div class="stats-container">
+                <div class="stats-left">
+                    <div class="results-grid">
+                        <div class="result-item correct-answers">
+                            <div class="result-label">Правильных ответов</div>
+                            <div class="result-value" id="correctAnswersValue">0 из 0</div>
+                        </div>
+                        <div class="result-item percentage">
+                            <div class="result-label">Процент правильных ответов</div>
+                            <div class="result-value" id="percentageValue">0%</div>
+                        </div>
+                        <div class="result-item time-stats">
+                            <div class="result-label">Среднее время на ответ</div>
+                            <div class="result-value" id="avgTimeValue">0.0 сек</div>
+                        </div>
+                        <div class="result-item record">
+                            <div class="result-label">Длительность тренировки</div>
+                            <div class="result-value" id="totalTimeValue">0 секунд</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grade-box">
+                    <div class="grade-label">Общая оценка</div>
+                    <div class="grade" id="finalGrade">5</div>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="section-title">Ошибки:</div>
+            <div class="wrong-list" id="testWrongAnswersBlock"></div>
+        </div>
+        <div class="buttons-container">
+            <a href="/world" class="btn menu-btn">Вернуться в меню</a>
+            <a href="/subjects?student={{ student }}" class="btn menu-btn">К предметам</a>
+        </div>
+    </div>
+
+    <script>
+        function renderDateBar() {
+            const now = new Date();
+            const monthsRu = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+            document.getElementById("dateTimeBar").textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        }
+
+        function calculateGrade(errorPercentage) {
+            if (errorPercentage <= 5) return 5;
+            if (errorPercentage <= 15) return 4;
+            if (errorPercentage <= 30) return 3;
+            return 2;
+        }
+
+        function formatTime(seconds) {
+            seconds = parseInt(seconds) || 0;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            if (mins === 0) return `${secs} секунд`;
+            return `${mins} мин ${secs} сек`;
+        }
+
+        renderDateBar();
+
+        const totalQuestions = parseInt(localStorage.getItem('totalQuestions')) || 0;
+        const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
+        const wrongAnswers = parseInt(localStorage.getItem('wrongAnswers')) || 0;
+        const emptyAnswers = parseInt(localStorage.getItem('emptyAnswers')) || 0;
+        const totalTime = parseInt(localStorage.getItem('timeSpent')) || 0;
+        const avgTime = localStorage.getItem('averageTime') || '0.0';
+        const wrongList = JSON.parse(localStorage.getItem('wrongAnswersList') || '[]');
+        const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+        const errorPercentage = totalQuestions > 0 ? Math.round(((wrongAnswers + emptyAnswers) / totalQuestions) * 100) : 100;
+
+        document.getElementById('correctAnswersValue').textContent = `${correctAnswers} из ${totalQuestions}`;
+        document.getElementById('percentageValue').textContent = `${percentage}%`;
+        document.getElementById('avgTimeValue').textContent = `${avgTime} сек`;
+        document.getElementById('totalTimeValue').textContent = formatTime(totalTime);
+        document.getElementById('finalGrade').textContent = calculateGrade(errorPercentage);
+
+        const wrongBlock = document.getElementById('testWrongAnswersBlock');
+        if (wrongList.length === 0) {
+            wrongBlock.innerHTML = '<p>Ошибок нет. Отлично!</p>';
+        } else {
+            wrongBlock.innerHTML = wrongList.map(item => `<div class="wrong-item"><strong>${item.question || 'Задание'}</strong><br>Ваш ответ: ${item.userAnswer}<br>Правильный ответ: ${item.correctAnswer}</div>`).join('');
+        }
+    </script>
+</body>
+</html>
