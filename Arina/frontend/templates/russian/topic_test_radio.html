@@ -14,6 +14,7 @@
             <div class="question-topic" id="questionTopic" style="display: none;"></div>
             <div class="question-container">
                 <div class="question-text" id="questionDisplay">Загрузка...</div>
+                <button class="question-sound-btn" type="button" onclick="speakQuestion('questionDisplay')">🔊 Прослушать</button>
             </div>
             <input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off">
             <div id="resultMessage" class="result-message"></div>
@@ -32,6 +33,7 @@
         window.russianTopicTestSettings = {{ test_settings | tojson }};
         window.totalRussianTopicQuestions = {{ total_questions }};
     </script>
+    <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/russian-choice-radio.js') }}"></script>
 </body>
