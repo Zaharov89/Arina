@@ -11,13 +11,14 @@
     <div class="container">
         <div id="testBlock" class="test-block">
             <div class="question-counter" id="questionCounter">Пример №1 из 25</div>
+            <div class="question-topic" id="questionTopic" style="display: none;"></div>
             <div class="question-container">
                 <div class="question-text" id="exampleDisplay">Загрузка...</div>
             </div>
             <div id="speedTimerBar" class="speed-timer-bar" style="display: none;">
                 <div class="speed-timer-progress"></div>
             </div>
-            <input type="number" id="answerInput" class="answer-input" placeholder="Введите ответ">
+            <input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off">
             <div id="resultMessage" class="result-message"></div>
             <div class="test-buttons">
                 <button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>
