@@ -8,6 +8,9 @@ def test_main_pages_are_available():
         "/",
         "/subjects?student=Арина",
         "/math?student=Арина",
+        "/math/learning?student=Арина",
+        "/math/learning/topic/number_composition?student=Арина",
+        "/math/test_setup?student=Арина&class=1&type=number_composition",
         "/russian?student=Арина",
         "/english/menu?student=Арина",
         "/diary?student=Арина",
@@ -16,6 +19,43 @@ def test_main_pages_are_available():
     for url in urls:
         response = client.get(url)
         assert response.status_code == 200, f"{url} returned {response.status_code}"
+
+
+def test_class_1_topic_example_api():
+    client = app.test_client()
+
+    response = client.post(
+        "/generate_example",
+        json={
+            "class": "1",
+            "type": "number_composition",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["topic"] == "number_composition"
+    assert data["question"]
+    assert "correct" in data
+    assert data["answer_type"] in {"number", "choice"}
+
+
+def test_class_1_topic_check_answer_api():
+    client = app.test_client()
+
+    response = client.post(
+        "/check_answer",
+        json={
+            "class": "1",
+            "type": "compare_numbers",
+            "answer_type": "choice",
+            "answer": ">",
+            "correct": ">",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["result"] == "correct"
 
 
 def test_save_result_is_temporarily_disabled_but_available():
