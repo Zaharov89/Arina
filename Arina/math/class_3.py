@@ -1,4 +1,7 @@
 import random
+from typing import Callable, Optional
+
+from Arina.utils.safe_math import SafeMathExpressionError, safe_eval_math_expr
 
 
 class MathExamplesClass3:
@@ -7,206 +10,309 @@ class MathExamplesClass3:
         self.table_num = table_num
 
     def generate_example(self):
-        if self.type == 'simple_equation':
+        if self.type == "simple_equation":
             return self.generate_simple_equation()
-        elif self.type == 'parentheses':
+
+        if self.type == "parentheses":
             return self.generate_parentheses_example()
-        # Обычные примеры
-        if self.type in ['all']:
-            ops = ['+', '-', '*', '/']
-        elif self.type == 'addsub':
-            ops = ['+', '-']
-        elif self.type == 'muldiv':
-            ops = ['*', '/']
+
+        if self.type == "all":
+            ops = ["+", "-", "*", "/"]
+        elif self.type == "addsub":
+            ops = ["+", "-"]
+        elif self.type == "muldiv":
+            ops = ["*", "/"]
         else:
             ops = [self.type]
-        while True:
+
+        ops = [op for op in ops if op in ["+", "-", "*", "/"]]
+
+        if not ops:
+            ops = ["+", "-"]
+
+        for _ in range(100):
             op = random.choice(ops)
-            if op in ['*', '/']:
+
+            if op in ["*", "/"]:
                 a = random.randint(0, 10)
                 b = random.randint(1, 10)
-                if op == '/':
+
+                if op == "/":
                     result = random.randint(0, 10)
                     a = result * b
                     res = a // b
-                else:  # '*'
+                else:
                     res = a * b
-            else:  # плюс/минус только от 0 до 100
-                if op == '+':
+
+            else:
+                if op == "+":
                     a = random.randint(0, 100)
                     b = random.randint(0, 100 - a)
                     res = a + b
-                else:  # '-'
+                else:
                     a = random.randint(0, 100)
                     b = random.randint(0, a)
                     res = a - b
-            if 0 <= res <= (100 if op in '+-' else 100):
-                return {'a': a, 'op': op, 'b': b}
+
+            if 0 <= res <= 100:
+                return {"a": a, "op": op, "b": b}
+
+        return {"a": 1, "op": "+", "b": 1}
 
     def calculate_answer(self, a, op, b):
-        if op == '+': return a + b
-        if op == '-': return a - b
-        if op == '*': return a * b
-        if op == '/': return a // b
+        try:
+            a = int(a)
+            b = int(b)
+        except (TypeError, ValueError):
+            return None
+
+        if op == "+":
+            return a + b
+
+        if op == "-":
+            return a - b
+
+        if op == "*":
+            return a * b
+
+        if op == "/":
+            if b == 0:
+                return None
+            if a % b != 0:
+                return None
+            return a // b
+
+        return None
 
     def generate_simple_equation(self, allowed_ops=None):
-        ops = allowed_ops if allowed_ops else ['+', '-']
-        ops = [op for op in ops if op in ['+', '-']]
+        ops = allowed_ops if allowed_ops else ["+", "-"]
+        ops = [op for op in ops if op in ["+", "-"]]
+
         if not ops:
-            ops = ['+']
-        while True:
+            ops = ["+"]
+
+        for _ in range(100):
             op = random.choice(ops)
-            if op == '+':
+
+            if op == "+":
                 x = random.randint(1, 50)
                 b = random.randint(1, 50)
                 result = x + b
+
                 if result <= 100:
-                    return {'type': 'simple_equation', 'question': f'x + {b} = {result}', 'x': x}
-            else:  # '-'
+                    return {
+                        "type": "simple_equation",
+                        "question": f"x + {b} = {result}",
+                        "x": x,
+                    }
+
+            else:
                 result = random.randint(1, 50)
                 x = random.randint(1, 50)
                 a = result + x
+
                 if a <= 100:
-                    return {'type': 'simple_equation', 'question': f'{a} - x = {result}', 'x': x}
+                    return {
+                        "type": "simple_equation",
+                        "question": f"{a} - x = {result}",
+                        "x": x,
+                    }
+
+        return {
+            "type": "simple_equation",
+            "question": "x + 1 = 2",
+            "x": 1,
+        }
 
     def solve_simple_equation(self, expr_dict, user_x):
-        return int(user_x) == expr_dict['x']
+        try:
+            return int(user_x) == int(expr_dict["x"])
+        except (TypeError, ValueError, KeyError):
+            return False
 
     def generate_parentheses_example(self, allowed_ops=None):
-        ops = allowed_ops if allowed_ops else ['+', '-', '*', '/']
+        ops = allowed_ops if allowed_ops else ["+", "-", "*", "/"]
+        ops = [op for op in ops if op in ["+", "-", "*", "/"]]
 
-        def rand_sum():
-            a = random.randint(0, 100)
-            b = random.randint(0, 100 - a)
-            return a, '+', b
+        if not ops:
+            ops = ["+", "-"]
 
-        def rand_sub():
-            a = random.randint(0, 100)
-            b = random.randint(0, a)
-            return a, '-', b
+        for _ in range(150):
+            example = self._try_generate_parentheses_example(ops)
 
-        def rand_mul():
+            if example is not None:
+                return example
+
+        return {"type": "fallback", "expr": "1 + 1"}
+
+    def _try_generate_parentheses_example(self, ops: list[str]) -> Optional[dict]:
+        generators = self._build_operation_generators(ops)
+
+        if not generators:
+            return None
+
+        addsub_ops = [op for op in ops if op in ["+", "-"]]
+        muldiv_ops = [op for op in ops if op in ["*", "/"]]
+
+        available_modes = ["parentheses"]
+
+        if addsub_ops and muldiv_ops:
+            available_modes.append("complex_no_parentheses")
+
+        if muldiv_ops:
+            available_modes.append("muldiv_chain")
+
+        mode = random.choice(available_modes)
+
+        if mode == "parentheses":
+            return self._generate_parentheses_mode(generators)
+
+        if mode == "complex_no_parentheses":
+            return self._generate_complex_no_parentheses_mode(addsub_ops, muldiv_ops)
+
+        if mode == "muldiv_chain":
+            return self._generate_muldiv_chain_mode(muldiv_ops)
+
+        return None
+
+    def _build_operation_generators(self, ops: list[str]) -> list[Callable[[], tuple[int, str, int]]]:
+        generators = []
+
+        if "+" in ops:
+            generators.append(self._rand_sum)
+
+        if "-" in ops:
+            generators.append(self._rand_sub)
+
+        if "*" in ops:
+            generators.append(self._rand_mul)
+
+        if "/" in ops:
+            generators.append(self._rand_div)
+
+        return generators
+
+    def _generate_parentheses_mode(self, generators: list[Callable[[], tuple[int, str, int]]]) -> Optional[dict]:
+        left_func = random.choice(generators)
+        right_func = random.choice(generators)
+
+        if random.choice([True, False]):
+            a, op1, b = left_func()
+            _, op2, d = right_func()
+            expr = f"({a} {op1} {b}) {op2} {d}"
+        else:
+            a, op1, b = left_func()
+            c, op2, d = right_func()
+            expr = f"{a} {op1} ({c} {op2} {d})"
+
+        return self._return_expr_if_valid("parentheses", expr)
+
+    def _generate_complex_no_parentheses_mode(self, addsub_ops: list[str], muldiv_ops: list[str]) -> Optional[dict]:
+        left_op = random.choice(muldiv_ops)
+        right_op = random.choice(addsub_ops)
+        right_op_muldiv = random.choice(muldiv_ops)
+
+        if left_op == "*":
             a = random.randint(0, 10)
             b = random.randint(0, 10)
-            return a, '*', b
-
-        def rand_div():
-            b = random.randint(1, 10)
-            res = random.randint(0, 10)
-            a = res * b
-            return a, '/', b
-
-        op_funcs = []
-        if '+' in ops:
-            op_funcs.append(rand_sum)
-        if '-' in ops:
-            op_funcs.append(rand_sub)
-        if '*' in ops:
-            op_funcs.append(rand_mul)
-        if '/' in ops:
-            op_funcs.append(rand_div)
-
-        # === НОВЫЕ ТИПЫ ПРИМЕРОВ ===
-        choice = random.random()
-
-        # 1. Скобки (старый тип) — ~30%
-        if choice < 0.3 and op_funcs:
-            left_func = random.choice(op_funcs)
-            right_func = random.choice(op_funcs)
-            if random.choice([True, False]):
-                a, op1, b = left_func()
-                c, op2, d = right_func()
-                expr = f"({a} {op1} {b}) {op2} {d}"
-            else:
-                a, op1, b = left_func()
-                c, op2, d = right_func()
-                expr = f"{a} {op1} ({c} {op2} {d})"
-            try:
-                value = eval(expr.replace(' ', ''))
-            except Exception:
-                return self.generate_parentheses_example(allowed_ops)
-            if isinstance(value, (int, float)) and value == int(value) and 0 <= int(value) <= 100:
-                return {'type': 'parentheses', 'expr': expr}
-
-        # 2. Формула: a * b + c / d (без скобок, но с приоритетом) — ~40%
-        elif choice < 0.7:
-            # Выбираем операции для левой и правой части
-            left_op = random.choice(['*', '/'])
-            right_op = random.choice(['+', '-'])
-
-            # Генерируем левую часть (умножение/деление → целое)
-            if left_op == '*':
-                a = random.randint(0, 10)
-                b = random.randint(0, 10)
-                left_val = a * b
-            else:  # '/'
-                b = random.randint(1, 10)
-                left_val = random.randint(0, 10)
-                a = left_val * b
-
-            # Генерируем правую часть (умножение/деление → целое)
-            right_op_muldiv = random.choice(['*', '/'])
-            if right_op_muldiv == '*':
-                c = random.randint(0, 10)
-                d = random.randint(0, 10)
-                right_val = c * d
-            else:  # '/'
-                d = random.randint(1, 10)
-                right_val = random.randint(0, 10)
-                c = right_val * d
-
-            # Собираем выражение: левая часть + (или -) правая часть
-            if right_op == '+':
-                total = left_val + right_val
-                if 0 <= total <= 100:
-                    expr = f"{a} {left_op} {b} {right_op} {c} {right_op_muldiv} {d}"
-                    return {'type': 'complex_no_parentheses', 'expr': expr}
-            else:  # '-'
-                total = left_val - right_val
-                if 0 <= total <= 100:
-                    expr = f"{a} {left_op} {b} {right_op} {c} {right_op_muldiv} {d}"
-                    return {'type': 'complex_no_parentheses', 'expr': expr}
-
-        # 3. Формула: a * b / c (только * и /) — ~30%
+            left_val = a * b
         else:
-            # Генерируем три числа и две операции (* или /)
-            ops_list = [random.choice(['*', '/']) for _ in range(2)]
-            # Первое число
-            a = random.randint(0, 10)
-            # Второе число
-            if ops_list[0] == '*':
-                b = random.randint(0, 10)
-                temp = a * b
-            else:  # '/'
-                b = random.randint(1, 10)
-                temp_val = random.randint(0, 10)
-                a = temp_val * b
-                temp = temp_val
+            b = random.randint(1, 10)
+            left_val = random.randint(0, 10)
+            a = left_val * b
 
-            # Третье число
-            if ops_list[1] == '*':
-                c = random.randint(0, 10)
-                final = temp * c
-            else:  # '/'
-                c = random.randint(1, 10)
-                if temp % c != 0:
-                    # Пропускаем, чтобы результат был целым
-                    return self.generate_parentheses_example(allowed_ops)
-                final = temp // c
+        if right_op_muldiv == "*":
+            c = random.randint(0, 10)
+            d = random.randint(0, 10)
+            right_val = c * d
+        else:
+            d = random.randint(1, 10)
+            right_val = random.randint(0, 10)
+            c = right_val * d
 
-            if 0 <= final <= 100:
-                expr = f"{a} {ops_list[0]} {b} {ops_list[1]} {c}"
-                return {'type': 'muldiv_chain', 'expr': expr}
+        if right_op == "+":
+            total = left_val + right_val
+        else:
+            total = left_val - right_val
 
-        # Если не получилось — рекурсивно пробуем снова
-        return self.generate_parentheses_example(allowed_ops)
+        if 0 <= total <= 100:
+            expr = f"{a} {left_op} {b} {right_op} {c} {right_op_muldiv} {d}"
+            return self._return_expr_if_valid("complex_no_parentheses", expr)
+
+        return None
+
+    def _generate_muldiv_chain_mode(self, muldiv_ops: list[str]) -> Optional[dict]:
+        ops_list = [random.choice(muldiv_ops) for _ in range(2)]
+
+        a = random.randint(0, 10)
+
+        if ops_list[0] == "*":
+            b = random.randint(0, 10)
+            temp = a * b
+        else:
+            b = random.randint(1, 10)
+            temp_val = random.randint(0, 10)
+            a = temp_val * b
+            temp = temp_val
+
+        if ops_list[1] == "*":
+            c = random.randint(0, 10)
+            final = temp * c
+        else:
+            c = random.randint(1, 10)
+
+            if temp % c != 0:
+                return None
+
+            final = temp // c
+
+        if 0 <= final <= 100:
+            expr = f"{a} {ops_list[0]} {b} {ops_list[1]} {c}"
+            return self._return_expr_if_valid("muldiv_chain", expr)
+
+        return None
+
+    def _return_expr_if_valid(self, example_type: str, expr: str) -> Optional[dict]:
+        try:
+            value = safe_eval_math_expr(expr)
+        except SafeMathExpressionError:
+            return None
+
+        if 0 <= value <= 100:
+            return {
+                "type": example_type,
+                "expr": expr,
+            }
+
+        return None
 
     def solve_parentheses_example(self, expr_str, user_answer):
         try:
-            correct = eval(expr_str.replace(' ', ''))
-        except Exception:
+            correct = safe_eval_math_expr(str(expr_str))
+            return int(user_answer) == correct
+        except (SafeMathExpressionError, TypeError, ValueError):
             return False
-        return int(user_answer) == correct
+
+    def _rand_sum(self):
+        a = random.randint(0, 100)
+        b = random.randint(0, 100 - a)
+        return a, "+", b
+
+    def _rand_sub(self):
+        a = random.randint(0, 100)
+        b = random.randint(0, a)
+        return a, "-", b
+
+    def _rand_mul(self):
+        a = random.randint(0, 10)
+        b = random.randint(0, 10)
+        return a, "*", b
+
+    def _rand_div(self):
+        b = random.randint(1, 10)
+        result = random.randint(0, 10)
+        a = result * b
+        return a, "/", b
 
     def _rand(self, a, b):
         return random.randint(a, b)
