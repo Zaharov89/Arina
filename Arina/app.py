@@ -34,15 +34,12 @@ app = Flask(__name__)
 
 # === ПОДКЛЮЧЕНИЕ СТАТИСТИКИ ===
 try:
-    try:
-        from Arina.stats.routes import stats_bp
-    except ImportError:
-        from stats.routes import stats_bp
+    from Arina.stats.routes import stats_bp
+except ImportError:
+    from stats.routes import stats_bp
 
-    app.register_blueprint(stats_bp)
-    print(f"✅ Blueprint 'stats' зарегистрирован: {app.blueprints.get('stats')}")
-except Exception as e:
-    print(f"❌ Не удалось подключить статистику: {e}")
+app.register_blueprint(stats_bp)
+print(f"✅ Blueprint 'stats' зарегистрирован: {app.blueprints.get('stats')}")
 
 
 # === ОБЩИЕ HELPERS ===
