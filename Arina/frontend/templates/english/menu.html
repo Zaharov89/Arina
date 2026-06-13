@@ -7,35 +7,37 @@
     <link rel="stylesheet" href="/static/english/menu.css">
     <script src="/static/js/english-common.js" defer></script>
 </head>
-<script>
-  window.CLASS2_WORDS = {{ class2_words | tojson }};
-  window.CLASS3_WORDS = {{ class3_words | tojson }};
-</script>
 <body>
     <div id="dateTimeBar"></div>
     <div class="container">
         <h1 class="subject-title">Английский язык</h1>
-        <div class="menu-container">
-            <div class="menu-item" onclick="showVocabulary()">
-                <div class="menu-icon">📚</div>
-                <div class="menu-title">Мой словарик</div>
-                <div class="menu-description">Просмотр и изучение английских слов с произношением</div>
-            </div>
-            <div class="menu-item" onclick="showTesting()">
-                <div class="menu-icon">📝</div>
-                <div class="menu-title">Тестирование</div>
-                <div class="menu-description">Проверка знаний английских слов</div>
-            </div>
-            <div class="menu-item" onclick="showRulesSelection()">
-                <div class="menu-icon">📘</div>
-                <div class="menu-title">Правила</div>
-                <div class="menu-description">Основные правила английского языка</div>
-            </div>
-            <div class="menu-item" onclick="goBackToSubjects()">
-                <div class="menu-icon">↩️</div>
-                <div class="menu-title">Назад</div>
-                <div class="menu-description">Вернуться к выбору предмета</div>
-            </div>
+        <p class="english-menu-intro">Выбери класс. В 1 классе английский язык не изучается по школьной программе. 2–3 классы доступны для словарика, правил и тестирования. Остальные классы пока в разработке.</p>
+
+        <div class="classes-grid">
+            {% for class_num in classes %}
+                {% if class_num == 1 %}
+                    <div class="class-card class-card-disabled class-card-locked">
+                        <div class="class-number">1</div>
+                        <div class="class-title">1 класс</div>
+                        <div class="class-status unavailable">Не изучается</div>
+                        <div class="class-note">Английский язык не изучается в 1 классе по школьной программе</div>
+                    </div>
+                {% else %}
+                    <a href="/english/class/{{ class_num }}?student={{ student }}" class="class-card {% if class_num not in implemented_test_classes %}class-card-disabled{% endif %}">
+                        <div class="class-number">{{ class_num }}</div>
+                        <div class="class-title">{{ class_num }} класс</div>
+                        {% if class_num in implemented_test_classes %}
+                            <div class="class-status partial">Словарик и тестирование</div>
+                        {% else %}
+                            <div class="class-status planned">В разработке</div>
+                        {% endif %}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="menu-actions">
+            <a href="/subjects?student={{ student }}" class="back-btn english-back-link">Назад к предметам</a>
         </div>
     </div>
 
