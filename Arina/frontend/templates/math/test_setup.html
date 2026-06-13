@@ -30,17 +30,16 @@
             </div>
         </div>
 
-        <!-- Шаг 2: Тип примеров -->
+        <!-- Шаг 2: Раздел / тип примеров -->
         <div id="testStep2" class="settings-box" style="display: none;">
             <h3>Настройки теста — Шаг 2/4</h3>
             <div class="settings-row">
                 <div class="setting">
-                    <label>Тип примеров:</label>
+                    <label id="typeSelectLabel">Раздел:</label>
                     <select id="typeSelect">
-                        <option value="all">Все операции</option>
-                        <option value="addsub">Сложение и вычитание</option>
-                        <option value="+">Только сложение</option>
-                        <option value="-">Только вычитание</option>
+                        {% for topic in class_1_topics %}
+                            <option value="{{ topic.id }}">{{ topic.title }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -92,6 +91,7 @@
                 <div class="setting">
                     <label>Количество вопросов:</label>
                     <div class="questions-options">
+                        <button class="question-btn" onclick="selectQuestionCount(10)">10</button>
                         <button class="question-btn active" onclick="selectQuestionCount(25)">25</button>
                         <button class="question-btn" onclick="selectQuestionCount(50)">50</button>
                         <button class="question-btn" onclick="selectQuestionCount(100)">100</button>
@@ -119,6 +119,11 @@
         </div>
     </div>
 
+    <script>
+        window.CLASS_1_MATH_TOPICS = {{ class_1_topics | tojson }};
+        window.INITIAL_MATH_TYPE = "{{ request.args.get('type', '') }}";
+        window.INITIAL_MATH_CLASS = "{{ request.args.get('class', '1') }}";
+    </script>
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
 </body>
 </html>
