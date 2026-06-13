@@ -30,6 +30,16 @@ def test_class_1_generates_topic_tasks():
                 assert str(example["correct"]) in [str(choice) for choice in example["choices"]]
 
 
+def test_class_1_topic_generator_avoids_used_question_when_possible():
+    used_questions = ["В чём измеряют молоко?"]
+
+    for _ in range(20):
+        generator = MathExamplesClass1("measurements", "all", used_questions=used_questions)
+        example = generator.generate_example()
+        assert example["question"] != "В чём измеряют молоко?"
+        assert example["is_repeat"] is False
+
+
 def test_class_2_generates_valid_examples():
     generator = MathExamplesClass2("all", "all")
 
