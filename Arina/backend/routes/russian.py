@@ -150,7 +150,7 @@ def russian_test():
             "topicId": topic_id or "sounds_and_letters",
         }
         return render_template(
-            "russian/topic_test.html",
+            "russian/topic_test_radio.html",
             test_settings=test_settings,
             total_questions=total_requested,
             student=student,
