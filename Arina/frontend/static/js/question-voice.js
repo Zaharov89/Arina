@@ -1,3 +1,17 @@
+function injectQuestionVoiceStyles() {
+    if (document.getElementById('questionVoiceStyles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'questionVoiceStyles';
+    style.textContent = `
+        .question-sound-btn { background: #5d92e0; color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 16px; cursor: pointer; transition: all 0.3s; min-width: 150px; }
+        .question-sound-btn:hover { background: #4a7bc9; transform: scale(1.05); }
+    `;
+    document.head.appendChild(style);
+}
+
+injectQuestionVoiceStyles();
+
 function speakText(text, lang = 'ru-RU') {
     if (!text || !String(text).trim()) return;
 
