@@ -13,6 +13,10 @@ from Arina.utils.safe_math import SafeMathExpressionError, safe_eval_math_expr
 
 math_bp = Blueprint("math", __name__)
 
+SUPPORTED_MATH_CLASSES = list(range(1, 12))
+IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
+IMPLEMENTED_LEARNING_CLASSES = {1}
+
 
 def normalize_class_num(raw_class: Any, default: int = 1) -> int:
     try:
@@ -97,11 +101,42 @@ def calculate_basic_answer(class_num: int, example_type: str, table_num: str, a:
 
 @math_bp.route("/math")
 def math_menu():
-    return render_template("math/menu.html", student=get_student())
+    return render_template(
+        "math/menu.html",
+        student=get_student(),
+        classes=SUPPORTED_MATH_CLASSES,
+        implemented_test_classes=IMPLEMENTED_TEST_CLASSES,
+        implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES,
+    )
+
+
+@math_bp.route("/math/class/<int:class_num>")
+def math_class_page(class_num: int):
+    if class_num not in SUPPORTED_MATH_CLASSES:
+        abort(404)
+
+    return render_template(
+        "math/class_page.html",
+        student=get_student(),
+        class_num=class_num,
+        is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES,
+        is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES,
+    )
 
 
 @math_bp.route("/math/learning")
 def math_learning():
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
+
+    if class_num != 1:
+        return render_template(
+            "math/class_page.html",
+            student=get_student(),
+            class_num=class_num,
+            is_learning_implemented=False,
+            is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES,
+        )
+
     return render_template(
         "math/learning.html",
         student=get_student(),
