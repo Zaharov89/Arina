@@ -1,0 +1,113 @@
+/* === МЕНЮ ОКРУЖАЮЩЕГО МИРА === */
+.world-menu-intro {
+    text-align: center;
+    color: #5a6c8d;
+    font-size: 18px;
+    max-width: 850px;
+    margin: 0 auto 28px auto;
+    line-height: 1.5;
+}
+
+.classes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.class-card {
+    background: #fff;
+    border: 2px solid #e3eaf5;
+    border-radius: 18px;
+    padding: 18px;
+    min-height: 145px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 8px 26px rgba(48,100,150,0.12);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.class-card:hover {
+    transform: translateY(-4px);
+    border-color: #5d92e0;
+    box-shadow: 0 12px 34px rgba(48,100,150,0.22);
+}
+
+.class-card-disabled {
+    opacity: 0.82;
+}
+
+.class-number {
+    font-size: 42px;
+    font-weight: 900;
+    color: #27407a;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.class-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #27407a;
+    margin-bottom: 8px;
+}
+
+.class-status {
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 6px 8px;
+}
+
+.class-status.ready {
+    background: #d5f4e6;
+    color: #1f8d4e;
+}
+
+.class-status.planned {
+    background: #f4f4f4;
+    color: #7f8c8d;
+}
+
+.menu-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.world-back-link {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.placeholder-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(48,100,150,0.15);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.placeholder-box h2 {
+    color: #27407a;
+    margin-top: 0;
+}
+
+.topic-lead {
+    color: #5a6c8d;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+    .classes-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
