@@ -23,6 +23,19 @@ function getQuestionOnlyText(text) {
                 !normalized.startsWith('правильный ответ:') &&
                 !normalized.startsWith('ваш ответ:');
         })
+        .map(line => {
+            const normalized = line.trim().toLowerCase();
+
+            if (normalized.startsWith('напиши слово:')) {
+                return 'Напиши слово';
+            }
+
+            if (normalized.startsWith('напиши предложение:')) {
+                return 'Напиши предложение';
+            }
+
+            return line.trim();
+        })
         .join(' ')
         .trim();
 }
