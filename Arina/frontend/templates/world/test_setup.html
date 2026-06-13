@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест — Настройка — Окружающий мир</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='world/test-setup.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Окружающий мир</h1>
+        <p class="direct-topic-note">Тренировка по выбранной теме. Класс и раздел уже выбраны в обучении.</p>
+
+        <div id="testStep1" class="settings-box">
+            <h3>Настройки теста — Шаг 1/1</h3>
+            <div class="settings-row">
+                <div class="setting">
+                    <label>Количество заданий:</label>
+                    <div class="questions-options" id="questionCountButtons">
+                        <button class="question-btn" data-count="10">10</button>
+                        <button class="question-btn active" data-count="25">25</button>
+                        <button class="question-btn" data-count="50">50</button>
+                        <button class="question-btn" data-count="100">100</button>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn prev-btn" onclick="goBackFromWorldQuestionCount()">Назад</button>
+                <button class="nav-btn next-btn" onclick="startWorldTest()">Начать тест</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.WORLD_CLASS_1_TOPICS = {{ class_1_topics | tojson }};
+        window.INITIAL_WORLD_TOPIC = "{{ request.args.get('type', 'living_nonliving') }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/world-common.js') }}"></script>
+</body>
+</html>
