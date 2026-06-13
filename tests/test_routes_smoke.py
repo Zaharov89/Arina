@@ -32,3 +32,16 @@ def test_save_result_is_temporarily_disabled_but_available():
 
     assert response.status_code == 200
     assert response.get_json()["status"] == "disabled"
+
+
+def test_future_architecture_status_routes_are_available():
+    client = app.test_client()
+
+    auth_response = client.get("/auth/status")
+    database_response = client.get("/database/status")
+
+    assert auth_response.status_code == 200
+    assert auth_response.get_json()["module"] == "auth"
+
+    assert database_response.status_code == 200
+    assert database_response.get_json()["module"] == "database"
