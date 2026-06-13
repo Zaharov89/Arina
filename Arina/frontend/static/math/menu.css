@@ -20,6 +20,8 @@
     align-items: center;
     justify-content: center;
     min-height: 180px;
+    text-decoration: none;
+    color: inherit;
 }
 
 .menu-item:hover {
@@ -45,4 +47,119 @@
     font-size: 16px;
     color: #5a6c8d;
     line-height: 1.4;
+}
+
+.math-menu-intro {
+    text-align: center;
+    color: #5a6c8d;
+    font-size: 18px;
+    max-width: 820px;
+    margin: 0 auto 28px auto;
+    line-height: 1.5;
+}
+
+.classes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.class-card {
+    background: #fff;
+    border: 2px solid #e3eaf5;
+    border-radius: 18px;
+    padding: 18px;
+    min-height: 145px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 8px 26px rgba(48,100,150,0.12);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.class-card:hover {
+    transform: translateY(-4px);
+    border-color: #5d92e0;
+    box-shadow: 0 12px 34px rgba(48,100,150,0.22);
+}
+
+.class-card-disabled {
+    opacity: 0.82;
+}
+
+.class-number {
+    font-size: 42px;
+    font-weight: 900;
+    color: #27407a;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.class-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #27407a;
+    margin-bottom: 8px;
+}
+
+.class-status {
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 6px 8px;
+}
+
+.class-status.ready {
+    background: #d5f4e6;
+    color: #1f8d4e;
+}
+
+.class-status.partial {
+    background: #e8f0ff;
+    color: #3866b9;
+}
+
+.class-status.planned {
+    background: #f4f4f4;
+    color: #7f8c8d;
+}
+
+.menu-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.math-back-link {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.disabled-card {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.disabled-card:hover {
+    transform: none;
+    border-color: #e3eaf5;
+    box-shadow: 0 8px 32px rgba(48,100,150,0.15);
+}
+
+.placeholder-box {
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .menu-container {
+        grid-template-columns: 1fr;
+    }
+
+    .classes-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
