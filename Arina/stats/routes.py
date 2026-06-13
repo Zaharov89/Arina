@@ -107,21 +107,6 @@ def normalize_grade_from_payload(data: dict) -> tuple[int | None, float | None, 
     return grade, score_percent, None
 
 
-@stats_bp.route("/stats")
-@stats_bp.route("/diary")
-def stats_page():
-    """
-    Страница дневника.
-
-    Добавлены два URL:
-    - /stats
-    - /diary
-
-    Потому что в меню сейчас ссылка ведёт именно на /diary.
-    """
-    return render_template("stats.html")
-
-
 @stats_bp.route("/api/stats")
 def api_get_stats():
     """Получить статистику из Google Таблицы."""
