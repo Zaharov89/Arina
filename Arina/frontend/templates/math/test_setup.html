@@ -10,6 +10,7 @@
     <div id="dateTimeBar"></div>
     <div class="container">
         <h1 class="subject-title">Математика</h1>
+        <p id="directTopicNote" class="direct-topic-note" style="display: none;">Тренировка по выбранной теме. Класс и раздел уже выбраны в обучении.</p>
 
         <!-- Шаг 1: Выбор класса -->
         <div id="testStep1" class="settings-box">
@@ -86,7 +87,7 @@
 
         <!-- Шаг 3: Количество вопросов -->
         <div id="testStep3" class="settings-box" style="display: none;">
-            <h3>Настройки теста — Шаг 3/4</h3>
+            <h3 id="questionCountStepTitle">Настройки теста — Шаг 3/4</h3>
             <div class="settings-row">
                 <div class="setting">
                     <label>Количество вопросов:</label>
@@ -99,14 +100,14 @@
                 </div>
             </div>
             <div class="nav-buttons">
-                <button class="nav-btn prev-btn" onclick="goToStep2()">Назад</button>
+                <button class="nav-btn prev-btn" onclick="goBackFromQuestionCount()">Назад</button>
                 <button class="nav-btn next-btn" onclick="goToStep4()">Далее</button>
             </div>
         </div>
 
         <!-- Шаг 4: На скорость? -->
         <div id="testStep4" class="settings-box" style="display: none;">
-            <h3>Настройки теста — Шаг 4/4</h3>
+            <h3 id="speedStepTitle">Настройки теста — Шаг 4/4</h3>
             <div class="settings-row">
                 <div class="setting">
                     <label>Решаем на скорость?</label>
@@ -123,6 +124,7 @@
         window.CLASS_1_MATH_TOPICS = {{ class_1_topics | tojson }};
         window.INITIAL_MATH_TYPE = "{{ request.args.get('type', '') }}";
         window.INITIAL_MATH_CLASS = "{{ request.args.get('class', '1') }}";
+        window.DIRECT_TOPIC_TEST = Boolean(window.INITIAL_MATH_CLASS === "1" && window.INITIAL_MATH_TYPE);
     </script>
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
 </body>
