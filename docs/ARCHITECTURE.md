@@ -10,9 +10,7 @@ Arina/
   backend/               # Flask app factory, routes, services
   auth/                  # будущая регистрация, авторизация, активация через email
   database/              # будущий PostgreSQL слой
-  frontend/              # будущий frontend-слой
-  templates/             # текущие рабочие HTML-шаблоны
-  static/                # текущие рабочие CSS/images/js assets
+  frontend/              # HTML-шаблоны и CSS/static assets
   stats/                 # текущая интеграция чтения дневника из Google Apps Script
 ```
 
@@ -30,6 +28,13 @@ Arina/backend/
     vocabulary_api.py    # /questions
   services/
     result_storage.py    # будущая логика сохранения результатов
+```
+
+`Arina/backend/app_factory.py` создаёт Flask-приложение и указывает Flask на frontend-папки:
+
+```text
+Arina/frontend/templates/
+Arina/frontend/static/
 ```
 
 ## Auth
@@ -54,21 +59,34 @@ Arina/database/
 
 ## Frontend
 
-Пока HTML/CSS остаются в рабочих папках:
-
-```text
-Arina/templates/
-Arina/static/
-```
-
-Это сделано для сохранения стабильности. Позже можно перенести их в:
+HTML/CSS теперь находятся здесь:
 
 ```text
 Arina/frontend/templates/
 Arina/frontend/static/
 ```
 
-и обновить `template_folder` / `static_folder` в `Arina/backend/app_factory.py`.
+Ожидаемая структура:
+
+```text
+Arina/frontend/templates/
+  index.html
+  subjects.html
+  diary/diary.html
+  math/
+  russian/
+  english/
+  results/
+
+Arina/frontend/static/
+  shared.css
+  diary/
+  math/
+  russian/
+  english/
+  results/
+  img/
+```
 
 ## Сохранённые URL
 
