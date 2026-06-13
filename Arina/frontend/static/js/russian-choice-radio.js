@@ -1,3 +1,22 @@
+function injectChoiceRadioStyles() {
+    if (document.getElementById('choiceRadioStyles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'choiceRadioStyles';
+    style.textContent = `
+        .choice-options { display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; max-width: 760px; margin: 25px auto 15px auto; }
+        .choice-option { display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 16px 18px; background: #fff; border: 2px solid #cfe0f6; border-radius: 14px; color: #27407a; font-size: 22px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .choice-option:hover { border-color: #5d92e0; background: #f8fafd; transform: translateY(-2px); }
+        .choice-option input[type="radio"] { width: 22px; height: 22px; cursor: pointer; accent-color: #5d92e0; }
+        .choice-option.selected-choice { border-color: #2fd072; background: #d5f4e6; }
+        .choice-option.disabled-choice { cursor: default; opacity: 0.8; }
+        @media (max-width: 768px) { .choice-options { grid-template-columns: 1fr; } .choice-option { font-size: 20px; } }
+    `;
+    document.head.appendChild(style);
+}
+
+injectChoiceRadioStyles();
+
 function getOrCreateRussianChoiceContainer() {
     let container = document.getElementById('choiceOptions');
     if (container) return container;
@@ -35,6 +54,10 @@ function renderRussianChoiceOptions(choices) {
         radio.name = 'russianChoice';
         radio.id = id;
         radio.value = String(choice);
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('.choice-option').forEach(item => item.classList.remove('selected-choice'));
+            label.classList.add('selected-choice');
+        });
 
         const text = document.createElement('span');
         text.textContent = String(choice);
@@ -55,6 +78,8 @@ function getSelectedRussianChoice() {
 function setRussianChoiceOptionsDisabled(disabled) {
     document.querySelectorAll('input[name="russianChoice"]').forEach(input => {
         input.disabled = disabled;
+        const label = input.closest('.choice-option');
+        if (label) label.classList.toggle('disabled-choice', disabled);
     });
 }
 
