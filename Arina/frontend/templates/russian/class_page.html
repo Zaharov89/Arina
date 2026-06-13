@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Русский язык — {{ class_num }} класс</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/learning.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Русский язык — {{ class_num }} класс</h1>
+
+        {% if is_testing_implemented %}
+            <p class="learning-intro">Для {{ class_num }} класса сейчас доступно тестирование словарных слов. Раздел обучения будет добавлен позже.</p>
+            <div class="menu-container russian-main-menu">
+                <div class="menu-item disabled-card">
+                    <div class="menu-icon">📘</div>
+                    <div class="menu-title">Обучение</div>
+                    <div class="menu-description">Раздел в разработке</div>
+                </div>
+                <a class="menu-item russian-menu-link" href="/russian/test_setup?class={{ class_num }}&student={{ student }}">
+                    <div class="menu-icon">📝</div>
+                    <div class="menu-title">Тестирование</div>
+                    <div class="menu-description">Перейти к существующим заданиям {{ class_num }} класса</div>
+                </a>
+            </div>
+        {% else %}
+            <div class="learning-topic-box placeholder-box">
+                <h2>{{ class_num }} класс — в разработке</h2>
+                <p class="topic-lead">Материалы обучения и тестирования для этого класса будут добавлены позже.</p>
+                <p class="topic-lead">Сейчас доступны: 1 класс с обучением и проверкой знаний внутри тем, 2–3 классы с тестированием словарных слов.</p>
+            </div>
+        {% endif %}
+
+        <div class="learning-actions">
+            <a href="/russian?student={{ student }}" class="learning-btn secondary-link">К выбору класса</a>
+            <a href="/subjects?student={{ student }}" class="learning-btn back-link">Назад к предметам</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+</body>
+</html>
