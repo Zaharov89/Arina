@@ -5,6 +5,7 @@ let correctAnswers = 0;
 let wrongAnswers = 0;
 let emptyAnswers = 0;
 let wrongAnswersList = [];
+let usedQuestionTexts = [];
 let currentExample = null;
 let testStartTime = null;
 let questionStartTime = null;
@@ -190,6 +191,37 @@ function startTestTimer() {
     }, 1000);
 }
 
+function getQuestionKey(example) {
+    if (!example) return '';
+
+    if (example.question !== undefined && example.question !== null) {
+        return String(example.question).trim();
+    }
+
+    if (example.expr !== undefined && example.expr !== null) {
+        return String(example.expr).trim();
+    }
+
+    if (example.a !== undefined && example.op !== undefined && example.b !== undefined) {
+        return `${example.a} ${example.op} ${example.b} = ?`;
+    }
+
+    return '';
+}
+
+function rememberQuestion(example) {
+    const questionKey = getQuestionKey(example);
+    if (!questionKey) return;
+
+    if (!usedQuestionTexts.includes(questionKey)) {
+        usedQuestionTexts.push(questionKey);
+    }
+
+    if (usedQuestionTexts.length > 300) {
+        usedQuestionTexts = usedQuestionTexts.slice(-300);
+    }
+}
+
 function generateQuestion() {
     const answerInput = document.getElementById('answerInput');
     const resultMessage = document.getElementById('resultMessage');
@@ -251,12 +283,14 @@ function generateQuestion() {
             type: window.testSettings?.exampleType || 'add_sub_to_20',
             table_num: window.testSettings?.tableNum || 'all',
             include_equation: window.testSettings?.includeEquations || false,
-            include_parentheses: window.testSettings?.includeParentheses || false
+            include_parentheses: window.testSettings?.includeParentheses || false,
+            used_questions: usedQuestionTexts
         })
     })
     .then(response => response.json())
     .then(data => {
         currentExample = data;
+        rememberQuestion(data);
         const display = document.getElementById('exampleDisplay');
         if (!display) return;
 
@@ -447,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
             wrongAnswers = 0;
             emptyAnswers = 0;
             wrongAnswersList = [];
+            usedQuestionTexts = [];
             startTestTimer();
             generateQuestion();
         }
