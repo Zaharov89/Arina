@@ -20,7 +20,7 @@
                     <select id="classSelect">
                         <option value="2">2 класс</option>
                         <option value="3">3 класс</option>
-                        <option value="all" selected>Все классы</option>
+                        <option value="all">Все классы</option>
                     </select>
                 </div>
             </div>
@@ -70,6 +70,15 @@
     </div>
 
     <script>
+        window.INITIAL_ENGLISH_CLASS = "{{ request.args.get('class', 'all') }}";
+        document.addEventListener('DOMContentLoaded', function () {
+            const classSelect = document.getElementById('classSelect');
+            if (classSelect && window.INITIAL_ENGLISH_CLASS) {
+                const optionExists = Array.from(classSelect.options).some(option => option.value === window.INITIAL_ENGLISH_CLASS);
+                classSelect.value = optionExists ? window.INITIAL_ENGLISH_CLASS : 'all';
+            }
+        });
+
         // Обработчик выбора количества слов
         document.getElementById('wordCountButtons').addEventListener('click', function(e) {
             if (e.target.classList.contains('question-btn')) {
