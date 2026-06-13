@@ -10,11 +10,16 @@
     <div id="dateTimeBar"></div>
     <div class="container">
         <h1 class="subject-title">Математика</h1>
-        <div class="menu-container">
+        <div class="menu-container math-main-menu">
+            <div class="menu-item" id="learningBtn">
+                <div class="menu-icon">📘</div>
+                <div class="menu-title">Обучение</div>
+                <div class="menu-description">Правила и примеры по темам</div>
+            </div>
             <div class="menu-item" id="testingBtn">
                 <div class="menu-icon">📝</div>
                 <div class="menu-title">Тестирование</div>
-                <div class="menu-description">Проверка знаний по математике</div>
+                <div class="menu-description">Проверка знаний по разделам обучения</div>
             </div>
             <div class="menu-item" id="backBtn">
                 <div class="menu-icon">↩️</div>
@@ -31,7 +36,13 @@
             window.location.href = `/subjects?student=${encodeURIComponent(student)}`;
         }
 
+        function showLearning() {
+            const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
+            window.location.href = `/math/learning?student=${encodeURIComponent(student)}`;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('learningBtn').addEventListener('click', showLearning);
             document.getElementById('testingBtn').addEventListener('click', showTesting);
             document.getElementById('backBtn').addEventListener('click', goBackToSubjects);
         });
