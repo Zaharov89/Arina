@@ -27,6 +27,11 @@ function showTesting() {
     window.location.href = `/math/test_setup?student=${encodeURIComponent(student)}`;
 }
 
+function showLearning() {
+    const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
+    window.location.href = `/math/learning?student=${encodeURIComponent(student)}`;
+}
+
 // ==== НАСТРОЙКИ ТЕСТА ====
 function selectQuestionCount(count) {
     totalQuestions = count;
@@ -39,6 +44,77 @@ function activateQuestionButton(count) {
     });
     const btn = Array.from(document.querySelectorAll('.question-btn')).find(b => b.textContent == count);
     if (btn) btn.classList.add('active');
+}
+
+function getClass1TopicOptionsHtml() {
+    const topics = window.CLASS_1_MATH_TOPICS || [];
+    return topics.map(topic => `<option value="${topic.id}">${topic.title}</option>`).join('');
+}
+
+function setInitialMathSetupValues() {
+    const classSelect = document.getElementById('classSelect');
+    if (!classSelect) return;
+
+    if (window.INITIAL_MATH_CLASS) {
+        classSelect.value = window.INITIAL_MATH_CLASS;
+    }
+
+    updateTypeOptionsForClass(classSelect.value);
+
+    const typeSelect = document.getElementById('typeSelect');
+    if (typeSelect && window.INITIAL_MATH_TYPE) {
+        const optionExists = Array.from(typeSelect.options).some(option => option.value === window.INITIAL_MATH_TYPE);
+        if (optionExists) {
+            typeSelect.value = window.INITIAL_MATH_TYPE;
+        }
+    }
+}
+
+function updateTypeOptionsForClass(classNum) {
+    const typeSelect = document.getElementById('typeSelect');
+    const typeSelectLabel = document.getElementById('typeSelectLabel');
+    const tableRow = document.getElementById('tableRow');
+    const advancedOptions = document.getElementById('advancedOptions');
+
+    if (!typeSelect) return;
+
+    if (classNum === '1') {
+        if (typeSelectLabel) typeSelectLabel.textContent = 'Раздел:';
+        typeSelect.innerHTML = getClass1TopicOptionsHtml();
+        if (tableRow) tableRow.style.display = 'none';
+        if (advancedOptions) advancedOptions.style.display = 'none';
+        if (document.getElementById('includeEquations')) document.getElementById('includeEquations').checked = false;
+        if (document.getElementById('includeParentheses')) document.getElementById('includeParentheses').checked = false;
+        return;
+    }
+
+    if (classNum === '3') {
+        if (typeSelectLabel) typeSelectLabel.textContent = 'Тип примеров:';
+        typeSelect.innerHTML = `
+            <option value="all">Все операции</option>
+            <option value="addsub">Сложение и вычитание</option>
+            <option value="muldiv">Умножение и деление</option>
+            <option value="+">Только сложение</option>
+            <option value="-">Только вычитание</option>
+            <option value="*">Только умножение</option>
+            <option value="/">Только деление</option>
+        `;
+        if (tableRow) tableRow.style.display = 'flex';
+        if (advancedOptions) advancedOptions.style.display = 'flex';
+        return;
+    }
+
+    if (typeSelectLabel) typeSelectLabel.textContent = 'Тип примеров:';
+    typeSelect.innerHTML = `
+        <option value="all">Все операции</option>
+        <option value="addsub">Сложение и вычитание</option>
+        <option value="+">Только сложение</option>
+        <option value="-">Только вычитание</option>
+    `;
+    if (tableRow) tableRow.style.display = 'none';
+    if (advancedOptions) advancedOptions.style.display = 'none';
+    if (document.getElementById('includeEquations')) document.getElementById('includeEquations').checked = false;
+    if (document.getElementById('includeParentheses')) document.getElementById('includeParentheses').checked = false;
 }
 
 // ==== ШАГИ НАСТРОЙКИ ====
@@ -56,38 +132,7 @@ function goToStep2() {
     document.getElementById('testStep4').style.display = 'none';
 
     const classNum = document.getElementById('classSelect').value;
-    const tableRow = document.getElementById('tableRow');
-    const advancedOptions = document.getElementById('advancedOptions');
-
-    if (classNum === '3') {
-        tableRow.style.display = 'flex';
-        advancedOptions.style.display = 'flex';
-        const typeSelect = document.getElementById('typeSelect');
-        typeSelect.innerHTML = `
-            <option value="all">Все операции</option>
-            <option value="addsub">Сложение и вычитание</option>
-            <option value="muldiv">Умножение и деление</option>
-            <option value="+">Только сложение</option>
-            <option value="-">Только вычитание</option>
-            <option value="*">Только умножение</option>
-            <option value="/">Только деление</option>
-        `;
-    } else {
-        tableRow.style.display = 'none';
-        advancedOptions.style.display = 'none';
-        if (document.getElementById('includeEquations'))
-            document.getElementById('includeEquations').checked = false;
-        if (document.getElementById('includeParentheses'))
-            document.getElementById('includeParentheses').checked = false;
-        const typeSelect = document.getElementById('typeSelect');
-        typeSelect.innerHTML = `
-            <option value="all">Все операции</option>
-            <option value="addsub">Сложение и вычитание</option>
-            <option value="+">Только сложение</option>
-            <option value="-">Только вычитание</option>
-        `;
-    }
-    document.getElementById('typeSelect').selectedIndex = 0;
+    updateTypeOptionsForClass(classNum);
 }
 
 function goToStep3() {
@@ -161,15 +206,19 @@ function generateQuestion() {
 
     const counter = document.getElementById('questionCounter');
     if (counter) {
-        counter.textContent = `Пример №${currentQuestion} из ${totalQuestions}`;
+        counter.textContent = `Задание №${currentQuestion} из ${totalQuestions}`;
     }
 
-    // Останавливаем предыдущий таймер
+    const topicEl = document.getElementById('questionTopic');
+    if (topicEl) {
+        topicEl.style.display = 'none';
+        topicEl.textContent = '';
+    }
+
     if (currentSpeedTimerInterval) {
         clearInterval(currentSpeedTimerInterval);
     }
 
-    // Запускаем таймер на скорость (если включен)
     if (window.testSettings?.isSpeedMode) {
         const speedBar = document.getElementById('speedTimerBar');
         const progressBar = document.querySelector('.speed-timer-progress');
@@ -194,13 +243,12 @@ function generateQuestion() {
         }, 1000);
     }
 
-    // Запрашиваем пример с сервера
     fetch('/generate_example', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             class: window.testSettings?.classNum || '1',
-            type: window.testSettings?.exampleType || 'all',
+            type: window.testSettings?.exampleType || 'add_sub_to_20',
             table_num: window.testSettings?.tableNum || 'all',
             include_equation: window.testSettings?.includeEquations || false,
             include_parentheses: window.testSettings?.includeParentheses || false
@@ -212,34 +260,24 @@ function generateQuestion() {
         const display = document.getElementById('exampleDisplay');
         if (!display) return;
 
-        // Тип 1: выражение вида "15 + 27"
-        if (data.expr !== undefined && data.expr !== null) {
-            display.textContent = `${data.expr} = ?`;
+        if (topicEl && data.topic_title) {
+            topicEl.style.display = 'block';
+            topicEl.textContent = data.topic_title;
         }
-        // Тип 2: компоненты a, op, b
-        else if (data.a !== undefined && data.op !== undefined && data.b !== undefined) {
-            display.textContent = `${data.a} ${data.op} ${data.b} = ?`;
-        }
-        // Тип 3: готовое уравнение (например, "x + 42 = 75")
-        else if (data.question !== undefined) {
-            let questionStr = String(data.question).trim();
 
-            // Удаляем всё, что похоже на " = ?", "=?", "= ?", " ?" в конце
-            questionStr = questionStr
-                .replace(/\s*=\s*\?\s*$/i, '')
-                .replace(/\s*\?\s*$/, '')
-                .trim();
+        answerInput.placeholder = data.answer_type === 'choice' ? 'Введите вариант ответа' : 'Введите ответ';
 
-            // Убираем лишнее " = " в конце (если осталось)
-            if (questionStr.endsWith(' =')) {
-                questionStr = questionStr.slice(0, -2).trim();
+        if (data.question !== undefined) {
+            let questionText = String(data.question).trim();
+            if (Array.isArray(data.choices) && data.choices.length > 0) {
+                questionText += `\nВарианты: ${data.choices.join('   ')}`;
             }
-
-            // Выводим ТОЛЬКО чистое уравнение
-            display.textContent = questionStr;
-        }
-        // Резерв: если ничего не подошло
-        else {
+            display.textContent = questionText;
+        } else if (data.expr !== undefined && data.expr !== null) {
+            display.textContent = `${data.expr} = ?`;
+        } else if (data.a !== undefined && data.op !== undefined && data.b !== undefined) {
+            display.textContent = `${data.a} ${data.op} ${data.b} = ?`;
+        } else {
             display.textContent = "Пример недоступен";
         }
     })
@@ -262,7 +300,7 @@ function checkAnswer() {
     if (!resultMessage) return;
 
     if (!userAnswer) {
-        resultMessage.textContent = `Вы ничего не ввели. Правильный ответ: ${currentExample?.correct || 'неизвестен'}`;
+        resultMessage.textContent = `Вы ничего не ввели. Правильный ответ: ${currentExample?.correct ?? 'неизвестен'}`;
         resultMessage.className = 'result-message empty-answer';
         emptyAnswers++;
         wrongAnswersList.push({
@@ -276,7 +314,7 @@ function checkAnswer() {
     }
 
     if (window.testSettings?.isSpeedMode && currentSpeedTimerExpired) {
-        const correct = currentExample?.correct || 'неизвестен';
+        const correct = currentExample?.correct ?? 'неизвестен';
         resultMessage.textContent = `Вы не успели дать ответ. Правильный ответ: ${correct}`;
         resultMessage.className = 'result-message incorrect';
         wrongAnswers++;
@@ -298,6 +336,8 @@ function checkAnswer() {
             type: window.testSettings?.exampleType,
             table_num: window.testSettings?.tableNum,
             answer: userAnswer,
+            answer_type: currentExample?.answer_type,
+            correct: currentExample?.correct,
             a: currentExample?.a,
             op: currentExample?.op,
             b: currentExample?.b,
@@ -371,52 +411,19 @@ function finishTest() {
 
 // ==== ИНИЦИАЛИЗАЦИЯ ====
 document.addEventListener('DOMContentLoaded', function () {
-    // Кнопки настройки
     const speedYesBtn = document.getElementById('speedYesBtn');
     const speedNoBtn = document.getElementById('speedNoBtn');
     if (speedYesBtn) speedYesBtn.addEventListener('click', () => startMathTest(true));
     if (speedNoBtn) speedNoBtn.addEventListener('click', () => startMathTest(false));
 
-    // Смена класса
     const classSelect = document.getElementById('classSelect');
     if (classSelect) {
+        setInitialMathSetupValues();
         classSelect.addEventListener('change', function () {
-            const classNum = this.value;
-            const typeSelect = document.getElementById('typeSelect');
-            const tableRow = document.getElementById('tableRow');
-            const advancedOptions = document.getElementById('advancedOptions');
-
-            if (classNum === '3') {
-                typeSelect.innerHTML = `
-                    <option value="all">Все операции</option>
-                    <option value="addsub">Сложение и вычитание</option>
-                    <option value="muldiv">Умножение и деление</option>
-                    <option value="+">Только сложение</option>
-                    <option value="-">Только вычитание</option>
-                    <option value="*">Только умножение</option>
-                    <option value="/">Только деление</option>
-                `;
-                if (tableRow) tableRow.style.display = 'flex';
-                if (advancedOptions) advancedOptions.style.display = 'flex';
-            } else {
-                typeSelect.innerHTML = `
-                    <option value="all">Все операции</option>
-                    <option value="addsub">Сложение и вычитание</option>
-                    <option value="+">Только сложение</option>
-                    <option value="-">Только вычитание</option>
-                `;
-                if (tableRow) tableRow.style.display = 'none';
-                if (advancedOptions) advancedOptions.style.display = 'none';
-                if (document.getElementById('includeEquations'))
-                    document.getElementById('includeEquations').checked = false;
-                if (document.getElementById('includeParentheses'))
-                    document.getElementById('includeParentheses').checked = false;
-            }
-            typeSelect.selectedIndex = 0;
+            updateTypeOptionsForClass(this.value);
         });
     }
 
-    // Enter для ответа
     const answerInput = document.getElementById('answerInput');
     if (answerInput) {
         answerInput.addEventListener('keypress', function(e) {
@@ -432,7 +439,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Инициализация теста
     if (document.getElementById('testBlock')) {
         if (typeof window.testSettings !== 'undefined') {
             totalQuestions = window.totalQuestions || 25;
@@ -446,7 +452,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Дата и время
     renderDateBar();
 });
 
