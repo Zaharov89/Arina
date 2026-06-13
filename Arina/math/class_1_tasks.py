@@ -1,9 +1,11 @@
 import random
+from typing import Callable
 
 from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS
 
 
 OBJECT_EMOJIS = ["🍎", "⭐", "🟦", "🐱", "🚗", "🎈", "🍬", "🌼"]
+MAX_UNIQUE_GENERATION_ATTEMPTS = 60
 
 
 def get_topic_options_for_select() -> list[dict]:
@@ -13,7 +15,33 @@ def get_topic_options_for_select() -> list[dict]:
     ]
 
 
-def generate_class_1_topic_task(topic_id: str) -> dict:
+def normalize_question_text(question: str) -> str:
+    return str(question).strip().lower().replace("ё", "е")
+
+
+def generate_unique_task(generator: Callable[[], dict], used_questions: list[str] | None = None) -> dict:
+    used_normalized = {normalize_question_text(question) for question in (used_questions or [])}
+    fallback_task = None
+
+    for _ in range(MAX_UNIQUE_GENERATION_ATTEMPTS):
+        task = generator()
+        fallback_task = task
+        question = normalize_question_text(task.get("question", ""))
+
+        if not question or question not in used_normalized:
+            task["is_repeat"] = False
+            return task
+
+    # If the section has fewer unique questions than requested, allow a repeat only
+    # after many attempts. This prevents infinite loops while still avoiding repeats
+    # whenever another variant exists.
+    if fallback_task is None:
+        fallback_task = generator()
+    fallback_task["is_repeat"] = True
+    return fallback_task
+
+
+def generate_class_1_topic_task(topic_id: str, used_questions: list[str] | None = None) -> dict:
     generators = {
         "counting": generate_counting_task,
         "number_line": generate_number_line_task,
@@ -29,7 +57,7 @@ def generate_class_1_topic_task(topic_id: str) -> dict:
     }
 
     generator = generators.get(topic_id, generate_add_sub_to_20_task)
-    task = generator()
+    task = generate_unique_task(generator, used_questions)
     task["topic"] = topic_id
     task["topic_title"] = CLASS_1_MATH_TOPICS.get(topic_id, {}).get("title", "Математика 1 класс")
     return task
