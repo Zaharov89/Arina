@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Окружающий мир — {{ class_num }} класс</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='world/menu.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Окружающий мир — {{ class_num }} класс</h1>
+        <div class="placeholder-box">
+            <h2>{{ class_num }} класс — в разработке</h2>
+            <p class="topic-lead">Материалы обучения и проверки знаний для этого класса будут добавлены позже.</p>
+            <p class="topic-lead">Сейчас доступен 1 класс.</p>
+        </div>
+
+        <div class="menu-actions">
+            <a href="/world?student={{ student }}" class="back-btn world-back-link">К выбору класса</a>
+            <a href="/subjects?student={{ student }}" class="back-btn world-back-link">Назад к предметам</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/world-common.js') }}"></script>
+</body>
+</html>
