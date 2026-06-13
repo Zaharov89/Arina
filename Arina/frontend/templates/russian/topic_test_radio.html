@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тренировка — Русский язык 1 класс</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/test.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <div id="topicTestBlock" class="test-block">
+            <div class="question-counter" id="questionCounter">Задание №1 из {{ total_questions }}</div>
+            <div class="question-topic" id="questionTopic" style="display: none;"></div>
+            <div class="question-container">
+                <div class="question-text" id="questionDisplay">Загрузка...</div>
+            </div>
+            <input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off">
+            <div id="resultMessage" class="result-message"></div>
+            <div class="test-buttons">
+                <button id="checkBtn" class="test-btn" onclick="checkRussianTopicAnswer()">Ответить</button>
+                <button id="nextBtn" class="test-btn" onclick="nextRussianTopicQuestion()" disabled>Далее</button>
+                <button id="finishBtn" class="test-btn" onclick="finishRussianTopicTest()">Закончить тест</button>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <div class="test-timer" id="testTimer">Время: 0:00</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.russianTopicTestSettings = {{ test_settings | tojson }};
+        window.totalRussianTopicQuestions = {{ total_questions }};
+    </script>
+    <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/russian-choice-radio.js') }}"></script>
+</body>
+</html>
