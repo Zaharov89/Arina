@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Английский язык — {{ class_num }} класс</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='english/menu.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Английский язык — {{ class_num }} класс</h1>
+
+        {% if is_first_class %}
+            <div class="placeholder-box first-class-box">
+                <h2>1 класс — английский язык не изучается</h2>
+                <p class="topic-lead">По школьной программе английский язык начинается со 2 класса, поэтому раздел 1 класса недоступен.</p>
+            </div>
+        {% elif is_testing_implemented %}
+            <p class="english-menu-intro">Для {{ class_num }} класса доступны словарик, правила и тестирование.</p>
+            <div class="menu-container english-class-menu">
+                <a class="menu-item english-menu-link" href="/english/vocabulary?class={{ class_num }}&student={{ student }}">
+                    <div class="menu-icon">📚</div>
+                    <div class="menu-title">Мой словарик</div>
+                    <div class="menu-description">Просмотр и изучение английских слов с произношением</div>
+                </a>
+                <a class="menu-item english-menu-link" href="/english/rules?class={{ class_num }}&student={{ student }}">
+                    <div class="menu-icon">📘</div>
+                    <div class="menu-title">Правила</div>
+                    <div class="menu-description">Основные правила английского языка</div>
+                </a>
+                <a class="menu-item english-menu-link" href="/english/test_setup?class={{ class_num }}&student={{ student }}">
+                    <div class="menu-icon">📝</div>
+                    <div class="menu-title">Тестирование</div>
+                    <div class="menu-description">Проверка знания английских слов</div>
+                </a>
+            </div>
+        {% else %}
+            <div class="placeholder-box">
+                <h2>{{ class_num }} класс — в разработке</h2>
+                <p class="topic-lead">Материалы обучения и тестирования для этого класса будут добавлены позже.</p>
+                <p class="topic-lead">Сейчас доступны: 2–3 классы со словариком, правилами и тестированием.</p>
+            </div>
+        {% endif %}
+
+        <div class="menu-actions">
+            <a href="/english/menu?student={{ student }}" class="back-btn english-back-link">К выбору класса</a>
+            <a href="/subjects?student={{ student }}" class="back-btn english-back-link">Назад к предметам</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/english-common.js') }}"></script>
+</body>
+</html>
