@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Обучение и проверка знаний — Русский язык 1 класс</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/learning.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Обучение и проверка знаний — 1 класс</h1>
+        <p class="learning-intro">Выбери тему: внутри каждого раздела есть правила, примеры и кнопка “Тренироваться по теме”.</p>
+
+        <div class="topics-grid">
+            {% for topic_id, topic in class_1_topics.items() %}
+                <a class="topic-card" href="/russian/learning/topic/{{ topic_id }}?student={{ student }}">
+                    <div class="topic-title">{{ topic.title }}</div>
+                    <div class="topic-description">{{ topic.description }}</div>
+                    <div class="topic-action-hint">Открыть правила и тренировку</div>
+                </a>
+            {% endfor %}
+        </div>
+
+        <div class="learning-actions">
+            <a href="/russian?student={{ student }}" class="learning-btn secondary-link">К выбору класса</a>
+            <a href="/subjects?student={{ student }}" class="learning-btn back-link">Назад к предметам</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+</body>
+</html>
