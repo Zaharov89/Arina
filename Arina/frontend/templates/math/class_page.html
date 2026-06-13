@@ -13,17 +13,12 @@
         <h1 class="subject-title">Математика — {{ class_num }} класс</h1>
 
         {% if class_num == 1 %}
-            <p class="learning-intro">Для 1 класса доступны правила по темам и тестирование по тем же разделам.</p>
-            <div class="menu-container math-main-menu">
+            <p class="learning-intro">Для 1 класса тестирование встроено в каждую тему обучения. Выбери раздел, изучи правило и нажми “Тренироваться по теме”.</p>
+            <div class="menu-container math-main-menu class-one-menu">
                 <a class="menu-item math-menu-link" href="/math/learning?class=1&student={{ student }}">
                     <div class="menu-icon">📘</div>
                     <div class="menu-title">Обучение</div>
-                    <div class="menu-description">Правила, объяснения и примеры по темам 1 класса</div>
-                </a>
-                <a class="menu-item math-menu-link" href="/math/test_setup?class=1&student={{ student }}">
-                    <div class="menu-icon">📝</div>
-                    <div class="menu-title">Тестирование</div>
-                    <div class="menu-description">Задания по тем же разделам, что и в обучении</div>
+                    <div class="menu-description">Правила, примеры и тренировка внутри каждой темы 1 класса</div>
                 </a>
             </div>
         {% elif is_testing_implemented %}
@@ -44,7 +39,7 @@
             <div class="learning-topic-box placeholder-box">
                 <h2>{{ class_num }} класс — в разработке</h2>
                 <p class="topic-lead">Материалы обучения и тестирования для этого класса будут добавлены позже.</p>
-                <p class="topic-lead">Сейчас доступны: 1 класс с обучением и тестированием, 2–3 классы с тестированием.</p>
+                <p class="topic-lead">Сейчас доступны: 1 класс с обучением и тренировками внутри тем, 2–3 классы с тестированием.</p>
             </div>
         {% endif %}
 
