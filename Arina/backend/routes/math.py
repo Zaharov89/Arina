@@ -1,10 +1,12 @@
 import random
 from typing import Any, Optional
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, abort, jsonify, render_template, request
 
 from Arina.backend.routes.common import get_int_arg, get_json_body, get_student
 from Arina.math.class_1 import MathExamplesClass1
+from Arina.math.class_1_tasks import get_topic_options_for_select
+from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS, get_class_1_topic
 from Arina.math.class_2 import MathExamplesClass2
 from Arina.math.class_3 import MathExamplesClass3
 from Arina.utils.safe_math import SafeMathExpressionError, safe_eval_math_expr
@@ -30,7 +32,8 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
 
     example_type = str(example_type).strip()
 
-    allowed_for_class_1_2 = {"all", "addsub", "+", "-"}
+    allowed_for_class_1 = set(CLASS_1_MATH_TOPICS.keys()) | {"all", "addsub", "+", "-"}
+    allowed_for_class_2 = {"all", "addsub", "+", "-"}
     allowed_for_class_3 = {
         "all",
         "addsub",
@@ -43,8 +46,11 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
         "parentheses",
     }
 
-    if class_num in (1, 2):
-        return example_type if example_type in allowed_for_class_1_2 else "all"
+    if class_num == 1:
+        return example_type if example_type in allowed_for_class_1 else "add_sub_to_20"
+
+    if class_num == 2:
+        return example_type if example_type in allowed_for_class_2 else "all"
 
     return example_type if example_type in allowed_for_class_3 else "all"
 
@@ -66,6 +72,10 @@ def parse_user_answer(raw_answer: Any) -> Optional[int]:
         return int(str(raw_answer).strip())
     except (TypeError, ValueError):
         return None
+
+
+def normalize_text_answer(value: Any) -> str:
+    return str(value).strip().lower().replace("ё", "е")
 
 
 def calculate_basic_answer(class_num: int, example_type: str, table_num: str, a: Any, op: str, b: Any) -> Optional[int]:
@@ -90,9 +100,37 @@ def math_menu():
     return render_template("math/menu.html", student=get_student())
 
 
+@math_bp.route("/math/learning")
+def math_learning():
+    return render_template(
+        "math/learning.html",
+        student=get_student(),
+        class_1_topics=CLASS_1_MATH_TOPICS,
+    )
+
+
+@math_bp.route("/math/learning/topic/<topic_id>")
+def math_learning_topic(topic_id: str):
+    topic = get_class_1_topic(topic_id)
+
+    if not topic:
+        abort(404)
+
+    return render_template(
+        "math/learning_topic.html",
+        student=get_student(),
+        topic_id=topic_id,
+        topic=topic,
+    )
+
+
 @math_bp.route("/math/test_setup")
 def math_test_setup():
-    return render_template("math/test_setup.html", student=get_student())
+    return render_template(
+        "math/test_setup.html",
+        student=get_student(),
+        class_1_topics=get_topic_options_for_select(),
+    )
 
 
 @math_bp.route("/math/test")
@@ -102,7 +140,7 @@ def math_test():
 
     test_settings = {
         "classNum": request.args.get("class", "1"),
-        "exampleType": request.args.get("type", "all"),
+        "exampleType": request.args.get("type", "add_sub_to_20"),
         "tableNum": request.args.get("table", "all"),
         "includeEquations": request.args.get("equations") == "true",
         "includeParentheses": request.args.get("parentheses") == "true",
@@ -125,7 +163,7 @@ def generate_example():
         return error_response
 
     class_num = normalize_class_num(data.get("class"), default=1)
-    example_type = normalize_math_type(class_num, data.get("type", "all"))
+    example_type = normalize_math_type(class_num, data.get("type", "add_sub_to_20" if class_num == 1 else "all"))
     table_num = data.get("table_num", "all")
     include_equation = bool(data.get("include_equation"))
     include_parentheses = bool(data.get("include_parentheses"))
@@ -135,8 +173,13 @@ def generate_example():
     if class_num == 1:
         math = MathExamplesClass1(example_type, table_num)
         example = math.generate_example()
+
+        if "question" in example and "correct" in example:
+            return jsonify(example)
+
         correct = math.calculate_answer(example["a"], example["op"], example["b"])
         example["correct"] = correct
+        example["answer_type"] = "number"
         return jsonify(example)
 
     if class_num == 2:
@@ -192,9 +235,25 @@ def check_answer():
         return jsonify({"result": "error", "message": "Не передан ответ"}), 400
 
     class_num = normalize_class_num(data.get("class"), default=1)
-    example_type = normalize_math_type(class_num, data.get("type", "all"))
+    example_type = normalize_math_type(class_num, data.get("type", "add_sub_to_20" if class_num == 1 else "all"))
     table_num = data.get("table_num", "all")
     user_answer = data.get("answer")
+    answer_type = data.get("answer_type")
+    direct_correct = data.get("correct")
+
+    if direct_correct is not None:
+        if answer_type == "choice" or isinstance(direct_correct, str):
+            status = "correct" if normalize_text_answer(user_answer) == normalize_text_answer(direct_correct) else "incorrect"
+            return jsonify({"result": status, "correct_answer": direct_correct})
+
+        user_answer_num = parse_user_answer(user_answer)
+        correct_num = parse_user_answer(direct_correct)
+
+        if user_answer_num is None or correct_num is None:
+            return jsonify({"result": "error", "message": "Введите число"}), 400
+
+        status = "correct" if user_answer_num == correct_num else "incorrect"
+        return jsonify({"result": status, "correct_answer": correct_num})
 
     user_answer_num = parse_user_answer(user_answer)
 
