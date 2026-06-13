@@ -12,8 +12,24 @@ function injectQuestionVoiceStyles() {
 
 injectQuestionVoiceStyles();
 
+function getQuestionOnlyText(text) {
+    return String(text || '')
+        .split('\n')
+        .filter(line => {
+            const normalized = line.trim().toLowerCase();
+            return normalized &&
+                !normalized.startsWith('варианты:') &&
+                !normalized.startsWith('ответ:') &&
+                !normalized.startsWith('правильный ответ:') &&
+                !normalized.startsWith('ваш ответ:');
+        })
+        .join(' ')
+        .trim();
+}
+
 function speakText(text, lang = 'ru-RU') {
-    if (!text || !String(text).trim()) return;
+    const questionOnlyText = getQuestionOnlyText(text);
+    if (!questionOnlyText) return;
 
     if (!('speechSynthesis' in window)) {
         alert('Ваш браузер не поддерживает озвучивание текста');
@@ -22,7 +38,7 @@ function speakText(text, lang = 'ru-RU') {
 
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(String(text).trim());
+    const utterance = new SpeechSynthesisUtterance(questionOnlyText);
     utterance.lang = lang;
     utterance.rate = 0.9;
 
