@@ -27,6 +27,15 @@ def test_main_pages_are_available():
         "/russian/test_setup?student=Арина&class=1&type=vowels",
         "/russian/test_setup?student=Арина&class=2",
         "/russian/test_setup?student=Арина&class=3",
+        "/world?student=Арина",
+        "/world/class/1?student=Арина",
+        "/world/class/2?student=Арина",
+        "/world/class/11?student=Арина",
+        "/world/learning?class=1&student=Арина",
+        "/world/learning/topic/living_nonliving?student=Арина",
+        "/world/test_setup?student=Арина&class=1&type=living_nonliving",
+        "/world/test?student=Арина&class=1&type=living_nonliving&questions=5",
+        "/results/world?student=Арина",
         "/english/menu?student=Арина",
         "/english/class/1?student=Арина",
         "/english/class/2?student=Арина",
@@ -63,6 +72,14 @@ def test_all_english_class_pages_are_available():
 
     for class_num in range(1, 12):
         response = client.get(f"/english/class/{class_num}?student=Арина")
+        assert response.status_code == 200, f"class {class_num} returned {response.status_code}"
+
+
+def test_all_world_class_pages_are_available():
+    client = app.test_client()
+
+    for class_num in range(1, 12):
+        response = client.get(f"/world/class/{class_num}?student=Арина")
         assert response.status_code == 200, f"class {class_num} returned {response.status_code}"
 
 
@@ -130,6 +147,41 @@ def test_russian_class_1_topic_check_answer_api():
         json={
             "answer": "звук",
             "correct": "звук",
+            "answer_type": "choice",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["result"] == "correct"
+
+
+def test_world_class_1_topic_task_api():
+    client = app.test_client()
+
+    response = client.post(
+        "/world/generate_task",
+        json={
+            "class": "1",
+            "topic": "living_nonliving",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["topic"] == "living_nonliving"
+    assert data["question"]
+    assert "correct" in data
+    assert data["answer_type"] in {"number", "choice", "text"}
+
+
+def test_world_class_1_topic_check_answer_api():
+    client = app.test_client()
+
+    response = client.post(
+        "/world/check_task",
+        json={
+            "answer": "кошка",
+            "correct": "кошка",
             "answer_type": "choice",
         },
     )
