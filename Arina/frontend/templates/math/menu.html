@@ -10,7 +10,7 @@
     <div id="dateTimeBar"></div>
     <div class="container">
         <h1 class="subject-title">Математика</h1>
-        <p class="math-menu-intro">Выбери класс. В 1 классе тренировка встроена в каждую тему обучения. 2–3 классы сохранены для тестирования. Остальные классы пока в разработке.</p>
+        <p class="math-menu-intro">Выбери класс. В 1 классе проверка знаний встроена в каждую тему. 2–3 классы сохранены для тестирования. Остальные классы пока в разработке.</p>
 
         <div class="classes-grid">
             {% for class_num in classes %}
@@ -18,7 +18,7 @@
                     <div class="class-number">{{ class_num }}</div>
                     <div class="class-title">{{ class_num }} класс</div>
                     {% if class_num == 1 %}
-                        <div class="class-status ready">Обучение</div>
+                        <div class="class-status ready">Обучение и проверка знаний</div>
                     {% elif class_num in implemented_test_classes %}
                         <div class="class-status partial">Тестирование</div>
                     {% else %}
