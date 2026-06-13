@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Обучение — Математика</title>
+    <title>Обучение и проверка знаний — Математика 1 класс</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='math/menu.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='math/learning.css') }}">
@@ -10,21 +10,22 @@
 <body>
     <div id="dateTimeBar"></div>
     <div class="container">
-        <h1 class="subject-title">Обучение — Математика</h1>
-        <p class="learning-intro">1 класс. Выбери тему: сначала изучи правило, потом потренируйся в тестировании по этому же разделу.</p>
+        <h1 class="subject-title">Обучение и проверка знаний — 1 класс</h1>
+        <p class="learning-intro">Выбери тему: внутри каждого раздела есть правила, примеры и кнопка “Тренироваться по теме”.</p>
 
         <div class="topics-grid">
             {% for topic_id, topic in class_1_topics.items() %}
                 <a class="topic-card" href="/math/learning/topic/{{ topic_id }}?student={{ student }}">
                     <div class="topic-title">{{ topic.title }}</div>
                     <div class="topic-description">{{ topic.description }}</div>
+                    <div class="topic-action-hint">Открыть правила и тренировку</div>
                 </a>
             {% endfor %}
         </div>
 
         <div class="learning-actions">
-            <a href="/math/test_setup?student={{ student }}" class="learning-btn test-link">Перейти к тестированию</a>
-            <a href="/math?student={{ student }}" class="learning-btn back-link">Назад</a>
+            <a href="/math?student={{ student }}" class="learning-btn secondary-link">К выбору класса</a>
+            <a href="/subjects?student={{ student }}" class="learning-btn back-link">Назад к предметам</a>
         </div>
     </div>
 
