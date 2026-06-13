@@ -79,6 +79,8 @@
     </div>
 
 <script>
+    const ENABLE_GOOGLE_SAVE = false;
+
     // Функция для отображения даты и времени
     function renderDateBar() {
         const now = new Date();
@@ -151,6 +153,7 @@
     }
 
     // === АВТОМАТИЧЕСКАЯ ОТПРАВКА В GOOGLE ТАБЛИЦУ ===
+    // Сейчас отключена. Позже сохранение будет перенесено в PostgreSQL.
     function autoSaveToGoogle() {
         const totalQuestions = parseInt(localStorage.getItem('totalQuestions')) || 0;
         const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
@@ -169,7 +172,7 @@
                 studentName: studentName
             })
         }).catch(err => {
-            console.error("Не удалось сохранить результат в Google Таблицу:", err);
+            console.error("Не удалось сохранить результат:", err);
         });
     }
 
@@ -259,8 +262,10 @@
         // Отображаем ошибки
         renderWrongAnswers(wrongAnswersList, answeredQuestions);
 
-        // Отправляем результат
-        autoSaveToGoogle();
+        // Сохранение временно отключено. Позже будет PostgreSQL.
+        if (ENABLE_GOOGLE_SAVE) {
+            autoSaveToGoogle();
+        }
 
         // Обработчик кнопки "Начать заново"
         document.getElementById('restartButton').addEventListener('click', function() {
