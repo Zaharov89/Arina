@@ -115,6 +115,14 @@ def math_class_page(class_num: int):
     if class_num not in SUPPORTED_MATH_CLASSES:
         abort(404)
 
+    if class_num == 1:
+        return render_template(
+            "math/learning.html",
+            student=get_student(),
+            class_1_topics=CLASS_1_MATH_TOPICS,
+            from_class_page=True,
+        )
+
     return render_template(
         "math/class_page.html",
         student=get_student(),
@@ -141,6 +149,7 @@ def math_learning():
         "math/learning.html",
         student=get_student(),
         class_1_topics=CLASS_1_MATH_TOPICS,
+        from_class_page=False,
     )
 
 
