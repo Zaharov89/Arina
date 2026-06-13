@@ -1,6 +1,6 @@
 import random
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, render_template, request
 
 from Arina.backend.routes.common import get_int_arg, get_student
 from Arina.russian_language.class_2 import russianQuestions as questions2
@@ -83,20 +83,3 @@ def russian_test():
         total_words=total_requested,
         student=student,
     )
-
-
-@russian_bp.route("/questions")
-def questions():
-    mode = request.args.get("mode", "all")
-
-    if mode == "2":
-        return jsonify(questions2)
-
-    if mode == "3":
-        return jsonify(questions3)
-
-    if mode == "all":
-        all_questions = {**questions2, **questions3}
-        return jsonify(all_questions)
-
-    return jsonify({})
