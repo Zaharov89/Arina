@@ -14,7 +14,7 @@ except ImportError:
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-template_folder = os.path.join(current_dir, "..", "templates", "stats")
+template_folder = os.path.join(current_dir, "..", "templates")
 static_folder = os.path.join(current_dir, "..", "static")
 
 stats_bp = Blueprint(
@@ -23,6 +23,12 @@ stats_bp = Blueprint(
     template_folder=template_folder,
     static_folder=static_folder,
 )
+
+
+@stats_bp.route("/stats")
+@stats_bp.route("/diary")
+def stats_page():
+    return render_template("diary/diary.html")
 
 
 def percent_to_grade(percent_correct: float) -> int:
@@ -46,9 +52,73 @@ def get_student_name_from_args() -> str:
     return student_name.strip() or DEFAULT_STUDENT
 
 
+def normalize_grade_from_payload(data: dict) -> tuple[int | None, float | None, str | None]:
+    """
+    Возвращает:
+    - grade: оценка 2–5, которую нужно сохранить в Google;
+    - score_percent: процент, если он реально был передан;
+    - error: текст ошибки, если данные некорректные.
+
+    Поддерживает оба варианта:
+    1. Новый правильный вариант:
+       {"subject": "math", "score_percent": 80, "studentName": "Арина"}
+       Тогда grade считается из процента.
+
+    2. Текущий/старый вариант:
+       {"subject": "math", "score_percent": 4, "studentName": "Арина"}
+       Тогда 4 считается уже готовой оценкой.
+    """
+    if "grade" in data:
+        try:
+            grade = int(data["grade"])
+        except (TypeError, ValueError):
+            return None, None, "Поле grade должно быть числом от 2 до 5"
+
+        if grade not in (2, 3, 4, 5):
+            return None, None, "Поле grade должно быть числом от 2 до 5"
+
+        score_percent = None
+        if "score_percent" in data:
+            try:
+                score_percent = float(data["score_percent"])
+                score_percent = max(0.0, min(score_percent, 100.0))
+            except (TypeError, ValueError):
+                score_percent = None
+
+        return grade, score_percent, None
+
+    if "score_percent" not in data:
+        return None, None, "Требуется поле score_percent или grade"
+
+    try:
+        score_value = float(data["score_percent"])
+    except (TypeError, ValueError):
+        return None, None, "Поле score_percent должно быть числом"
+
+    # ВАЖНО:
+    # Если пришло 2/3/4/5 — считаем, что фронт отправил уже готовую оценку.
+    # Это сохраняет совместимость с текущим поведением приложения.
+    if score_value in (2, 3, 4, 5):
+        return int(score_value), None, None
+
+    # Иначе считаем, что пришёл процент правильных ответов.
+    score_percent = max(0.0, min(score_value, 100.0))
+    grade = percent_to_grade(score_percent)
+    return grade, score_percent, None
+
+
 @stats_bp.route("/stats")
+@stats_bp.route("/diary")
 def stats_page():
-    """Страница дневника."""
+    """
+    Страница дневника.
+
+    Добавлены два URL:
+    - /stats
+    - /diary
+
+    Потому что в меню сейчас ссылка ведёт именно на /diary.
+    """
     return render_template("stats.html")
 
 
@@ -76,7 +146,20 @@ def api_get_stats():
         try:
             data = response.json()
         except ValueError:
-            return jsonify({"error": "Google вернул некорректный JSON"}), 502
+            return jsonify(
+                {
+                    "error": "Google вернул некорректный JSON",
+                    "raw_response": response.text[:500],
+                }
+            ), 502
+
+        if isinstance(data, dict) and data.get("error"):
+            return jsonify(
+                {
+                    "error": "Google Apps Script вернул ошибку",
+                    "google_error": data.get("error"),
+                }
+            ), 502
 
         return jsonify(data)
 
@@ -92,30 +175,33 @@ def api_save_result():
     if not isinstance(data, dict):
         return jsonify({"error": "JSON body is required"}), 400
 
-    if "subject" not in data or "score_percent" not in data:
-        return jsonify({"error": "Требуются поля: subject, score_percent"}), 400
+    if "subject" not in data:
+        return jsonify({"error": "Требуется поле subject"}), 400
 
     subject = str(data["subject"]).strip()
 
-    if not subject:
-        return jsonify({"error": "Поле subject не может быть пустым"}), 400
+    if subject not in ("russian", "english", "math"):
+        return jsonify({"error": "Поле subject должно быть russian, english или math"}), 400
 
-    try:
-        score_percent = float(data["score_percent"])
-    except (TypeError, ValueError):
-        return jsonify({"error": "Поле score_percent должно быть числом"}), 400
+    grade, score_percent, error = normalize_grade_from_payload(data)
 
-    score_percent = max(0.0, min(score_percent, 100.0))
-    grade = percent_to_grade(score_percent)
+    if error:
+        return jsonify({"error": error}), 400
 
     student_name = str(data.get("studentName", DEFAULT_STUDENT)).strip() or DEFAULT_STUDENT
 
+    # Google Apps Script сейчас ожидает поле score_percent,
+    # но фактически сохраняет его как оценку.
+    # Поэтому отправляем туда именно grade.
     payload = {
         "subject": subject,
-        "score_percent": score_percent,
+        "score_percent": grade,
         "grade": grade,
         "studentName": student_name,
     }
+
+    if score_percent is not None:
+        payload["real_score_percent"] = score_percent
 
     try:
         response = requests.post(
@@ -131,13 +217,44 @@ def api_save_result():
         )
 
         if response.status_code != 200:
-            return jsonify({"error": f"Google вернул статус {response.status_code}"}), 502
+            return jsonify(
+                {
+                    "error": f"Google вернул статус {response.status_code}",
+                    "raw_response": response.text[:500],
+                }
+            ), 502
+
+        if not response.text.strip():
+            return jsonify({"error": "Google вернул пустой ответ"}), 502
+
+        try:
+            google_data = response.json()
+        except ValueError:
+            return jsonify(
+                {
+                    "error": "Google вернул некорректный JSON",
+                    "raw_response": response.text[:500],
+                }
+            ), 502
+
+        # ВАЖНО:
+        # Apps Script при ошибке возвращает HTTP 200, но внутри JSON кладёт error.
+        # Раньше Flask это не проверял и отвечал status=saved.
+        if isinstance(google_data, dict) and google_data.get("error"):
+            return jsonify(
+                {
+                    "error": "Google Apps Script не сохранил результат",
+                    "google_error": google_data.get("error"),
+                    "sent_payload": payload,
+                }
+            ), 502
 
         return jsonify(
             {
                 "status": "saved",
-                "score_percent": score_percent,
                 "grade": grade,
+                "score_percent": score_percent,
+                "google_response": google_data,
             }
         )
 

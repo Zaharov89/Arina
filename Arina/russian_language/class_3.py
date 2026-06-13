@@ -1,7 +1,3 @@
-from flask import Flask, jsonify
-
-app = Flask(__name__)
-
 russianQuestions = {
     "праздник": "праздник",
     "вместе": "вместе",
@@ -48,9 +44,3 @@ russianQuestions = {
     "килограмм": "килограмм",
 };
 
-@app.route('/api/words')
-def get_words():
-    return jsonify(russianQuestions)
-
-if __name__ == '__main__':
-    app.run(debug=True)
