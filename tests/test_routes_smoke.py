@@ -8,9 +8,15 @@ def test_main_pages_are_available():
         "/",
         "/subjects?student=Арина",
         "/math?student=Арина",
-        "/math/learning?student=Арина",
+        "/math/class/1?student=Арина",
+        "/math/class/2?student=Арина",
+        "/math/class/3?student=Арина",
+        "/math/class/11?student=Арина",
+        "/math/learning?class=1&student=Арина",
         "/math/learning/topic/number_composition?student=Арина",
         "/math/test_setup?student=Арина&class=1&type=number_composition",
+        "/math/test_setup?student=Арина&class=2",
+        "/math/test_setup?student=Арина&class=3",
         "/russian?student=Арина",
         "/english/menu?student=Арина",
         "/diary?student=Арина",
@@ -19,6 +25,14 @@ def test_main_pages_are_available():
     for url in urls:
         response = client.get(url)
         assert response.status_code == 200, f"{url} returned {response.status_code}"
+
+
+def test_all_math_class_pages_are_available():
+    client = app.test_client()
+
+    for class_num in range(1, 12):
+        response = client.get(f"/math/class/{class_num}?student=Арина")
+        assert response.status_code == 200, f"class {class_num} returned {response.status_code}"
 
 
 def test_class_1_topic_example_api():
@@ -56,6 +70,24 @@ def test_class_1_topic_check_answer_api():
 
     assert response.status_code == 200
     assert response.get_json()["result"] == "correct"
+
+
+def test_class_2_and_3_example_api_still_work():
+    client = app.test_client()
+
+    for class_num in [2, 3]:
+        response = client.post(
+            "/generate_example",
+            json={
+                "class": str(class_num),
+                "type": "all",
+                "table_num": "all",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert "correct" in data
 
 
 def test_save_result_is_temporarily_disabled_but_available():
