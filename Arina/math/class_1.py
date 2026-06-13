@@ -5,19 +5,20 @@ from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS
 
 
 class MathExamplesClass1:
-    def __init__(self, example_type, table_num):
+    def __init__(self, example_type, table_num, used_questions=None):
         self.type = example_type
         self.table_num = table_num
+        self.used_questions = used_questions or []
 
     def generate_example(self):
         if self.type in CLASS_1_MATH_TOPICS:
-            return generate_class_1_topic_task(self.type)
+            return generate_class_1_topic_task(self.type, used_questions=self.used_questions)
 
         if self.type == "addition_to_10":
-            return generate_class_1_topic_task("addition_to_10")
+            return generate_class_1_topic_task("addition_to_10", used_questions=self.used_questions)
 
         if self.type == "subtraction_to_10":
-            return generate_class_1_topic_task("subtraction_to_10")
+            return generate_class_1_topic_task("subtraction_to_10", used_questions=self.used_questions)
 
         if self.type in ["all", "addsub"]:
             op = random.choice(["+", "-"])
