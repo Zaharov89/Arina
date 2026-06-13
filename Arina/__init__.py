@@ -1,0 +1,1 @@
+"""Arina educational application package."""
