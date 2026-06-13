@@ -127,5 +127,43 @@
         window.DIRECT_TOPIC_TEST = Boolean(window.INITIAL_MATH_CLASS === "1" && window.INITIAL_MATH_TYPE);
     </script>
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
+    <script>
+        function goBackFromQuestionCount() {
+            const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
+
+            if (window.DIRECT_TOPIC_TEST && window.INITIAL_MATH_TYPE) {
+                window.location.href = `/math/learning/topic/${window.INITIAL_MATH_TYPE}?student=${encodeURIComponent(student)}`;
+                return;
+            }
+
+            goToStep2();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.DIRECT_TOPIC_TEST) return;
+
+            const classSelect = document.getElementById('classSelect');
+            const typeSelect = document.getElementById('typeSelect');
+            const note = document.getElementById('directTopicNote');
+            const step1 = document.getElementById('testStep1');
+            const step2 = document.getElementById('testStep2');
+            const step3 = document.getElementById('testStep3');
+            const step4 = document.getElementById('testStep4');
+            const questionCountTitle = document.getElementById('questionCountStepTitle');
+            const speedTitle = document.getElementById('speedStepTitle');
+
+            if (classSelect) classSelect.value = '1';
+            if (typeof updateTypeOptionsForClass === 'function') updateTypeOptionsForClass('1');
+            if (typeSelect && window.INITIAL_MATH_TYPE) typeSelect.value = window.INITIAL_MATH_TYPE;
+
+            if (note) note.style.display = 'block';
+            if (step1) step1.style.display = 'none';
+            if (step2) step2.style.display = 'none';
+            if (step3) step3.style.display = 'block';
+            if (step4) step4.style.display = 'none';
+            if (questionCountTitle) questionCountTitle.textContent = 'Настройки теста — Шаг 1/2';
+            if (speedTitle) speedTitle.textContent = 'Настройки теста — Шаг 2/2';
+        });
+    </script>
 </body>
 </html>
