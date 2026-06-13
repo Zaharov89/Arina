@@ -28,6 +28,12 @@ def test_main_pages_are_available():
         "/russian/test_setup?student=Арина&class=2",
         "/russian/test_setup?student=Арина&class=3",
         "/english/menu?student=Арина",
+        "/english/class/1?student=Арина",
+        "/english/class/2?student=Арина",
+        "/english/class/3?student=Арина",
+        "/english/class/11?student=Арина",
+        "/english/test_setup?student=Арина&class=2",
+        "/english/test_setup?student=Арина&class=3",
         "/diary?student=Арина",
     ]
 
@@ -49,6 +55,14 @@ def test_all_russian_class_pages_are_available():
 
     for class_num in range(1, 12):
         response = client.get(f"/russian/class/{class_num}?student=Арина")
+        assert response.status_code == 200, f"class {class_num} returned {response.status_code}"
+
+
+def test_all_english_class_pages_are_available():
+    client = app.test_client()
+
+    for class_num in range(1, 12):
+        response = client.get(f"/english/class/{class_num}?student=Арина")
         assert response.status_code == 200, f"class {class_num} returned {response.status_code}"
 
 
