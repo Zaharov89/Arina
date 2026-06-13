@@ -14,6 +14,7 @@
             <div class="question-topic" id="questionTopic" style="display: none;"></div>
             <div class="question-container">
                 <div class="question-text" id="exampleDisplay">Загрузка...</div>
+                <button class="question-sound-btn" type="button" onclick="speakQuestion('exampleDisplay')">🔊 Прослушать</button>
             </div>
             <div id="speedTimerBar" class="speed-timer-bar" style="display: none;">
                 <div class="speed-timer-progress"></div>
@@ -34,6 +35,7 @@
         window.testSettings = {{ test_settings | tojson }};
         window.totalQuestions = {{ total_questions }};
     </script>
+    <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/math-choice-radio.js') }}"></script>
 </body>
