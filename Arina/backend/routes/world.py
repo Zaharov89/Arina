@@ -28,13 +28,7 @@ def normalize_used_questions(raw_used_questions: Any) -> list[str]:
 
 @world_bp.route("/world")
 def world_menu():
-    return render_template(
-        "world/menu.html",
-        student=get_student(),
-        classes=SUPPORTED_WORLD_CLASSES,
-        implemented_test_classes=IMPLEMENTED_TEST_CLASSES,
-        implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES,
-    )
+    return render_template("world/menu.html", student=get_student(), classes=SUPPORTED_WORLD_CLASSES, implemented_test_classes=IMPLEMENTED_TEST_CLASSES, implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES)
 
 
 @world_bp.route("/world/class/<int:class_num>")
@@ -43,19 +37,9 @@ def world_class_page(class_num: int):
         abort(404)
 
     if class_num == 1:
-        return render_template(
-            "world/learning.html",
-            student=get_student(),
-            class_1_topics=WORLD_CLASS_1_TOPICS,
-        )
+        return render_template("world/learning.html", student=get_student(), class_1_topics=WORLD_CLASS_1_TOPICS)
 
-    return render_template(
-        "world/class_page.html",
-        student=get_student(),
-        class_num=class_num,
-        is_learning_implemented=False,
-        is_testing_implemented=False,
-    )
+    return render_template("world/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=False)
 
 
 @world_bp.route("/world/learning")
@@ -63,19 +47,9 @@ def world_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
 
     if class_num != 1:
-        return render_template(
-            "world/class_page.html",
-            student=get_student(),
-            class_num=class_num,
-            is_learning_implemented=False,
-            is_testing_implemented=False,
-        )
+        return render_template("world/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=False)
 
-    return render_template(
-        "world/learning.html",
-        student=get_student(),
-        class_1_topics=WORLD_CLASS_1_TOPICS,
-    )
+    return render_template("world/learning.html", student=get_student(), class_1_topics=WORLD_CLASS_1_TOPICS)
 
 
 @world_bp.route("/world/learning/topic/<topic_id>")
@@ -85,34 +59,20 @@ def world_learning_topic(topic_id: str):
     if not topic:
         abort(404)
 
-    return render_template(
-        "world/learning_topic.html",
-        student=get_student(),
-        topic_id=topic_id,
-        topic=topic,
-    )
+    return render_template("world/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic)
 
 
 @world_bp.route("/world/test_setup")
 def world_test_setup():
-    return render_template(
-        "world/test_setup.html",
-        student=get_student(),
-        class_1_topics=get_topic_options_for_select(),
-    )
+    return render_template("world/test_setup.html", student=get_student(), class_1_topics=get_topic_options_for_select())
 
 
 @world_bp.route("/world/test")
 def world_test():
     topic_id = request.args.get("type", "living_nonliving")
-    total_requested = get_int_arg("questions", default=25, min_value=1, max_value=200)
+    total_requested = get_int_arg("questions", default=25, min_value=1, max_value=50)
 
-    return render_template(
-        "world/topic_test.html",
-        test_settings={"classNum": "1", "topicId": topic_id or "living_nonliving"},
-        total_questions=total_requested,
-        student=get_student(),
-    )
+    return render_template("world/topic_test.html", test_settings={"classNum": "1", "topicId": topic_id or "living_nonliving"}, total_questions=total_requested, student=get_student())
 
 
 @world_bp.route("/world/generate_task", methods=["POST"])
