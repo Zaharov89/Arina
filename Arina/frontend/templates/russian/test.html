@@ -11,23 +11,16 @@
     <div class="container">
         <div id="testBlock" class="test-block">
             <div class="question-counter" id="questionCounter">Слово №1 из {{ total_words }}</div>
-
-            <!-- 🔥 УБРАН #questionDisplay -->
             <div class="question-container">
-                <button class="question-sound-btn" id="questionSoundBtn" onclick="speakCurrentWord()">
-                    Воспроизвести 🔊
-                </button>
+                <button class="question-sound-btn" id="questionSoundBtn" onclick="speakCurrentWord()">Воспроизвести 🔊</button>
             </div>
-
             <input type="text" id="answerInput" class="answer-input" placeholder="Введите слово">
             <div id="resultMessage" class="result-message"></div>
-
             <div class="test-buttons">
                 <button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>
                 <button id="nextBtn" class="test-btn" onclick="nextQuestion()" disabled>Далее</button>
                 <button id="finishBtn" class="test-btn" onclick="finishTest()">Закончить тест</button>
             </div>
-
             <div style="text-align: center; margin-top: 20px;">
                 <div class="test-timer" id="testTimer">Время: 0:00</div>
             </div>
@@ -40,5 +33,6 @@
     </script>
 
     <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/enter-submit-next.js') }}"></script>
 </body>
 </html>
