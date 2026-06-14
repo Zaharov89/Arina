@@ -22,12 +22,13 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     first_name: Mapped[str | None] = mapped_column(String(100))
     last_name: Mapped[str | None] = mapped_column(String(100))
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
     students: Mapped[list["Student"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    activation_tokens: Mapped[list["AccountActivationToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Student(Base):
@@ -37,6 +38,7 @@ class Student(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
+    last_name: Mapped[str | None] = mapped_column(String(100))
     class_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
@@ -124,3 +126,17 @@ class TestAnswer(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
     attempt: Mapped[TestAttempt] = relationship(back_populates="answers")
+
+
+class AccountActivationToken(Base):
+    __tablename__ = "account_activation_tokens"
+    __table_args__ = {"schema": DATABASE_SCHEMA}
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    used_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+    user: Mapped[User] = relationship(back_populates="activation_tokens")
