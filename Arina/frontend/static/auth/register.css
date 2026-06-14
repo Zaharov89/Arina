@@ -1,0 +1,159 @@
+.auth-container {
+    max-width: 760px;
+}
+
+.auth-intro {
+    text-align: center;
+    color: #5a6c8d;
+    font-size: 18px;
+    margin-bottom: 24px;
+}
+
+.registration-form {
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(48,100,150,0.15);
+}
+
+.form-row {
+    margin-bottom: 18px;
+}
+
+.form-row label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #27407a;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.hint-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffd54f;
+    color: #7a4d00;
+    font-weight: 900;
+    cursor: help;
+    border: 1px solid #d69e00;
+}
+
+.form-row input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 16px;
+    font-size: 18px;
+    border: 2px solid #222;
+    border-radius: 10px;
+    background: #fff;
+    outline: none;
+}
+
+.form-row input.invalid {
+    border-color: #e74c3c;
+    background: #fff0f0;
+}
+
+.password-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.password-wrapper input {
+    flex: 1;
+}
+
+.eye-btn {
+    min-width: 54px;
+    border: 2px solid #222;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.field-error {
+    min-height: 20px;
+    color: #c0392b;
+    font-size: 14px;
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+.submit-btn {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    background: #2fd072;
+    color: #fff;
+    font-size: 19px;
+    font-weight: 800;
+    padding: 16px 20px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.submit-btn:hover {
+    background: #27ae60;
+}
+
+.form-message {
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 10px;
+    display: none;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.form-message.success {
+    display: block;
+    background: #d5f4e6;
+    color: #1f8d4e;
+    border: 2px solid #27ae60;
+}
+
+.form-message.error {
+    display: block;
+    background: #fadbd8;
+    color: #c0392b;
+    border: 2px solid #e74c3c;
+}
+
+.auth-actions {
+    margin-top: 18px;
+    text-align: center;
+}
+
+.activation-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 34px;
+    box-shadow: 0 8px 32px rgba(48,100,150,0.15);
+    text-align: center;
+}
+
+.activation-success {
+    border: 2px solid #27ae60;
+}
+
+.activation-error {
+    border: 2px solid #e74c3c;
+}
+
+.activation-already_used {
+    border: 2px solid #5d92e0;
+}
+
+.activation-link {
+    margin-top: 18px;
+}
