@@ -5,3 +5,4 @@ pytest
 SQLAlchemy
 psycopg2-binary
 python-dotenv
+PyJWT
