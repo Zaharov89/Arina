@@ -3,8 +3,10 @@ import re
 import secrets
 import smtplib
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 
+import jwt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash
@@ -19,6 +21,7 @@ PASSWORD_HAS_UPPER = re.compile(r"[A-ZА-ЯЁ]")
 PASSWORD_HAS_LOWER = re.compile(r"[a-zа-яё]")
 PASSWORD_HAS_DIGIT = re.compile(r"\d")
 PASSWORD_HAS_SPECIAL = re.compile(r"[^A-Za-zА-Яа-яЁё0-9]")
+JWT_ALGORITHM = "HS256"
 
 
 @dataclass(frozen=True)
@@ -37,6 +40,10 @@ class ValidationError(Exception):
 
 
 class EmailAlreadyRegisteredError(Exception):
+    pass
+
+
+class AuthTokenError(Exception):
     pass
 
 
@@ -126,6 +133,101 @@ def validate_registration_data(data: RegistrationData) -> None:
 
     if errors:
         raise ValidationError(errors)
+
+
+def get_jwt_secret() -> str:
+    secret = os.getenv("ARINA_JWT_SECRET") or os.getenv("ARINA_SECRET_KEY") or "arina-local-dev-secret"
+    return secret
+
+
+def get_access_token_minutes() -> int:
+    return int(os.getenv("ARINA_ACCESS_TOKEN_MINUTES", "30"))
+
+
+def get_refresh_token_days() -> int:
+    return int(os.getenv("ARINA_REFRESH_TOKEN_DAYS", "30"))
+
+
+def create_jwt_token(user: User, token_type: str, expires_delta: timedelta) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(user.id),
+        "email": user.email,
+        "type": token_type,
+        "is_active": bool(user.is_active),
+        "iat": now,
+        "exp": now + expires_delta,
+        "jti": secrets.token_urlsafe(16),
+    }
+    return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
+
+
+def issue_token_pair(user: User) -> dict:
+    if not user.is_active:
+        raise AuthTokenError("Пользователь не активирован. Сначала подтвердите почту.")
+
+    access_token = create_jwt_token(user, "access", timedelta(minutes=get_access_token_minutes()))
+    refresh_token = create_jwt_token(user, "refresh", timedelta(days=get_refresh_token_days()))
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "Bearer",
+        "access_token_expires_minutes": get_access_token_minutes(),
+        "refresh_token_expires_days": get_refresh_token_days(),
+    }
+
+
+def decode_jwt_token(token: str, expected_type: str | None = None) -> dict:
+    if not token:
+        raise AuthTokenError("Токен не передан.")
+
+    try:
+        payload = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
+    except jwt.ExpiredSignatureError as error:
+        raise AuthTokenError("Срок действия токена истёк.") from error
+    except jwt.InvalidTokenError as error:
+        raise AuthTokenError("Токен недействителен.") from error
+
+    token_type = payload.get("type")
+    if expected_type and token_type != expected_type:
+        raise AuthTokenError(f"Ожидался токен типа {expected_type}, получен {token_type}.")
+
+    return payload
+
+
+def verify_auth_token(session: Session, token: str) -> dict:
+    payload = decode_jwt_token(token, expected_type="access")
+    user = session.get(User, payload.get("sub"))
+
+    if not user:
+        raise AuthTokenError("Пользователь из токена не найден.")
+    if not user.is_active:
+        raise AuthTokenError("Пользователь не активирован.")
+
+    return {
+        "valid": True,
+        "user_id": str(user.id),
+        "email": user.email,
+        "is_active": user.is_active,
+        "token_payload": {
+            "type": payload.get("type"),
+            "exp": payload.get("exp"),
+            "iat": payload.get("iat"),
+        },
+    }
+
+
+def refresh_auth_token(session: Session, refresh_token: str) -> dict:
+    payload = decode_jwt_token(refresh_token, expected_type="refresh")
+    user = session.get(User, payload.get("sub"))
+
+    if not user:
+        raise AuthTokenError("Пользователь из refresh-токена не найден.")
+    if not user.is_active:
+        raise AuthTokenError("Пользователь не активирован.")
+
+    return issue_token_pair(user)
 
 
 def create_activation_link(token: str) -> str:
