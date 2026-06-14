@@ -12,111 +12,30 @@
         <h1 class="subject-title">Математика</h1>
         <p id="directTopicNote" class="direct-topic-note" style="display: none;">Тренировка по выбранной теме. Класс и раздел уже выбраны в обучении.</p>
 
-        <!-- Шаг 1: Выбор класса -->
         <div id="testStep1" class="settings-box">
             <h3>Настройки теста — Шаг 1/4</h3>
-            <div class="settings-row">
-                <div class="setting">
-                    <label>Класс:</label>
-                    <select id="classSelect">
-                        <option value="1">1 класс</option>
-                        <option value="2">2 класс</option>
-                        <option value="3">3 класс</option>
-                    </select>
-                </div>
-            </div>
-            <div class="nav-buttons">
-                <button class="nav-btn prev-btn" onclick="goBackToMenu()">Назад</button>
-                <button class="nav-btn next-btn" onclick="goToStep2()">Далее</button>
-            </div>
+            <div class="settings-row"><div class="setting"><label>Класс:</label><select id="classSelect"><option value="1">1 класс</option><option value="2">2 класс</option><option value="3">3 класс</option></select></div></div>
+            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goBackToMenu()">Назад</button><button class="nav-btn next-btn" onclick="goToStep2()">Далее</button></div>
         </div>
 
-        <!-- Шаг 2: Раздел / тип примеров -->
         <div id="testStep2" class="settings-box" style="display: none;">
             <h3>Настройки теста — Шаг 2/4</h3>
-            <div class="settings-row">
-                <div class="setting">
-                    <label id="typeSelectLabel">Раздел:</label>
-                    <select id="typeSelect">
-                        {% for topic in class_1_topics %}
-                            <option value="{{ topic.id }}">{{ topic.title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <!-- Таблица умножения (только для 3 класса) -->
-            <div class="settings-row" id="tableRow" style="display: none;">
-                <div class="setting">
-                    <label>Таблица умножения:</label>
-                    <select id="tableSelect">
-                        <option value="all">Все таблицы</option>
-                        <option value="2">Таблица на 2</option>
-                        <option value="3">Таблица на 3</option>
-                        <option value="4">Таблица на 4</option>
-                        <option value="5">Таблица на 5</option>
-                        <option value="6">Таблица на 6</option>
-                        <option value="7">Таблица на 7</option>
-                        <option value="8">Таблица на 8</option>
-                        <option value="9">Таблица на 9</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Доп. опции для 3 класса -->
-            <div class="settings-row" id="advancedOptions" style="display: none;">
-                <div class="setting">
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="includeEquations">
-                        <label for="includeEquations">Включать уравнения</label>
-                    </div>
-                </div>
-                <div class="setting">
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="includeParentheses">
-                        <label for="includeParentheses">Включать сложные примеры</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="nav-buttons">
-                <button class="nav-btn prev-btn" onclick="goToStep1()">Назад</button>
-                <button class="nav-btn next-btn" onclick="goToStep3()">Далее</button>
-            </div>
+            <div class="settings-row"><div class="setting"><label id="typeSelectLabel">Раздел:</label><select id="typeSelect">{% for topic in class_1_topics %}<option value="{{ topic.id }}">{{ topic.title }}</option>{% endfor %}</select></div></div>
+            <div class="settings-row" id="tableRow" style="display: none;"><div class="setting"><label>Таблица умножения:</label><select id="tableSelect"><option value="all">Все таблицы</option><option value="2">Таблица на 2</option><option value="3">Таблица на 3</option><option value="4">Таблица на 4</option><option value="5">Таблица на 5</option><option value="6">Таблица на 6</option><option value="7">Таблица на 7</option><option value="8">Таблица на 8</option><option value="9">Таблица на 9</option></select></div></div>
+            <div class="settings-row" id="advancedOptions" style="display: none;"><div class="setting"><div class="checkbox-container"><input type="checkbox" id="includeEquations"><label for="includeEquations">Включать уравнения</label></div></div><div class="setting"><div class="checkbox-container"><input type="checkbox" id="includeParentheses"><label for="includeParentheses">Включать сложные примеры</label></div></div></div>
+            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goToStep1()">Назад</button><button class="nav-btn next-btn" onclick="goToStep3()">Далее</button></div>
         </div>
 
-        <!-- Шаг 3: Количество вопросов -->
         <div id="testStep3" class="settings-box" style="display: none;">
             <h3 id="questionCountStepTitle">Настройки теста — Шаг 3/4</h3>
-            <div class="settings-row">
-                <div class="setting">
-                    <label>Количество вопросов:</label>
-                    <div class="questions-options">
-                        <button class="question-btn" onclick="selectQuestionCount(10)">10</button>
-                        <button class="question-btn active" onclick="selectQuestionCount(25)">25</button>
-                        <button class="question-btn" onclick="selectQuestionCount(50)">50</button>
-                        <button class="question-btn" onclick="selectQuestionCount(100)">100</button>
-                    </div>
-                </div>
-            </div>
-            <div class="nav-buttons">
-                <button class="nav-btn prev-btn" onclick="goBackFromQuestionCount()">Назад</button>
-                <button class="nav-btn next-btn" onclick="goToStep4()">Далее</button>
-            </div>
+            <div class="settings-row"><div class="setting"><label>Количество вопросов:</label><div class="questions-options"><button class="question-btn" onclick="selectQuestionCount(10)">10</button><button class="question-btn active" onclick="selectQuestionCount(25)">25</button><button class="question-btn" onclick="selectQuestionCount(50)">50</button></div></div></div>
+            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goBackFromQuestionCount()">Назад</button><button class="nav-btn next-btn" onclick="goToStep4()">Далее</button></div>
         </div>
 
-        <!-- Шаг 4: На скорость? -->
         <div id="testStep4" class="settings-box" style="display: none;">
             <h3 id="speedStepTitle">Настройки теста — Шаг 4/4</h3>
-            <div class="settings-row">
-                <div class="setting">
-                    <label>Решаем на скорость?</label>
-                </div>
-            </div>
-            <div class="nav-buttons">
-                <button class="nav-btn next-btn" id="speedYesBtn">Да</button>
-                <button class="nav-btn next-btn" id="speedNoBtn">Нет</button>
-            </div>
+            <div class="settings-row"><div class="setting"><label>Решаем на скорость?</label></div></div>
+            <div class="nav-buttons"><button class="nav-btn next-btn" id="speedYesBtn">Да</button><button class="nav-btn next-btn" id="speedNoBtn">Нет</button></div>
         </div>
     </div>
 
@@ -130,18 +49,11 @@
     <script>
         function goBackFromQuestionCount() {
             const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
-
-            if (window.DIRECT_TOPIC_TEST && window.INITIAL_MATH_TYPE) {
-                window.location.href = `/math/learning/topic/${window.INITIAL_MATH_TYPE}?student=${encodeURIComponent(student)}`;
-                return;
-            }
-
+            if (window.DIRECT_TOPIC_TEST && window.INITIAL_MATH_TYPE) { window.location.href = `/math/learning/topic/${window.INITIAL_MATH_TYPE}?student=${encodeURIComponent(student)}`; return; }
             goToStep2();
         }
-
         document.addEventListener('DOMContentLoaded', function () {
             if (!window.DIRECT_TOPIC_TEST) return;
-
             const classSelect = document.getElementById('classSelect');
             const typeSelect = document.getElementById('typeSelect');
             const note = document.getElementById('directTopicNote');
@@ -151,11 +63,9 @@
             const step4 = document.getElementById('testStep4');
             const questionCountTitle = document.getElementById('questionCountStepTitle');
             const speedTitle = document.getElementById('speedStepTitle');
-
             if (classSelect) classSelect.value = '1';
             if (typeof updateTypeOptionsForClass === 'function') updateTypeOptionsForClass('1');
             if (typeSelect && window.INITIAL_MATH_TYPE) typeSelect.value = window.INITIAL_MATH_TYPE;
-
             if (note) note.style.display = 'block';
             if (step1) step1.style.display = 'none';
             if (step2) step2.style.display = 'none';
