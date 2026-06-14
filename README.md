@@ -19,3 +19,10 @@ pytest
 ## Сборка exe
 
 pyinstaller ...
+
+# Подключение к БД
+Host: localhost
+Port: 5432
+Database: arina_db
+Schema: arina
+Username: postgres
