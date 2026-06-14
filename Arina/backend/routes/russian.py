@@ -48,14 +48,7 @@ def normalize_class_num(raw_class: Any, default: int = 1) -> int:
 @russian_bp.route("/russian")
 def russian_menu():
     student = get_student()
-
-    return render_template(
-        "russian/menu.html",
-        classes=SUPPORTED_RUSSIAN_CLASSES,
-        implemented_test_classes=IMPLEMENTED_TEST_CLASSES,
-        implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES,
-        student=student,
-    )
+    return render_template("russian/menu.html", classes=SUPPORTED_RUSSIAN_CLASSES, implemented_test_classes=IMPLEMENTED_TEST_CLASSES, implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES, student=student)
 
 
 @russian_bp.route("/russian/class/<int:class_num>")
@@ -64,20 +57,9 @@ def russian_class_page(class_num: int):
         abort(404)
 
     if class_num == 1:
-        return render_template(
-            "russian/learning.html",
-            student=get_student(),
-            class_1_topics=RUSSIAN_CLASS_1_TOPICS,
-            from_class_page=True,
-        )
+        return render_template("russian/learning.html", student=get_student(), class_1_topics=RUSSIAN_CLASS_1_TOPICS, from_class_page=True)
 
-    return render_template(
-        "russian/class_page.html",
-        student=get_student(),
-        class_num=class_num,
-        is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES,
-        is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES,
-    )
+    return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
 
 @russian_bp.route("/russian/learning")
@@ -85,20 +67,9 @@ def russian_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
 
     if class_num != 1:
-        return render_template(
-            "russian/class_page.html",
-            student=get_student(),
-            class_num=class_num,
-            is_learning_implemented=False,
-            is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES,
-        )
+        return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
-    return render_template(
-        "russian/learning.html",
-        student=get_student(),
-        class_1_topics=RUSSIAN_CLASS_1_TOPICS,
-        from_class_page=False,
-    )
+    return render_template("russian/learning.html", student=get_student(), class_1_topics=RUSSIAN_CLASS_1_TOPICS, from_class_page=False)
 
 
 @russian_bp.route("/russian/learning/topic/<topic_id>")
@@ -108,33 +79,18 @@ def russian_learning_topic(topic_id: str):
     if not topic:
         abort(404)
 
-    return render_template(
-        "russian/learning_topic.html",
-        student=get_student(),
-        topic_id=topic_id,
-        topic=topic,
-    )
+    return render_template("russian/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic)
 
 
 @russian_bp.route("/russian/rules")
 def russian_rules():
-    # Legacy URL. For the new class-1 flow we keep it as an alias to learning.
     return russian_learning()
 
 
 @russian_bp.route("/russian/test_setup")
 def russian_test_setup():
     student = get_student()
-    class2_words = list(questions2.keys())
-    class3_words = list(questions3.keys())
-
-    return render_template(
-        "russian/test_setup.html",
-        class_1_topics=get_topic_options_for_select(),
-        class2_words=class2_words,
-        class3_words=class3_words,
-        student=student,
-    )
+    return render_template("russian/test_setup.html", class_1_topics=get_topic_options_for_select(), class2_words=list(questions2.keys()), class3_words=list(questions3.keys()), student=student)
 
 
 @russian_bp.route("/russian/test")
@@ -142,19 +98,11 @@ def russian_test():
     student = get_student()
     class_num = request.args.get("class", "all")
     topic_id = request.args.get("type", "")
-    total_requested = get_int_arg("words", default=25, min_value=1, max_value=200)
+    total_requested = get_int_arg("words", default=25, min_value=1, max_value=50)
 
     if class_num == "1":
-        test_settings = {
-            "classNum": "1",
-            "topicId": topic_id or "sounds_and_letters",
-        }
-        return render_template(
-            "russian/topic_test_radio.html",
-            test_settings=test_settings,
-            total_questions=total_requested,
-            student=student,
-        )
+        test_settings = {"classNum": "1", "topicId": topic_id or "sounds_and_letters"}
+        return render_template("russian/topic_test_radio.html", test_settings=test_settings, total_questions=total_requested, student=student)
 
     if class_num == "2":
         all_available = list(questions2.keys())
@@ -170,12 +118,7 @@ def russian_test():
     else:
         test_words = random.choices(all_available, k=total_requested)
 
-    return render_template(
-        "russian/test.html",
-        test_words=test_words,
-        total_words=total_requested,
-        student=student,
-    )
+    return render_template("russian/test.html", test_words=test_words, total_words=total_requested, student=student)
 
 
 @russian_bp.route("/russian/generate_task", methods=["POST"])
