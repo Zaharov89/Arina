@@ -2,3 +2,6 @@ Flask
 requests
 pyinstaller
 pytest
+SQLAlchemy
+psycopg2-binary
+python-dotenv
