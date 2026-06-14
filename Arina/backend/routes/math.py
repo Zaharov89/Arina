@@ -38,17 +38,7 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
 
     allowed_for_class_1 = set(CLASS_1_MATH_TOPICS.keys()) | {"all", "addsub", "+", "-"}
     allowed_for_class_2 = {"all", "addsub", "+", "-"}
-    allowed_for_class_3 = {
-        "all",
-        "addsub",
-        "muldiv",
-        "+",
-        "-",
-        "*",
-        "/",
-        "simple_equation",
-        "parentheses",
-    }
+    allowed_for_class_3 = {"all", "addsub", "muldiv", "+", "-", "*", "/", "simple_equation", "parentheses"}
 
     if class_num == 1:
         return example_type if example_type in allowed_for_class_1 else "add_sub_to_20"
@@ -73,15 +63,7 @@ def normalize_used_questions(raw_used_questions: Any) -> list[str]:
 
 
 def build_allowed_ops(example_type: str) -> list[str]:
-    return {
-        "addsub": ["+", "-"],
-        "muldiv": ["*", "/"],
-        "all": ["+", "-", "*", "/"],
-        "+": ["+"],
-        "-": ["-"],
-        "*": ["*"],
-        "/": ["/"],
-    }.get(example_type, ["+", "-", "*", "/"])
+    return {"addsub": ["+", "-"], "muldiv": ["*", "/"], "all": ["+", "-", "*", "/"], "+": ["+"], "-": ["-"], "*": ["*"], "/": ["/"]}.get(example_type, ["+", "-", "*", "/"])
 
 
 def parse_user_answer(raw_answer: Any) -> Optional[int]:
@@ -114,13 +96,7 @@ def calculate_basic_answer(class_num: int, example_type: str, table_num: str, a:
 
 @math_bp.route("/math")
 def math_menu():
-    return render_template(
-        "math/menu.html",
-        student=get_student(),
-        classes=SUPPORTED_MATH_CLASSES,
-        implemented_test_classes=IMPLEMENTED_TEST_CLASSES,
-        implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES,
-    )
+    return render_template("math/menu.html", student=get_student(), classes=SUPPORTED_MATH_CLASSES, implemented_test_classes=IMPLEMENTED_TEST_CLASSES, implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES)
 
 
 @math_bp.route("/math/class/<int:class_num>")
@@ -129,20 +105,9 @@ def math_class_page(class_num: int):
         abort(404)
 
     if class_num == 1:
-        return render_template(
-            "math/learning.html",
-            student=get_student(),
-            class_1_topics=CLASS_1_MATH_TOPICS,
-            from_class_page=True,
-        )
+        return render_template("math/learning.html", student=get_student(), class_1_topics=CLASS_1_MATH_TOPICS, from_class_page=True)
 
-    return render_template(
-        "math/class_page.html",
-        student=get_student(),
-        class_num=class_num,
-        is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES,
-        is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES,
-    )
+    return render_template("math/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
 
 @math_bp.route("/math/learning")
@@ -150,20 +115,9 @@ def math_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
 
     if class_num != 1:
-        return render_template(
-            "math/class_page.html",
-            student=get_student(),
-            class_num=class_num,
-            is_learning_implemented=False,
-            is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES,
-        )
+        return render_template("math/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
-    return render_template(
-        "math/learning.html",
-        student=get_student(),
-        class_1_topics=CLASS_1_MATH_TOPICS,
-        from_class_page=False,
-    )
+    return render_template("math/learning.html", student=get_student(), class_1_topics=CLASS_1_MATH_TOPICS, from_class_page=False)
 
 
 @math_bp.route("/math/learning/topic/<topic_id>")
@@ -173,27 +127,18 @@ def math_learning_topic(topic_id: str):
     if not topic:
         abort(404)
 
-    return render_template(
-        "math/learning_topic.html",
-        student=get_student(),
-        topic_id=topic_id,
-        topic=topic,
-    )
+    return render_template("math/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic)
 
 
 @math_bp.route("/math/test_setup")
 def math_test_setup():
-    return render_template(
-        "math/test_setup.html",
-        student=get_student(),
-        class_1_topics=get_topic_options_for_select(),
-    )
+    return render_template("math/test_setup.html", student=get_student(), class_1_topics=get_topic_options_for_select())
 
 
 @math_bp.route("/math/test")
 def math_test():
     student = get_student()
-    total_questions = get_int_arg("questions", default=25, min_value=1, max_value=200)
+    total_questions = get_int_arg("questions", default=25, min_value=1, max_value=50)
 
     test_settings = {
         "classNum": request.args.get("class", "1"),
@@ -204,12 +149,7 @@ def math_test():
         "isSpeedMode": request.args.get("speed") == "true",
     }
 
-    return render_template(
-        "math/test.html",
-        test_settings=test_settings,
-        total_questions=total_questions,
-        student=student,
-    )
+    return render_template("math/test.html", test_settings=test_settings, total_questions=total_questions, student=student)
 
 
 @math_bp.route("/generate_example", methods=["POST"])
@@ -248,7 +188,6 @@ def generate_example():
         return jsonify(example)
 
     math = MathExamplesClass3(example_type, table_num)
-
     options = ["default"]
 
     if include_equation and any(op in allowed_ops for op in ["+", "-"]):
