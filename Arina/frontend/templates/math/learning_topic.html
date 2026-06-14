@@ -13,18 +13,24 @@
             <h1 class="subject-title">{{ topic.title }}</h1>
             <p class="topic-lead">{{ topic.description }}</p>
 
-            <h2>Правила</h2>
-            <ul class="rules-list">
-                {% for rule in topic.rules %}
-                    <li>{{ rule }}</li>
-                {% endfor %}
-            </ul>
+            <div id="learningVoiceContent">
+                <h2>Правила</h2>
+                <ul class="rules-list">
+                    {% for rule in topic.rules %}
+                        <li>{{ rule }}</li>
+                    {% endfor %}
+                </ul>
 
-            <h2>Примеры</h2>
-            <div class="examples-list">
-                {% for example in topic.examples %}
-                    <div class="example-card">{{ example }}</div>
-                {% endfor %}
+                <h2>Примеры</h2>
+                <div class="examples-list">
+                    {% for example in topic.examples %}
+                        <div class="example-card">{{ example }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="learning-voice-row">
+                <button class="learning-voice-btn" type="button" onclick="speakLearningContent('learningVoiceContent')">🔊 Прослушать правила и примеры</button>
             </div>
         </div>
 
@@ -35,6 +41,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
 </body>
 </html>
