@@ -31,12 +31,12 @@
     </div>
 
     <script>
-        // Передаём настройки из Flask
         window.testSettings = {{ test_settings | tojson }};
         window.totalQuestions = {{ total_questions }};
     </script>
     <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/question-unique-key.js') }}"></script>
     <script src="{{ url_for('static', filename='js/math-choice-radio.js') }}"></script>
 </body>
 </html>
