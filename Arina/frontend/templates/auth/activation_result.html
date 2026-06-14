@@ -11,6 +11,18 @@
         <div class="activation-box activation-{{ status }}">
             <h1>{{ title }}</h1>
             <p>{{ message }}</p>
+
+            {% if tokens %}
+                <div class="token-box">
+                    <h3>Тестовые токены для локальной проверки</h3>
+                    <p>В продакшене они будут сохраняться на клиенте безопасным способом после входа.</p>
+                    <label>Access token</label>
+                    <textarea readonly>{{ tokens.access_token }}</textarea>
+                    <label>Refresh token</label>
+                    <textarea readonly>{{ tokens.refresh_token }}</textarea>
+                </div>
+            {% endif %}
+
             <a href="/" class="submit-btn activation-link">На главную</a>
         </div>
     </div>
