@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }} — Арина</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth/register.css') }}">
+</head>
+<body>
+    <div class="container auth-container">
+        <div class="activation-box activation-{{ status }}">
+            <h1>{{ title }}</h1>
+            <p>{{ message }}</p>
+            <a href="/" class="submit-btn activation-link">На главную</a>
+        </div>
+    </div>
+</body>
+</html>
