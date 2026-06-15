@@ -17,6 +17,7 @@ SUPPORTED_MATH_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1}
 CONTROL_SLICE_TYPE = "control_slice"
+control_topic_cursor = 0
 
 
 def get_math_class_1_topics() -> dict:
@@ -28,13 +29,15 @@ def get_math_class_1_topic(topic_id: str) -> dict | None:
 
 
 def get_control_topic_id(question_number: Any, topics: dict) -> str:
+    global control_topic_cursor
     topic_ids = list(topics.keys())
     if not topic_ids:
         return "add_sub_to_20"
     try:
         index = int(question_number) - 1
     except (TypeError, ValueError):
-        index = 0
+        index = control_topic_cursor
+        control_topic_cursor += 1
     return topic_ids[index % len(topic_ids)]
 
 
@@ -137,14 +140,7 @@ def math_test():
     total_questions = get_int_arg("questions", default=25, min_value=1, max_value=50)
     if request.args.get("type") == CONTROL_SLICE_TYPE:
         total_questions = 50
-    test_settings = {
-        "classNum": request.args.get("class", "1"),
-        "exampleType": request.args.get("type", "add_sub_to_20"),
-        "tableNum": request.args.get("table", "all"),
-        "includeEquations": request.args.get("equations") == "true",
-        "includeParentheses": request.args.get("parentheses") == "true",
-        "isSpeedMode": request.args.get("speed") == "true",
-    }
+    test_settings = {"classNum": request.args.get("class", "1"), "exampleType": request.args.get("type", "add_sub_to_20"), "tableNum": request.args.get("table", "all"), "includeEquations": request.args.get("equations") == "true", "includeParentheses": request.args.get("parentheses") == "true", "isSpeedMode": request.args.get("speed") == "true"}
     return render_template("math/test.html", test_settings=test_settings, total_questions=total_questions, student=student)
 
 
@@ -160,11 +156,9 @@ def generate_example():
     include_parentheses = bool(data.get("include_parentheses"))
     used_questions = normalize_used_questions(data.get("used_questions"))
     allowed_ops = build_allowed_ops(example_type)
-
     if class_num == 1:
         if example_type == CONTROL_SLICE_TYPE:
-            topics = get_math_class_1_topics()
-            example_type = get_control_topic_id(data.get("question_number"), topics)
+            example_type = get_control_topic_id(data.get("question_number"), get_math_class_1_topics())
         math = MathExamplesClass1(example_type, table_num, used_questions=used_questions)
         example = math.generate_example()
         if "question" in example and "correct" in example:
@@ -173,14 +167,12 @@ def generate_example():
         example["correct"] = correct
         example["answer_type"] = "number"
         return jsonify(example)
-
     if class_num == 2:
         math = MathExamplesClass2(example_type, table_num)
         example = math.generate_example()
         correct = math.calculate_answer(example["a"], example["op"], example["b"])
         example["correct"] = correct
         return jsonify(example)
-
     math = MathExamplesClass3(example_type, table_num)
     options = ["default"]
     if include_equation and any(op in allowed_ops for op in ["+", "-"]):
