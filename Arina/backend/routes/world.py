@@ -3,14 +3,23 @@ from typing import Any
 from flask import Blueprint, abort, jsonify, render_template, request
 
 from Arina.backend.routes.common import get_int_arg, get_json_body, get_student
-from Arina.world.class_1_tasks import generate_world_class_1_topic_task, get_topic_options_for_select, normalize_text
-from Arina.world.class_1_topics import WORLD_CLASS_1_TOPICS, get_world_class_1_topic
+from Arina.backend.services.catalog import build_topic_options, get_topic_or_none, merge_db_topics_with_content
+from Arina.world.class_1_tasks import generate_world_class_1_topic_task, normalize_text
+from Arina.world.class_1_topics import WORLD_CLASS_1_TOPICS
 
 world_bp = Blueprint("world", __name__)
 
 SUPPORTED_WORLD_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1}
 IMPLEMENTED_LEARNING_CLASSES = {1}
+
+
+def get_world_class_1_topics() -> dict:
+    return merge_db_topics_with_content("world", 1, WORLD_CLASS_1_TOPICS)
+
+
+def get_world_class_1_topic_from_catalog(topic_id: str) -> dict | None:
+    return get_topic_or_none("world", 1, topic_id, WORLD_CLASS_1_TOPICS)
 
 
 def normalize_used_questions(raw_used_questions: Any) -> list[str]:
@@ -51,7 +60,7 @@ def world_class_page(class_num: int):
     if class_num not in SUPPORTED_WORLD_CLASSES:
         abort(404)
     if class_num == 1:
-        return render_template("world/learning.html", student=get_student(), class_1_topics=WORLD_CLASS_1_TOPICS)
+        return render_template("world/learning.html", student=get_student(), class_1_topics=get_world_class_1_topics())
     return render_template("world/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=False)
 
 
@@ -60,12 +69,12 @@ def world_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
     if class_num != 1:
         return render_template("world/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=False)
-    return render_template("world/learning.html", student=get_student(), class_1_topics=WORLD_CLASS_1_TOPICS)
+    return render_template("world/learning.html", student=get_student(), class_1_topics=get_world_class_1_topics())
 
 
 @world_bp.route("/world/learning/topic/<topic_id>")
 def world_learning_topic(topic_id: str):
-    topic = get_world_class_1_topic(topic_id)
+    topic = get_world_class_1_topic_from_catalog(topic_id)
     if not topic:
         abort(404)
     return render_template("world/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic)
@@ -73,7 +82,7 @@ def world_learning_topic(topic_id: str):
 
 @world_bp.route("/world/test_setup")
 def world_test_setup():
-    return render_template("world/test_setup.html", student=get_student(), class_1_topics=get_topic_options_for_select())
+    return render_template("world/test_setup.html", student=get_student(), class_1_topics=build_topic_options(get_world_class_1_topics()))
 
 
 @world_bp.route("/world/test")

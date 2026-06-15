@@ -4,8 +4,9 @@ from typing import Any
 from flask import Blueprint, abort, jsonify, render_template, request
 
 from Arina.backend.routes.common import get_int_arg, get_json_body, get_student
-from Arina.russian_language.class_1_tasks import generate_russian_class_1_topic_task, get_topic_options_for_select, normalize_text
-from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS, get_russian_class_1_topic
+from Arina.backend.services.catalog import build_topic_options, get_topic_or_none, merge_db_topics_with_content
+from Arina.russian_language.class_1_tasks import generate_russian_class_1_topic_task, normalize_text
+from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS
 from Arina.russian_language.class_2 import russianQuestions as questions2
 from Arina.russian_language.class_3 import russianQuestions as questions3
 
@@ -14,6 +15,14 @@ russian_bp = Blueprint("russian", __name__)
 SUPPORTED_RUSSIAN_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1}
+
+
+def get_russian_class_1_topics() -> dict:
+    return merge_db_topics_with_content("russian", 1, RUSSIAN_CLASS_1_TOPICS)
+
+
+def get_russian_class_1_topic_from_catalog(topic_id: str) -> dict | None:
+    return get_topic_or_none("russian", 1, topic_id, RUSSIAN_CLASS_1_TOPICS)
 
 
 def normalize_used_questions(raw_used_questions: Any) -> list[str]:
@@ -63,7 +72,7 @@ def russian_class_page(class_num: int):
     if class_num not in SUPPORTED_RUSSIAN_CLASSES:
         abort(404)
     if class_num == 1:
-        return render_template("russian/learning.html", student=get_student(), class_1_topics=RUSSIAN_CLASS_1_TOPICS, from_class_page=True)
+        return render_template("russian/learning.html", student=get_student(), class_1_topics=get_russian_class_1_topics(), from_class_page=True)
     return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
 
@@ -72,12 +81,12 @@ def russian_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
     if class_num != 1:
         return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
-    return render_template("russian/learning.html", student=get_student(), class_1_topics=RUSSIAN_CLASS_1_TOPICS, from_class_page=False)
+    return render_template("russian/learning.html", student=get_student(), class_1_topics=get_russian_class_1_topics(), from_class_page=False)
 
 
 @russian_bp.route("/russian/learning/topic/<topic_id>")
 def russian_learning_topic(topic_id: str):
-    topic = get_russian_class_1_topic(topic_id)
+    topic = get_russian_class_1_topic_from_catalog(topic_id)
     if not topic:
         abort(404)
     return render_template("russian/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic)
@@ -91,7 +100,7 @@ def russian_rules():
 @russian_bp.route("/russian/test_setup")
 def russian_test_setup():
     student = get_student()
-    return render_template("russian/test_setup.html", class_1_topics=get_topic_options_for_select(), class2_words=list(questions2.keys()), class3_words=list(questions3.keys()), student=student)
+    return render_template("russian/test_setup.html", class_1_topics=build_topic_options(get_russian_class_1_topics()), class2_words=list(questions2.keys()), class3_words=list(questions3.keys()), student=student)
 
 
 @russian_bp.route("/russian/test")
