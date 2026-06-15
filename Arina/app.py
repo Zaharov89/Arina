@@ -7,8 +7,7 @@ import time
 import Arina.russian_language.class_1_tasks
 import Arina.russian_language.class_1_topics
 import Arina.russian_language.vocabulary
-import Arina.english_language.class_2
-import Arina.english_language.class_3
+import Arina.english_language.vocabulary
 import Arina.math.class_1
 import Arina.math.class_1_tasks
 import Arina.math.class_1_topics
