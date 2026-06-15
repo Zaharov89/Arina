@@ -10,16 +10,18 @@ from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS
 from Arina.math.class_2 import MathExamplesClass2
 from Arina.math.class_2_topics import CLASS_2_MATH_TOPICS
 from Arina.math.class_3 import MathExamplesClass3
+from Arina.math.class_3_tasks import generate_math_class_3_topic_task
+from Arina.math.class_3_topics import CLASS_3_MATH_TOPICS
 from Arina.utils.safe_math import SafeMathExpressionError, safe_eval_math_expr
 
 math_bp = Blueprint("math", __name__)
 
 SUPPORTED_MATH_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
-IMPLEMENTED_LEARNING_CLASSES = {1, 2}
+IMPLEMENTED_LEARNING_CLASSES = {1, 2, 3}
 CONTROL_SLICE_TYPE = "control_slice"
 control_topic_cursor = 0
-TOPICS_BY_CLASS = {1: CLASS_1_MATH_TOPICS, 2: CLASS_2_MATH_TOPICS}
+TOPICS_BY_CLASS = {1: CLASS_1_MATH_TOPICS, 2: CLASS_2_MATH_TOPICS, 3: CLASS_3_MATH_TOPICS}
 
 
 def get_math_topics(class_num: int) -> dict:
@@ -55,12 +57,11 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
     if not example_type:
         return "all"
     example_type = str(example_type).strip()
-    if class_num in {1, 2}:
+    if class_num in {1, 2, 3}:
         topics = get_math_topics(class_num)
-        allowed = set(topics.keys()) | {CONTROL_SLICE_TYPE, "all", "addsub", "+", "-"}
+        allowed = set(topics.keys()) | {CONTROL_SLICE_TYPE, "all", "addsub", "muldiv", "+", "-", "*", "/", "simple_equation", "parentheses"}
         return example_type if example_type in allowed else next(iter(topics.keys()), "all")
-    allowed_for_class_3 = {"all", "addsub", "muldiv", "+", "-", "*", "/", "simple_equation", "parentheses"}
-    return example_type if example_type in allowed_for_class_3 else "all"
+    return "all"
 
 
 def normalize_used_questions(raw_used_questions: Any) -> list[str]:
@@ -137,17 +138,17 @@ def math_test_setup():
         student=get_student(),
         class_1_topics=build_topic_options(get_math_topics(1)),
         class_2_topics=build_topic_options(get_math_topics(2)),
+        class_3_topics=build_topic_options(get_math_topics(3)),
     )
 
 
 @math_bp.route("/math/test")
 def math_test():
-    student = get_student()
     total_questions = get_int_arg("questions", default=25, min_value=1, max_value=50)
     if request.args.get("type") == CONTROL_SLICE_TYPE:
         total_questions = 50
     test_settings = {"classNum": request.args.get("class", "1"), "exampleType": request.args.get("type", "add_sub_to_20"), "tableNum": request.args.get("table", "all"), "includeEquations": request.args.get("equations") == "true", "includeParentheses": request.args.get("parentheses") == "true", "isSpeedMode": request.args.get("speed") == "true"}
-    return render_template("math/test.html", test_settings=test_settings, total_questions=total_questions, student=student)
+    return render_template("math/test.html", test_settings=test_settings, total_questions=total_questions, student=get_student())
 
 
 @math_bp.route("/generate_example", methods=["POST"])
@@ -169,8 +170,7 @@ def generate_example():
         example = math.generate_example()
         if "question" in example and "correct" in example:
             return jsonify(example)
-        correct = math.calculate_answer(example["a"], example["op"], example["b"])
-        example["correct"] = correct
+        example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
         example["answer_type"] = "number"
         return jsonify(example)
     if class_num == 2:
@@ -182,6 +182,10 @@ def generate_example():
             example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
         example.setdefault("answer_type", "number")
         return jsonify(example)
+    if example_type == CONTROL_SLICE_TYPE:
+        example_type = get_control_topic_id(data.get("question_number"), get_math_topics(3), "numbers_to_1000")
+    if example_type in get_math_topics(3):
+        return jsonify(generate_math_class_3_topic_task(example_type))
     math = MathExamplesClass3(example_type, table_num)
     options = ["default"]
     if include_equation and any(op in allowed_ops for op in ["+", "-"]):
@@ -203,8 +207,7 @@ def generate_example():
         example["correct"] = correct
         return jsonify(example)
     example = math.generate_example()
-    correct = math.calculate_answer(example["a"], example["op"], example["b"])
-    example["correct"] = correct
+    example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
     return jsonify(example)
 
 
@@ -217,7 +220,6 @@ def check_answer():
         return jsonify({"result": "error", "message": "Не передан ответ"}), 400
     class_num = normalize_class_num(data.get("class"), default=1)
     example_type = normalize_math_type(class_num, data.get("type", "add_sub_to_20" if class_num == 1 else "numbers_to_100"))
-    table_num = data.get("table_num", "all")
     user_answer = data.get("answer")
     answer_type = data.get("answer_type")
     direct_correct = data.get("correct")
@@ -234,8 +236,7 @@ def check_answer():
     user_answer_num = parse_user_answer(user_answer)
     if user_answer_num is None:
         return jsonify({"result": "error", "message": "Введите число"}), 400
-    correct = calculate_basic_answer(class_num, example_type, table_num, data.get("a"), data.get("op"), data.get("b"))
+    correct = calculate_basic_answer(class_num, example_type, data.get("table_num", "all"), data.get("a"), data.get("op"), data.get("b"))
     if correct is None:
         return jsonify({"result": "error", "message": "Некорректный пример"}), 400
-    status = "correct" if user_answer_num == correct else "incorrect"
-    return jsonify({"result": status, "correct_answer": correct})
+    return jsonify({"result": "correct" if user_answer_num == correct else "incorrect", "correct_answer": correct})
