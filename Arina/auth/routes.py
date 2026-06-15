@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from Arina.auth.login_services import LoginError, login_user
+from Arina.auth.password_reset_services import PasswordResetError, request_password_reset, reset_password
 from Arina.auth.services import (
     AuthTokenError,
     EmailAlreadyRegisteredError,
@@ -50,6 +51,7 @@ def auth_status():
             "features": [
                 "registration",
                 "login",
+                "password_recovery",
                 "email_confirmation",
                 "password_hashing",
                 "input_validation",
@@ -57,7 +59,7 @@ def auth_status():
                 "verify_token",
                 "refresh_token",
             ],
-            "message": "Регистрация, авторизация, подтверждение почты и JWT-токены подключены к PostgreSQL.",
+            "message": "Регистрация, авторизация, восстановление пароля, подтверждение почты и JWT-токены подключены к PostgreSQL.",
         }
     )
 
@@ -135,6 +137,76 @@ def login_api():
             {
                 "status": "error",
                 "message": "Ошибка авторизации. Проверьте подключение к БД.",
+                "error": str(error),
+            }
+        ), 500
+
+
+@auth_bp.route("/forgot-password", methods=["GET"])
+def forgot_password_page():
+    return render_template("auth/forgot_password.html")
+
+
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password_api():
+    payload = request.get_json(silent=True) or {}
+
+    try:
+        session_factory = get_session_factory()
+        with session_factory() as session:
+            result = request_password_reset(session, payload.get("email"))
+            session.commit()
+
+        return jsonify(
+            {
+                "status": "sent",
+                "message": "Если такая почта зарегистрирована, на неё отправлена ссылка для восстановления пароля.",
+                "data": result,
+            }
+        )
+    except ValidationError as error:
+        return jsonify({"status": "validation_error", "errors": error.field_errors}), 400
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        return jsonify(
+            {
+                "status": "error",
+                "message": "Не удалось отправить ссылку восстановления пароля.",
+                "error": str(error),
+            }
+        ), 500
+
+
+@auth_bp.route("/reset-password/<token>", methods=["GET"])
+def reset_password_page(token: str):
+    return render_template("auth/reset_password.html", token=token)
+
+
+@auth_bp.route("/reset-password/<token>", methods=["POST"])
+def reset_password_api(token: str):
+    payload = request.get_json(silent=True) or {}
+
+    try:
+        session_factory = get_session_factory()
+        with session_factory() as session:
+            result = reset_password(session, token, payload)
+            session.commit()
+
+        return jsonify(
+            {
+                "status": "changed",
+                "message": "Пароль успешно заменён. Теперь можно войти с новым паролем.",
+                "data": result,
+            }
+        )
+    except ValidationError as error:
+        return jsonify({"status": "validation_error", "errors": error.field_errors}), 400
+    except PasswordResetError as error:
+        return jsonify({"status": "invalid", "message": str(error)}), 400
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        return jsonify(
+            {
+                "status": "error",
+                "message": "Не удалось заменить пароль.",
                 "error": str(error),
             }
         ), 500
