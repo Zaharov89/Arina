@@ -44,7 +44,8 @@ def merge_db_topics_with_content(
         title = db_topic.get("title") or content_topic.get("title") or topic_code
         content_topic.update(
             {
-                "id": db_topic.get("id"),
+                "id": topic_code,
+                "database_id": db_topic.get("id"),
                 "code": topic_code,
                 "title": title,
                 "short_title": content_topic.get("short_title") or title,
@@ -61,8 +62,11 @@ def merge_db_topics_with_content(
 
 
 def build_topic_options(topics: dict[str, dict[str, Any]]) -> list[dict[str, str]]:
+    """Build select options while keeping old template field names."""
     return [
         {
+            "id": topic_code,
+            "title": str(topic.get("short_title") or topic.get("title") or topic_code),
             "value": topic_code,
             "label": str(topic.get("short_title") or topic.get("title") or topic_code),
         }
