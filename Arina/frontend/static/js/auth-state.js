@@ -102,13 +102,13 @@
         style.textContent = `
             #arinaAuthPanel {
                 position: fixed;
-                top: 12px;
+                top: 9px;
                 right: 12px;
                 z-index: 9999;
                 display: flex;
                 align-items: center;
                 gap: 10px;
-                padding: 8px 10px;
+                padding: 7px 10px;
                 border-radius: 12px;
                 background: rgba(255, 255, 255, 0.96);
                 box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);

@@ -95,7 +95,7 @@ def generate_living_nonliving_task() -> dict:
         make_choice_task("Что относится к неживой природе?", ["берёза", "рыба", "вода"], "вода", "living_nonliving"),
         make_choice_task("Выбери живой объект:", ["песок", "воробей", "воздух"], "воробей", "living_nonliving"),
         make_choice_task("Выбери неживой объект:", ["гриб", "трава", "камень"], "камень", "living_nonliving"),
-        make_text_task("Кто растёт, дышит и питается?", "кошка", "living_nonliving"),
+        make_choice_task("Кто растёт, дышит и питается?", ["кошка", "камень", "солнце"], "кошка", "living_nonliving"),
     ]
     return random.choice(tasks)
 
