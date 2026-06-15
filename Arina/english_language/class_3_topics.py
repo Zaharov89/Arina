@@ -1,0 +1,15 @@
+ENGLISH_CLASS_3_TOPICS = {
+    "reading_rules_3": {"description": "Повторяем правила чтения простых слов.", "rules": ["Слушай слово и повторяй вслух.", "Некоторые сочетания букв читаются особым образом."], "examples": ["ship, chair, phone"]},
+    "personal_info_3": {"description": "Учимся рассказывать о себе.", "rules": ["My name is... — Меня зовут...", "I am ... years old — Мне ... лет."], "examples": ["My name is Ann."]},
+    "family_friends_3": {"description": "Семья и друзья.", "rules": ["friend — друг", "parents — родители"], "examples": ["This is my friend."]},
+    "numbers_1_100_en": {"description": "Считаем от 1 до 100.", "rules": ["twenty — двадцать", "thirty — тридцать"], "examples": ["twenty-one, thirty-five"]},
+    "days_months_en": {"description": "Дни недели и месяцы.", "rules": ["Monday — понедельник", "January — январь"], "examples": ["Today is Monday."]},
+    "school_subjects_en": {"description": "Школьные предметы.", "rules": ["Maths — математика", "English — английский"], "examples": ["I like English."]},
+    "daily_routine_en": {"description": "Распорядок дня.", "rules": ["get up — вставать", "go to school — идти в школу"], "examples": ["I get up at seven."]},
+    "food_likes_en": {"description": "Еда и предпочтения.", "rules": ["I like... — Мне нравится...", "I don't like... — Мне не нравится..."], "examples": ["I like apples."]},
+    "animals_3_en": {"description": "Животные.", "rules": ["wild animals — дикие животные", "pets — домашние питомцы"], "examples": ["A tiger is a wild animal."]},
+    "home_city_en": {"description": "Дом и город.", "rules": ["street — улица", "city — город"], "examples": ["I live in a city."]},
+    "present_simple_intro": {"description": "Знакомимся с Present Simple.", "rules": ["I like — мне нравится.", "He likes — ему нравится."], "examples": ["She plays tennis."]},
+    "questions_short_answers": {"description": "Вопросы и краткие ответы.", "rules": ["Do you like...? — Yes, I do. / No, I don't."], "examples": ["Do you like milk? Yes, I do."]},
+    "vocabulary_words_en_3": {"description": "Повторяем английские слова 3 класса.", "rules": ["Повторяй слово, перевод и пример."], "examples": ["holiday — праздник", "together — вместе"]},
+}

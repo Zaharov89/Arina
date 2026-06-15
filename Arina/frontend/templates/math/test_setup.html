@@ -28,9 +28,10 @@
     <script>
         window.CLASS_1_MATH_TOPICS = {{ class_1_topics | tojson }};
         window.CLASS_2_MATH_TOPICS = {{ class_2_topics | tojson }};
+        window.CLASS_3_MATH_TOPICS = {{ class_3_topics | tojson }};
         window.INITIAL_MATH_TYPE = "{{ request.args.get('type', '') }}";
         window.INITIAL_MATH_CLASS = "{{ request.args.get('class', '1') }}";
-        window.DIRECT_TOPIC_TEST = Boolean((window.INITIAL_MATH_CLASS === "1" || window.INITIAL_MATH_CLASS === "2") && window.INITIAL_MATH_TYPE);
+        window.DIRECT_TOPIC_TEST = Boolean(["1", "2", "3"].includes(window.INITIAL_MATH_CLASS) && window.INITIAL_MATH_TYPE);
     </script>
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
     <script>

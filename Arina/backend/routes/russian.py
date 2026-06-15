@@ -11,16 +11,19 @@ from Arina.russian_language.class_1_tasks import generate_russian_class_1_topic_
 from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS
 from Arina.russian_language.class_2_tasks import generate_russian_class_2_topic_task
 from Arina.russian_language.class_2_topics import RUSSIAN_CLASS_2_TOPICS
+from Arina.russian_language.class_3_tasks import generate_russian_class_3_topic_task
+from Arina.russian_language.class_3_topics import RUSSIAN_CLASS_3_TOPICS
 from Arina.russian_language.vocabulary import get_russian_vocabulary_word_list
 
 russian_bp = Blueprint("russian", __name__)
 
 SUPPORTED_RUSSIAN_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
-IMPLEMENTED_LEARNING_CLASSES = {1, 2}
+IMPLEMENTED_LEARNING_CLASSES = {1, 2, 3}
 CONTROL_SLICE_TYPE = "control_slice"
 control_topic_cursor = 0
-TOPICS_BY_CLASS = {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS}
+TOPICS_BY_CLASS = {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS, 3: RUSSIAN_CLASS_3_TOPICS}
+DEFAULT_TOPIC_BY_CLASS = {1: "sounds_and_letters", 2: "sounds_letters_review", 3: "word_structure"}
 
 
 def get_russian_topics(class_num: int) -> dict:
@@ -35,7 +38,7 @@ def get_next_control_topic_id(class_num: int) -> str:
     global control_topic_cursor
     topic_ids = list(get_russian_topics(class_num).keys())
     if not topic_ids:
-        return "sounds_and_letters" if class_num == 1 else "sounds_letters_review"
+        return DEFAULT_TOPIC_BY_CLASS.get(class_num, "sounds_and_letters")
     topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
     control_topic_cursor += 1
     return topic_id
@@ -118,7 +121,7 @@ def russian_rules():
 @russian_bp.route("/russian/test_setup")
 def russian_test_setup():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
-    return render_template("russian/test_setup.html", class_1_topics=build_topic_options(get_russian_topics(class_num if class_num in {1, 2} else 1)), student=get_student())
+    return render_template("russian/test_setup.html", class_1_topics=build_topic_options(get_russian_topics(class_num if class_num in {1, 2, 3} else 1)), student=get_student())
 
 
 @russian_bp.route("/russian/test")
@@ -129,7 +132,7 @@ def russian_test():
     total_requested = get_int_arg("words", default=25, min_value=1, max_value=50)
     if topic_id == CONTROL_SLICE_TYPE:
         total_requested = 50
-    if class_num in {"1", "2"} and topic_id:
+    if class_num in {"1", "2", "3"} and topic_id:
         return render_template("russian/topic_test_radio.html", test_settings={"classNum": class_num, "topicId": topic_id}, total_questions=total_requested, student=student)
     if class_num not in {"1", "2", "3", "all"}:
         class_num = "all"
@@ -152,13 +155,13 @@ def generate_russian_task():
     if error_response:
         return error_response
     class_num = normalize_class_num(data.get("class"), default=1)
-    if class_num not in {1, 2}:
-        return jsonify({"error": "Topic tasks are available only for Russian class 1 and 2"}), 400
-    topic_id = str(data.get("topic", "sounds_and_letters" if class_num == 1 else "sounds_letters_review")).strip()
+    topic_id = str(data.get("topic", DEFAULT_TOPIC_BY_CLASS.get(class_num, "sounds_and_letters"))).strip()
     if topic_id == CONTROL_SLICE_TYPE:
         topic_id = get_next_control_topic_id(class_num)
     used_questions = normalize_used_questions(data.get("used_questions"))
-    if class_num == 2:
+    if class_num == 3:
+        task = generate_russian_class_3_topic_task(topic_id, used_questions=used_questions)
+    elif class_num == 2:
         task = generate_russian_class_2_topic_task(topic_id, used_questions=used_questions)
     else:
         task = generate_russian_class_1_topic_task(topic_id, used_questions=used_questions)

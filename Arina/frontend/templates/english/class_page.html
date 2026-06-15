@@ -18,7 +18,7 @@
         {% elif is_testing_implemented %}
             <p class="english-menu-intro">Для {{ class_num }} класса доступны обучение, словарик и тестирование.</p>
             <div class="menu-container english-class-menu">
-                {% if class_num == 2 %}
+                {% if class_num in [2, 3] %}
                 <a class="menu-item english-menu-link" href="/english/learning?class={{ class_num }}&student={{ student }}">
                     <div class="menu-icon">📘</div><div class="menu-title">Темы обучения</div><div class="menu-description">Правила, примеры, тренировка и контрольный срез</div>
                 </a>
