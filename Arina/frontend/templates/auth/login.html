@@ -2,29 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Вход — Арина</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <title>Авторизация — Арина</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='auth/register.css') }}">
 </head>
-<body>
-    <div class="container auth-container">
-        <h1 class="subject-title">Вход</h1>
-        <p class="auth-intro">Введите почту и пароль, указанные при регистрации.</p>
+<body class="auth-page">
+    <main class="auth-card auth-card-compact">
+        <h1 class="auth-title">Авторизация</h1>
 
-        <form id="loginForm" class="registration-form" novalidate>
-            <div class="form-row">
+        <form id="loginForm" class="auth-form" novalidate>
+            <div class="auth-field">
                 <label for="loginEmail">Логин</label>
-                <input type="email" id="loginEmail" name="login" autocomplete="email" maxlength="100">
-                <div class="field-error" id="loginEmailError"></div>
+                <input type="email" id="loginEmail" name="login" autocomplete="email" maxlength="100" placeholder="Логин">
             </div>
 
-            <div class="form-row">
+            <div class="auth-field">
                 <label for="loginPassword">Пароль</label>
-                <div class="password-wrapper">
-                    <input type="password" id="loginPassword" name="password" autocomplete="current-password" maxlength="20">
-                    <button type="button" class="eye-btn" onclick="togglePassword('loginPassword')">👁</button>
+                <div class="auth-password-wrapper">
+                    <input type="password" id="loginPassword" name="password" autocomplete="current-password" maxlength="20" placeholder="Пароль">
+                    <button type="button" class="auth-eye-btn" aria-label="Показать пароль" onclick="togglePassword('loginPassword', this)">👁</button>
                 </div>
-                <div class="field-error" id="loginPasswordError"></div>
             </div>
 
             <div class="remember-row">
@@ -32,26 +28,28 @@
                     <input type="checkbox" id="rememberMe" name="remember_me">
                     <span>Запомнить меня</span>
                 </label>
-                <p class="remember-help">Если включено — вход сохранится после закрытия страницы или браузера.</p>
             </div>
 
-            <div class="form-row captcha-row" id="captchaRow" style="display: none;">
+            <div class="captcha-row" id="captchaRow" style="display: none;">
                 <label for="captchaAnswer">Проверка на человека</label>
                 <div class="captcha-question" id="captchaQuestion"></div>
                 <input type="number" id="captchaAnswer" name="captcha_answer" autocomplete="off">
                 <div class="field-error" id="captchaError"></div>
             </div>
 
-            <button type="submit" class="submit-btn">Войти</button>
+            <button type="submit" class="auth-submit-btn">Войти</button>
             <div class="form-message" id="loginMessage"></div>
         </form>
 
-        <div class="auth-actions">
-            <a href="/auth/forgot-password" class="back-btn">Восстановить пароль</a>
-            <a href="/auth/register" class="back-btn">Регистрация</a>
-            <a href="/" class="back-btn">Назад</a>
+        <div class="auth-links auth-links-center">
+            <a href="/auth/forgot-password">Забыли пароль?</a>
         </div>
-    </div>
+
+        <div class="auth-register-block">
+            <div>Впервые на сайте?</div>
+            <a href="/auth/register">Зарегистрироваться</a>
+        </div>
+    </main>
 
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>

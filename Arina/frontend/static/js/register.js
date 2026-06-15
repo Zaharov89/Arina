@@ -14,10 +14,17 @@ const fieldMap = {
     password_repeat: { input: 'passwordRepeat', error: 'passwordRepeatError' },
 };
 
-function togglePassword(inputId) {
+function togglePassword(inputId, button) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    input.type = input.type === 'password' ? 'text' : 'password';
+
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+
+    if (button) {
+        button.textContent = visible ? '🙈' : '👁';
+        button.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
+    }
 }
 
 function setFieldError(fieldName, message) {
@@ -26,8 +33,10 @@ function setFieldError(fieldName, message) {
 
     const input = document.getElementById(field.input);
     const error = document.getElementById(field.error);
+    const wrapper = input ? input.closest('.auth-password-wrapper') : null;
 
     if (input) input.classList.toggle('invalid', Boolean(message));
+    if (wrapper) wrapper.classList.toggle('invalid', Boolean(message));
     if (error) error.textContent = message || '';
 }
 

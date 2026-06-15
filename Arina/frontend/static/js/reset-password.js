@@ -4,16 +4,26 @@ const PASSWORD_HAS_LOWER = /[a-zа-яё]/;
 const PASSWORD_HAS_DIGIT = /\d/;
 const PASSWORD_HAS_SPECIAL = /[^A-Za-zА-Яа-яЁё0-9]/;
 
-function togglePassword(inputId) {
+function togglePassword(inputId, button) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    input.type = input.type === 'password' ? 'text' : 'password';
+
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+
+    if (button) {
+        button.textContent = visible ? '🙈' : '👁';
+        button.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
+    }
 }
 
 function setError(inputId, errorId, message) {
     const input = document.getElementById(inputId);
     const error = document.getElementById(errorId);
+    const wrapper = input ? input.closest('.auth-password-wrapper') : null;
+
     if (input) input.classList.toggle('invalid', Boolean(message));
+    if (wrapper) wrapper.classList.toggle('invalid', Boolean(message));
     if (error) error.textContent = message || '';
 }
 
