@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>{{ topic.title }} — Русский язык 1 класс</title>
+    <title>{{ topic.title }} — Русский язык {{ class_num }} класс</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='russian/learning.css') }}">
 </head>
@@ -12,35 +12,22 @@
         <div class="learning-topic-box">
             <h1 class="subject-title">{{ topic.title }}</h1>
             <p class="topic-lead">{{ topic.description }}</p>
-
             <div id="learningVoiceContent">
                 <h2>Правила</h2>
-                <ul class="rules-list">
-                    {% for rule in topic.rules %}
-                        <li>{{ rule }}</li>
-                    {% endfor %}
-                </ul>
-
+                <ul class="rules-list">{% for rule in topic.rules %}<li>{{ rule }}</li>{% endfor %}</ul>
                 <h2>Примеры</h2>
-                <div class="examples-list">
-                    {% for example in topic.examples %}
-                        <div class="example-card">{{ example }}</div>
-                    {% endfor %}
-                </div>
+                <div class="examples-list">{% for example in topic.examples %}<div class="example-card">{{ example }}</div>{% endfor %}</div>
             </div>
-
             <div class="learning-voice-row">
                 <button class="learning-voice-btn" type="button" onclick="speakLearningContent('learningVoiceContent')">🔊 Прослушать правила и примеры</button>
             </div>
         </div>
-
         <div class="learning-actions">
-            <a href="/russian/test_setup?class=1&type={{ topic_id }}&student={{ student }}" class="learning-btn test-link">Тренироваться по теме</a>
-            <a href="/russian/class/1?student={{ student }}" class="learning-btn secondary-link">К темам 1 класса</a>
+            <a href="/russian/test?class={{ class_num }}&type={{ topic_id }}&words=25&student={{ student }}" class="learning-btn test-link">Тренироваться по теме</a>
+            <a href="/russian/learning?class={{ class_num }}&student={{ student }}" class="learning-btn secondary-link">К темам {{ class_num }} класса</a>
             <a href="/russian?student={{ student }}" class="learning-btn back-link">К выбору класса</a>
         </div>
     </div>
-
     <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
 </body>
