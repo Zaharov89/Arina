@@ -1,9 +1,4 @@
 // ==== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====
-let class1Words = [];
-let class2Words = [];
-let class3Words = [];
-let allWords = [];
-
 let currentQuestion = 1;
 let totalWords = 25;
 let correctAnswers = 0;
@@ -20,7 +15,7 @@ let testWords = [];
 
 // ==== НАВИГАЦИЯ ====
 function goBackToMain() {
-    window.location.href = '/';
+    window.location.href = '/subjects';
 }
 
 function goBackToMenu() {
@@ -44,12 +39,24 @@ function getRussianClass1TopicOptionsHtml() {
     return topics.map(topic => `<option value="${topic.id}">${topic.title}</option>`).join('');
 }
 
+function isRussianTopicClass(classNum) {
+    return classNum === '1';
+}
+
+function isRussianVocabularyClass(classNum) {
+    return classNum === 'vocab_1' || classNum === '2' || classNum === '3' || classNum === 'all';
+}
+
+function normalizeRussianVocabularyClass(classNum) {
+    return classNum === 'vocab_1' ? '1' : classNum;
+}
+
 function setInitialRussianSetupValues() {
     const classSelect = document.getElementById('classSelect');
     if (!classSelect) return;
 
     if (window.INITIAL_RUSSIAN_CLASS) {
-        classSelect.value = window.INITIAL_RUSSIAN_CLASS;
+        classSelect.value = window.INITIAL_RUSSIAN_CLASS === '1' && !window.INITIAL_RUSSIAN_TOPIC ? 'vocab_1' : window.INITIAL_RUSSIAN_CLASS;
     }
 
     updateRussianSetupForClass(classSelect.value);
@@ -70,7 +77,7 @@ function updateRussianSetupForClass(classNum) {
     const topicSelect = document.getElementById('topicSelect');
     const questionCountLabel = document.getElementById('questionCountLabel');
 
-    if (classNum === '1') {
+    if (isRussianTopicClass(classNum)) {
         if (topicRow) topicRow.style.display = 'flex';
         if (topicSelect) topicSelect.innerHTML = getRussianClass1TopicOptionsHtml();
         if (questionCountLabel) questionCountLabel.textContent = 'Количество заданий:';
@@ -111,7 +118,7 @@ function initDirectRussianTopicMode() {
     if (title) title.textContent = 'Настройки теста — Шаг 1/1';
 }
 
-// ==== ТЕСТИРОВАНИЕ 2-3 КЛАССА ====
+// ==== ТЕСТИРОВАНИЕ СЛОВАРНЫХ СЛОВ ====
 function goToStep1() {
     document.getElementById('testStep1').style.display = 'block';
     document.getElementById('testStep2').style.display = 'none';
@@ -131,20 +138,12 @@ function goToStep3() {
     const classSelect = document.getElementById('classSelect');
     const classNum = classSelect ? classSelect.value : '1';
 
-    if (classNum !== '1') {
-        document.getElementById('testStep1').style.display = 'none';
-        document.getElementById('testStep2').style.display = 'none';
-        document.getElementById('testStep3').style.display = 'block';
-        const title = document.getElementById('questionCountStepTitle');
-        if (title) title.textContent = 'Настройки теста — Шаг 2/2';
-        return;
-    }
-
     document.getElementById('testStep1').style.display = 'none';
     document.getElementById('testStep2').style.display = 'none';
     document.getElementById('testStep3').style.display = 'block';
+
     const title = document.getElementById('questionCountStepTitle');
-    if (title) title.textContent = 'Настройки теста — Шаг 3/3';
+    if (title) title.textContent = isRussianVocabularyClass(classNum) ? 'Настройки теста — Шаг 2/2' : 'Настройки теста — Шаг 3/3';
 }
 
 function activateWordCountButton(count) {
@@ -199,13 +198,13 @@ function speakCurrentWord() {
     if (currentWord) {
         speakWord(currentWord);
     } else {
-        console.error("Нет слова для воспроизведения");
+        console.error('Нет слова для воспроизведения');
     }
 }
 
 function speakWord(word) {
     if (!('speechSynthesis' in window)) {
-        alert("Ваш браузер не поддерживает озвучку текста");
+        alert('Ваш браузер не поддерживает озвучку текста');
         return;
     }
 
@@ -213,7 +212,7 @@ function speakWord(word) {
     utterance.lang = 'ru-RU';
     utterance.rate = 0.8;
     const voices = speechSynthesis.getVoices();
-    let selectedVoice = voices.find(voice => voice.lang.startsWith('ru'));
+    const selectedVoice = voices.find(voice => voice.lang.startsWith('ru'));
     if (selectedVoice) {
         utterance.voice = selectedVoice;
     }
@@ -239,7 +238,7 @@ function checkAnswer() {
         const normalizedCorrect = normalizeYo(correctWord);
 
         if (normalizedUser === normalizedCorrect) {
-            document.getElementById('resultMessage').textContent = "✓ Правильно!";
+            document.getElementById('resultMessage').textContent = '✓ Правильно!';
             document.getElementById('resultMessage').className = 'result-message correct';
             correctAnswers++;
         } else {
@@ -283,7 +282,8 @@ function startRussianTest() {
 
     const activeBtn = document.querySelector('.question-btn.active');
     const totalWords = activeBtn ? parseInt(activeBtn.getAttribute('data-count')) : 25;
-    const classNum = classSelect.value;
+    const selectedClass = classSelect.value;
+    const classNum = normalizeRussianVocabularyClass(selectedClass);
     const topicSelect = document.getElementById('topicSelect');
     const topicId = topicSelect ? topicSelect.value : '';
     const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
@@ -294,7 +294,7 @@ function startRussianTest() {
         student: student,
     });
 
-    if (classNum === '1' && topicId) {
+    if (isRussianTopicClass(selectedClass) && topicId) {
         params.set('type', topicId);
     }
 
@@ -444,26 +444,19 @@ function finishRussianTopicTest() {
 
 // ==== УНИВЕРСАЛЬНЫЕ ФУНКЦИИ ====
 function renderDateBar() {
-    const dateTimeBar = document.getElementById("dateTimeBar");
+    const dateTimeBar = document.getElementById('dateTimeBar');
     if (!dateTimeBar) return;
 
     const now = new Date();
-    const monthsRu = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+    const monthsRu = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
     dateTimeBar.textContent =
         `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ` +
-        `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 }
 
 // ==== ИНИЦИАЛИЗАЦИЯ ====
 document.addEventListener('DOMContentLoaded', function () {
     renderDateBar();
-
-    if (typeof window.CLASS1_WORDS !== 'undefined') {
-        class1Words = window.CLASS1_WORDS;
-        class2Words = window.CLASS2_WORDS;
-        class3Words = window.CLASS3_WORDS;
-        allWords = [...class1Words, ...class2Words, ...class3Words];
-    }
 
     const classSelect = document.getElementById('classSelect');
     if (classSelect) {
@@ -532,9 +525,5 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
-    }
-
-    if ('speechSynthesis' in window) {
-        speechSynthesis.onvoiceschanged = () => {};
     }
 });
