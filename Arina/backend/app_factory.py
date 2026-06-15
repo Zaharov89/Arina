@@ -9,6 +9,7 @@ from Arina.backend.routes.results import results_bp
 from Arina.backend.routes.russian import russian_bp
 from Arina.backend.routes.vocabulary_api import vocabulary_api_bp
 from Arina.backend.routes.world import world_bp
+from Arina.auth.me_routes import auth_me_bp
 from Arina.auth.routes import auth_bp
 from Arina.config import FLASK_HOST, FLASK_PORT
 from Arina.database.routes import database_bp
@@ -49,6 +50,7 @@ def register_blueprints(app: Flask) -> None:
     # Future architecture sections. They are registered now so URLs are ready,
     # but real implementation will be added later.
     app.register_blueprint(auth_bp)
+    app.register_blueprint(auth_me_bp)
     app.register_blueprint(database_bp)
 
     print(f"✅ Flask blueprints registered: {', '.join(app.blueprints.keys())}")
