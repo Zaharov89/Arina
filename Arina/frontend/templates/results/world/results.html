@@ -13,28 +13,13 @@
             <div class="stats-container">
                 <div class="stats-left">
                     <div class="results-grid">
-                        <div class="result-item correct-answers">
-                            <div class="result-label">Правильных ответов</div>
-                            <div class="result-value" id="correctAnswersValue">0 из 0</div>
-                        </div>
-                        <div class="result-item percentage">
-                            <div class="result-label">Процент правильных ответов</div>
-                            <div class="result-value" id="percentageValue">0%</div>
-                        </div>
-                        <div class="result-item time-stats">
-                            <div class="result-label">Среднее время на ответ</div>
-                            <div class="result-value" id="avgTimeValue">0.0 сек</div>
-                        </div>
-                        <div class="result-item record">
-                            <div class="result-label">Длительность тренировки</div>
-                            <div class="result-value" id="totalTimeValue">0 секунд</div>
-                        </div>
+                        <div class="result-item correct-answers"><div class="result-label">Правильных ответов</div><div class="result-value" id="correctAnswersValue">0 из 0</div></div>
+                        <div class="result-item percentage"><div class="result-label">Процент правильных ответов</div><div class="result-value" id="percentageValue">0%</div></div>
+                        <div class="result-item time-stats"><div class="result-label">Среднее время на ответ</div><div class="result-value" id="avgTimeValue">0.0 сек</div></div>
+                        <div class="result-item record"><div class="result-label">Длительность тренировки</div><div class="result-value" id="totalTimeValue">0 секунд</div></div>
                     </div>
                 </div>
-                <div class="grade-box">
-                    <div class="grade-label">Общая оценка</div>
-                    <div class="grade" id="finalGrade">5</div>
-                </div>
+                <div class="grade-box"><div class="grade-label">Общая оценка</div><div class="grade" id="finalGrade">5</div></div>
             </div>
             <div class="divider"></div>
             <div class="section-title">Ошибки:</div>
@@ -92,6 +77,14 @@
         } else {
             wrongBlock.innerHTML = wrongList.map(item => `<div class="wrong-item"><strong>${item.question || 'Задание'}</strong><br>Ваш ответ: ${item.userAnswer}<br>Правильный ответ: ${item.correctAnswer}</div>`).join('');
         }
+    </script>
+    <script src="{{ url_for('static', filename='js/results-save.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof saveTestAttemptResult === 'function') {
+                saveTestAttemptResult('world', localStorage.getItem('resultClassNumber') || '1', localStorage.getItem('resultTopicCode') || '');
+            }
+        });
     </script>
 </body>
 </html>
