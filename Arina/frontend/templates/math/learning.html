@@ -1,34 +1,4 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Правила и тренировки — Математика {{ class_num }} класс</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='math/menu.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='math/learning.css') }}">
-</head>
-<body>
-    <div id="dateTimeBar"></div>
-    <div class="container">
-        <h1 class="subject-title">Правила и тренировки — {{ class_num }} класс</h1>
-        <p class="learning-intro">Выбери тему: внутри каждого раздела есть правила, примеры и тренировка.</p>
-        <div class="topics-grid">
-            {% for topic_id, topic in topics.items() %}
-                <a class="topic-card" href="/math/learning/topic/{{ topic_id }}?class={{ class_num }}&student={{ student }}">
-                    <div class="topic-title">{{ topic.title }}</div>
-                    <div class="topic-description">{{ topic.description }}</div>
-                    <div class="topic-action-hint">Открыть правила и тренировку</div>
-                </a>
-            {% endfor %}
-            <a class="topic-card control-card" href="/math/test?class={{ class_num }}&type=control_slice&questions=50&speed=false&student={{ student }}">
-                <div class="control-badge">Итоговая проверка</div>
-                <div class="topic-title">Контрольный срез</div>
-                <div class="topic-description">50 случайных заданий по всем темам математики за {{ class_num }} класс. Каждая тема обязательно попадёт в тест.</div>
-                <div class="topic-action-hint">Сразу начать 50 заданий</div>
-            </a>
-        </div>
-        <div class="learning-actions"><a href="/math?student={{ student }}" class="learning-btn secondary-link">К выбору класса</a><a href="/subjects?student={{ student }}" class="learning-btn back-link">Назад к предметам</a></div>
-    </div>
-    <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
-</body>
-</html>
+<head><meta charset="UTF-8"><title>Правила и тренировки — Математика {{ class_num }} класс</title><link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='math/menu.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='math/learning.css') }}"><style>.info-topic-card{cursor:default}.multiplication-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;font-size:13px;color:#27407a}</style></head>
+<body><div id="dateTimeBar"></div><div class="container"><h1 class="subject-title">Правила и тренировки — {{ class_num }} класс</h1><p class="learning-intro">Выбери тему: внутри каждого раздела есть правила, примеры и тренировка.</p><div class="topics-grid">{% if class_num == 2 %}<div class="topic-card info-topic-card"><div class="topic-title">Таблица умножения</div><div class="topic-description">Повтори таблицу перед темами 2 класса.</div><div class="multiplication-mini">{% for n in range(2, 10) %}<span>{{ n }}×2={{ n*2 }}</span><span>{{ n }}×3={{ n*3 }}</span><span>{{ n }}×4={{ n*4 }}</span><span>{{ n }}×5={{ n*5 }}</span><span>{{ n }}×10={{ n*10 }}</span>{% endfor %}</div></div>{% endif %}{% for topic_id, topic in topics.items() %}<a class="topic-card" href="/math/learning/topic/{{ topic_id }}?class={{ class_num }}&student={{ student }}"><div class="topic-title">{{ topic.title }}</div><div class="topic-description">{{ topic.description }}</div><div class="topic-action-hint">Открыть правила и тренировку</div></a>{% endfor %}<a class="topic-card control-card" href="/math/test?class={{ class_num }}&type=control_slice&questions=50&speed=false&student={{ student }}"><div class="control-badge">Итоговая проверка</div><div class="topic-title">Контрольный срез</div><div class="topic-description">50 случайных заданий по всем темам математики за {{ class_num }} класс. Каждая тема обязательно попадёт в тест.</div></a></div><div class="learning-actions"><a href="/subjects?student={{ student }}" class="learning-btn back-link">Назад к предметам</a><a href="/math?student={{ student }}" class="learning-btn secondary-link">К выбору класса</a></div></div><script src="{{ url_for('static', filename='js/math-common.js') }}"></script></body></html>
