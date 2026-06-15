@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Подробное обучение — {{ topic.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/learning.css') }}">
+    <style>
+        .detail-card { background: #f8fafd; border: 2px solid #d7e7fb; border-radius: 16px; padding: 18px; margin: 14px 0; color: #27407a; line-height: 1.55; }
+        .detail-card strong { color: #1f2d4d; }
+        .visual-rule { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; background: #fff; border-radius: 14px; padding: 14px; margin-top: 12px; }
+        .visual-box { border-radius: 14px; padding: 16px; text-align: center; font-weight: 900; }
+        .green-box { background: #d5f4e6; color: #137333; }
+        .orange-box { background: #fff4d6; color: #a15c00; }
+        .english-word-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(120px, 1fr) 44px; gap: 12px; align-items: center; }
+        .speak-word-btn { width: 42px; height: 42px; border: 0; border-radius: 12px; background: #5d92e0; color: #fff; font-weight: 800; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <div class="learning-topic-box">
+            <h1 class="subject-title">Подробное обучение: {{ topic.title }}</h1>
+            <p class="topic-lead">{{ topic.description }}</p>
+            <h2>Разбор правила</h2>
+            {% for rule in topic.rules %}
+                <div class="detail-card"><strong>Шаг {{ loop.index }}.</strong> {{ rule }}<br><span>Прочитай правило, повтори вслух и найди похожий пример ниже.</span></div>
+            {% else %}
+                <div class="detail-card">Подробное правило по этой теме будет добавлено.</div>
+            {% endfor %}
+            <h2>Примеры</h2>
+            <div class="examples-list">{% for example in topic.examples %}<div class="example-card">{{ example }}</div>{% endfor %}</div>
+            {% if topic_id == 'home_city_en' %}
+            <h2>Картинка-подсказка: близко и далеко</h2>
+            <div class="visual-rule"><div class="visual-box green-box">THIS<br><small>этот предмет рядом</small></div><div>→</div><div class="visual-box orange-box">THAT<br><small>тот предмет далеко</small></div></div>
+            {% endif %}
+            {% if topic_id == 'present_simple_intro' %}
+            <h2>Картинка-подсказка: окончание -s</h2>
+            <div class="visual-rule"><div class="visual-box green-box">I / YOU / WE / THEY<br><small>I like</small></div><div>→</div><div class="visual-box orange-box">HE / SHE / IT<br><small>He likes</small></div></div>
+            {% endif %}
+            {% if topic_words %}
+            <h2>Слова к теме</h2>
+            <div class="examples-list">
+                {% for word in topic_words %}
+                    <div class="example-card english-word-row"><strong>{{ word.english_word }}</strong><span>{{ word.russian_translation }}</span><button class="speak-word-btn" type="button" onclick="speakEnglishWord('{{ word.english_word }}')">🔊</button></div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="learning-actions">
+            <a href="/english/menu?student={{ student }}" class="learning-btn back-link">К выбору класса</a>
+            <a href="/english/learning?class={{ class_num }}&student={{ student }}" class="learning-btn secondary-link">К темам {{ class_num }} класса</a>
+            <a href="/english/learning/topic/{{ topic_id }}?class={{ class_num }}&student={{ student }}" class="learning-btn secondary-link">К правилам</a>
+            <a href="/english/topic-test?class={{ class_num }}&type={{ topic_id }}&questions=25&student={{ student }}" class="learning-btn test-link">Тренироваться по теме</a>
+        </div>
+    </div>
+    <script>function speakEnglishWord(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=0.85;speechSynthesis.speak(u);}</script>
+</body>
+</html>
