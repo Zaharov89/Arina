@@ -10,15 +10,13 @@
     <div id="dateTimeBar"></div>
     <div class="container">
         <h1 class="subject-title">Словарные слова</h1>
-        <div id="testStep1" class="settings-box">
-            <h3>Настройки теста — Шаг 1/2</h3>
-            <div class="settings-row"><div class="setting"><label>Класс:</label><select id="classSelect"><option value="vocab_1">1 класс — слова 1 класса</option><option value="vocab_2">2 класс — слова 1 и 2 класса</option><option value="vocab_3">3 класс — слова 1, 2 и 3 класса</option></select></div></div>
-            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goBackToMenu()">Назад</button><button class="nav-btn next-btn" onclick="goToStep2()">Далее</button></div>
-        </div>
-        <div id="testStep2" class="settings-box" style="display: none;">
-            <h3 id="questionCountStepTitle">Настройки теста — Шаг 2/2</h3>
+        <input type="hidden" id="classSelect" value="vocab_{{ request.args.get('class', '1') }}">
+        <div id="testStep1" style="display:none;"></div>
+        <div id="testStep2" class="settings-box">
+            <h3 id="questionCountStepTitle">Настройки теста — Шаг 1/1</h3>
+            <p class="setup-hint">Класс: {{ request.args.get('class', '1') }}. Слова берутся каскадом: 1 класс — только 1 класс, 2 класс — 1 и 2 класс, 3 класс — 1, 2 и 3 класс.</p>
             <div class="settings-row"><div class="setting"><label id="questionCountLabel">Количество слов:</label><div class="questions-options" id="wordCountButtons"><button class="question-btn" data-count="10">10</button><button class="question-btn active" data-count="25">25</button><button class="question-btn" data-count="50">50</button></div></div></div>
-            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goToStep1()">Назад</button><button class="nav-btn next-btn" onclick="startRussianTest()">Начать тест</button></div>
+            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goBackToVocabularyMenu()">Назад</button><button class="nav-btn next-btn" onclick="startRussianTest()">Начать тест</button></div>
         </div>
         <div id="testStep3" style="display:none;"></div>
     </div>
@@ -27,16 +25,18 @@
         window.INITIAL_RUSSIAN_CLASS = "{{ request.args.get('class', '1') }}";
         window.INITIAL_RUSSIAN_TOPIC = "";
         window.DIRECT_RUSSIAN_TOPIC_TEST = false;
+        function goBackToVocabularyMenu() { const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; window.location.href = `/russian/vocabulary-menu?class=${window.INITIAL_RUSSIAN_CLASS || '1'}&student=${encodeURIComponent(student)}`; }
     </script>
     <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
     <script>
         function normalizeRussianVocabularyClass(classNum) { return String(classNum || 'vocab_1').replace('vocab_', ''); }
         function isRussianTopicClass() { return false; }
         function isRussianVocabularyClass() { return true; }
-        function setInitialRussianSetupValues() { const classSelect = document.getElementById('classSelect'); if (!classSelect) return; const initial = String(window.INITIAL_RUSSIAN_CLASS || '1').replace('vocab_', ''); classSelect.value = `vocab_${initial}`; }
+        function setInitialRussianSetupValues() {}
         function updateRussianSetupForClass() {}
-        function goToStep2() { document.getElementById('testStep1').style.display = 'none'; document.getElementById('testStep2').style.display = 'block'; }
-        function startRussianTest() { const classSelect = document.getElementById('classSelect'); const activeBtn = document.querySelector('.question-btn.active'); const totalWords = activeBtn ? parseInt(activeBtn.getAttribute('data-count')) : 25; const classNum = normalizeRussianVocabularyClass(classSelect ? classSelect.value : 'vocab_1'); const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; const params = new URLSearchParams({ class: classNum, words: totalWords, student: student }); window.location.href = `/russian/test?${params.toString()}`; }
+        function goToStep1() { goBackToVocabularyMenu(); }
+        function goToStep2() {}
+        function startRussianTest() { const activeBtn = document.querySelector('.question-btn.active'); const totalWords = activeBtn ? parseInt(activeBtn.getAttribute('data-count')) : 25; const classNum = normalizeRussianVocabularyClass(document.getElementById('classSelect')?.value || 'vocab_1'); const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; const params = new URLSearchParams({ class: classNum, words: totalWords, student: student }); window.location.href = `/russian/test?${params.toString()}`; }
         document.getElementById('wordCountButtons').addEventListener('click', function(e) { if (e.target.classList.contains('question-btn')) { document.querySelectorAll('.question-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); } });
     </script>
 </body>
