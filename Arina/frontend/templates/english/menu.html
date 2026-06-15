@@ -1,51 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Английский язык</title>
-    <link rel="stylesheet" href="/static/shared.css">
-    <link rel="stylesheet" href="/static/english/menu.css">
-    <script src="/static/js/english-common.js" defer></script>
-</head>
+<head><meta charset="UTF-8"><title>Английский язык</title><link rel="stylesheet" href="/static/shared.css"><link rel="stylesheet" href="/static/english/menu.css"><script src="/static/js/english-common.js" defer></script></head>
 <body>
-    <div id="dateTimeBar"></div>
-    <div class="container">
-        <h1 class="subject-title">Английский язык</h1>
-        <p class="english-menu-intro">Выбери класс. В 1 классе английский язык не изучается по школьной программе. 2–3 классы доступны для словарика, правил и тестирования. Остальные классы пока в разработке.</p>
-
-        <div class="classes-grid">
-            {% for class_num in classes %}
-                {% if class_num == 1 %}
-                    <div class="class-card class-card-disabled class-card-locked">
-                        <div class="class-number">1</div>
-                        <div class="class-title">1 класс</div>
-                        <div class="class-status unavailable">Не изучается</div>
-                        <div class="class-note">Английский язык не изучается в 1 классе по школьной программе</div>
-                    </div>
-                {% else %}
-                    <a href="/english/class/{{ class_num }}?student={{ student }}" class="class-card {% if class_num not in implemented_test_classes %}class-card-disabled{% endif %}">
-                        <div class="class-number">{{ class_num }}</div>
-                        <div class="class-title">{{ class_num }} класс</div>
-                        {% if class_num in implemented_test_classes %}
-                            <div class="class-status partial">Словарик и тестирование</div>
-                        {% else %}
-                            <div class="class-status planned">В разработке</div>
-                        {% endif %}
-                    </a>
-                {% endif %}
-            {% endfor %}
-        </div>
-
-        <div class="menu-actions">
-            <a href="/subjects?student={{ student }}" class="back-btn english-back-link">Назад к предметам</a>
-        </div>
-    </div>
-
-    <script>
-        function goBackToSubjects() {
-            const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
-            window.location.href = `/subjects?student=${encodeURIComponent(student)}`;
-        }
-    </script>
-</body>
-</html>
+<div id="dateTimeBar"></div><div class="container"><h1 class="subject-title">Английский язык</h1><p class="english-menu-intro">Выбери класс. В 1 классе английский язык не изучается по школьной программе. Для реализованных классов доступны правила, тренировки, словарик и контрольный срез.</p><div class="classes-grid">{% for class_num in classes %}{% if class_num == 1 %}<div class="class-card class-card-disabled class-card-locked"><div class="class-number">1</div><div class="class-title">1 класс</div><div class="class-status unavailable">Не изучается</div><div class="class-note">Английский язык не изучается в 1 классе по школьной программе</div></div>{% else %}<a href="/english/class/{{ class_num }}?student={{ student }}" class="class-card {% if class_num not in implemented_test_classes %}class-card-disabled{% endif %}"><div class="class-number">{{ class_num }}</div><div class="class-title">{{ class_num }} класс</div>{% if class_num in implemented_learning_classes %}<div class="class-status ready">Правила и тренировки</div>{% elif class_num in implemented_test_classes %}<div class="class-status partial">Правила и тренировки</div>{% else %}<div class="class-status planned">В разработке</div>{% endif %}</a>{% endif %}{% endfor %}</div><div class="menu-actions"><a href="/subjects?student={{ student }}" class="back-btn english-back-link">Назад к предметам</a></div></div>
+</body></html>
