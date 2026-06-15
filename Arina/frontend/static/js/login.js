@@ -93,7 +93,7 @@ function validateCaptcha() {
 }
 
 function clearAuthStorage() {
-    const keys = ['arinaAccessToken', 'arinaRefreshToken', 'arinaUserId', 'arinaUserEmail', 'arinaRememberMe'];
+    const keys = ['arinaAccessToken', 'arinaRefreshToken', 'arinaUserId', 'arinaUserEmail', 'arinaUserFirstName', 'arinaUserLastName', 'arinaUserDisplayName', 'arinaRememberMe'];
     keys.forEach(key => {
         localStorage.removeItem(key);
         sessionStorage.removeItem(key);
@@ -108,13 +108,16 @@ function saveAuthData(data, rememberMe) {
     storage.setItem('arinaRefreshToken', data.refresh_token);
     storage.setItem('arinaUserId', data.user_id);
     storage.setItem('arinaUserEmail', data.email);
+    storage.setItem('arinaUserFirstName', data.first_name || '');
+    storage.setItem('arinaUserLastName', data.last_name || '');
+    storage.setItem('arinaUserDisplayName', data.display_name || data.email);
     storage.setItem('arinaRememberMe', String(rememberMe));
 }
 
 function getNextUrl() {
     const next = new URLSearchParams(window.location.search).get('next');
-    if (!next || !next.startsWith('/')) return '/';
-    if (next.startsWith('/auth/')) return '/';
+    if (!next || !next.startsWith('/')) return '/subjects';
+    if (next === '/' || next.startsWith('/auth/')) return '/subjects';
     return next;
 }
 

@@ -31,6 +31,9 @@ def current_user_api():
                 "data": {
                     "user_id": result["user_id"],
                     "email": result["email"],
+                    "first_name": result["first_name"],
+                    "last_name": result["last_name"],
+                    "display_name": result["display_name"],
                     "is_active": result["is_active"],
                 },
             }
