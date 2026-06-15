@@ -1,39 +1,5 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Тест — Математика</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='math/test.css') }}">
-</head>
+<head><meta charset="UTF-8"><title>Тест — Математика</title><link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='math/test.css') }}"></head>
 <body>
-    <div id="dateTimeBar"></div>
-    <div class="container">
-        <div id="testBlock" class="test-block">
-            <div class="question-counter" id="questionCounter">Пример №1 из 25</div>
-            <div class="question-topic" id="questionTopic" style="display: none;"></div>
-            <div class="question-container">
-                <div class="question-text" id="exampleDisplay">Загрузка...</div>
-                {% if test_settings.classNum == '1' %}
-                <button class="question-sound-btn" type="button" onclick="speakQuestion('exampleDisplay')">🔊 Прослушать</button>
-                {% endif %}
-            </div>
-            <div id="speedTimerBar" class="speed-timer-bar" style="display: none;"><div class="speed-timer-progress"></div></div>
-            <input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off">
-            <div id="resultMessage" class="result-message"></div>
-            <div class="test-buttons">
-                <button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>
-                <button id="nextBtn" class="test-btn" onclick="nextQuestion()" disabled>Далее</button>
-                <button id="finishBtn" class="test-btn" onclick="finishTest()">Закончить тест</button>
-            </div>
-            <div class="test-timer" id="testTimer">Время: 0:00</div>
-        </div>
-    </div>
-    <script>window.testSettings = {{ test_settings | tojson }}; window.totalQuestions = {{ total_questions }};</script>
-    {% if test_settings.classNum == '1' %}<script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>{% endif %}
-    <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/question-unique-key.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/math-choice-radio.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/enter-submit-next.js') }}"></script>
-</body>
-</html>
+<div id="dateTimeBar"></div><div class="container"><div id="testBlock" class="test-block"><div class="question-counter" id="questionCounter">Пример №1 из 25</div><div class="question-topic" id="questionTopic" style="display: none;"></div><div class="question-container"><div class="question-text" id="exampleDisplay">Загрузка...</div>{% if test_settings.classNum == '1' %}<button class="question-sound-btn" type="button" onclick="speakQuestion('exampleDisplay')">🔊 Прослушать</button>{% endif %}</div><div id="speedTimerBar" class="speed-timer-bar" style="display: none;"><div class="speed-timer-progress"></div></div><input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off"><div id="resultMessage" class="result-message"></div><div class="test-buttons"><button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>{% if test_settings.exampleType == 'control_slice' %}<button id="notStudiedBtn" class="test-btn" onclick="skipNotStudiedQuestion()">Еще не изучали</button>{% endif %}<button id="nextBtn" class="test-btn" onclick="nextQuestion()" disabled>Далее</button><button id="finishBtn" class="test-btn" onclick="finishTest()">Закончить тест</button></div><div class="test-timer" id="testTimer">Время: 0:00</div></div></div><script>window.testSettings = {{ test_settings | tojson }}; window.totalQuestions = {{ total_questions }};</script>{% if test_settings.classNum == '1' %}<script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>{% endif %}<script src="{{ url_for('static', filename='js/math-common.js') }}"></script><script src="{{ url_for('static', filename='js/question-unique-key.js') }}"></script><script src="{{ url_for('static', filename='js/math-choice-radio.js') }}"></script><script src="{{ url_for('static', filename='js/enter-submit-next.js') }}"></script></body></html>
