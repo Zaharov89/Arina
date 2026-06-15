@@ -4,7 +4,10 @@ const DANGEROUS_PATTERN = /[<>{}\[\]`'";\\]|--|\/\*|\*\//i;
 function setError(inputId, errorId, message) {
     const input = document.getElementById(inputId);
     const error = document.getElementById(errorId);
+    const wrapper = input ? input.closest('.auth-input-wrapper, .auth-password-wrapper') : null;
+
     if (input) input.classList.toggle('invalid', Boolean(message));
+    if (wrapper) wrapper.classList.toggle('invalid', Boolean(message));
     if (error) error.textContent = message || '';
 }
 
@@ -15,11 +18,16 @@ function setMessage(message, type) {
     box.textContent = message || '';
 }
 
+function normalizeServerError(message) {
+    if (!message) return '';
+    return String(message).replace(/^.*?:\s*/, '').trim();
+}
+
 function validateEmail(email) {
-    if (!email) return 'Почта: обязательное поле.';
-    if (email.length > 100) return 'Почта: максимум 100 символов.';
-    if (DANGEROUS_PATTERN.test(email)) return 'Почта: запрещены HTML/SQL-конструкции.';
-    if (!EMAIL_PATTERN.test(email)) return 'Почта: формат text@example.ru, только латиница.';
+    if (!email) return 'обязательное поле.';
+    if (email.length > 100) return 'максимум 100 символов.';
+    if (DANGEROUS_PATTERN.test(email)) return 'запрещены спецсимволы.';
+    if (!EMAIL_PATTERN.test(email)) return 'формат text@example.ru, только латиница.';
     return '';
 }
 
@@ -49,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (!response.ok) {
-                if (data.errors && data.errors.email) setError('forgotEmail', 'forgotEmailError', data.errors.email);
+                if (data.errors && data.errors.email) setError('forgotEmail', 'forgotEmailError', normalizeServerError(data.errors.email));
                 setMessage(data.message || 'Не удалось отправить ссылку.', 'error');
                 return;
             }
