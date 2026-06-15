@@ -3,74 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <title>Регистрация — Арина</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='auth/register.css') }}">
 </head>
-<body>
-    <div class="container auth-container">
-        <h1 class="subject-title">Регистрация</h1>
+<body class="auth-page">
+    <main class="auth-card">
+        <h1 class="auth-title">Регистрация</h1>
         <p class="auth-intro">Создайте аккаунт. После регистрации нужно подтвердить почту по ссылке из письма.</p>
 
-        <form id="registrationForm" class="registration-form" novalidate>
-            <div class="form-row">
+        <form id="registrationForm" class="auth-form" novalidate>
+            <div class="auth-field">
                 <label for="childFirstName">
-                    <span class="hint-icon" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
                     Имя ребёнка
+                    <span class="hint-icon" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
                 </label>
-                <input type="text" id="childFirstName" name="child_first_name" autocomplete="given-name" maxlength="60">
+                <input type="text" id="childFirstName" name="child_first_name" autocomplete="given-name" maxlength="60" placeholder="Имя ребёнка">
                 <div class="field-error" id="childFirstNameError"></div>
             </div>
 
-            <div class="form-row">
+            <div class="auth-field">
                 <label for="childLastName">
-                    <span class="hint-icon" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
                     Фамилия ребёнка
+                    <span class="hint-icon" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
                 </label>
-                <input type="text" id="childLastName" name="child_last_name" autocomplete="family-name" maxlength="60">
+                <input type="text" id="childLastName" name="child_last_name" autocomplete="family-name" maxlength="60" placeholder="Фамилия ребёнка">
                 <div class="field-error" id="childLastNameError"></div>
             </div>
 
-            <div class="form-row">
+            <div class="auth-field">
                 <label for="email">
-                    <span class="hint-icon" title="Обязательное поле. От 1 до 100 символов. Только латиница. Формат: text@example.ru. Запрещены HTML/SQL-конструкции.">!</span>
                     Почта
+                    <span class="hint-icon" title="Обязательное поле. От 1 до 100 символов. Только латиница. Формат: text@example.ru. Запрещены HTML/SQL-конструкции.">!</span>
                 </label>
-                <input type="email" id="email" name="email" autocomplete="email" maxlength="100">
+                <input type="email" id="email" name="email" autocomplete="email" maxlength="100" placeholder="Почта">
                 <div class="field-error" id="emailError"></div>
             </div>
 
-            <div class="form-row">
+            <div class="auth-field">
                 <label for="password">
-                    <span class="hint-icon" title="Обязательное поле. От 8 до 20 символов. Кириллица или латиница. Минимум: 1 заглавная буква, 1 строчная буква, 1 цифра и 1 спецсимвол. Запрещены опасные SQL/HTML-символы.">!</span>
                     Пароль
+                    <span class="hint-icon" title="Обязательное поле. От 8 до 20 символов. Кириллица или латиница. Минимум: 1 заглавная буква, 1 строчная буква, 1 цифра и 1 спецсимвол. Запрещены опасные SQL/HTML-символы.">!</span>
                 </label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" name="password" autocomplete="new-password" maxlength="20">
-                    <button type="button" class="eye-btn" onclick="togglePassword('password')">👁</button>
+                <div class="auth-password-wrapper">
+                    <input type="password" id="password" name="password" autocomplete="new-password" maxlength="20" placeholder="Пароль">
+                    <button type="button" class="auth-eye-btn" aria-label="Показать пароль" onclick="togglePassword('password', this)">👁</button>
                 </div>
                 <div class="field-error" id="passwordError"></div>
             </div>
 
-            <div class="form-row">
+            <div class="auth-field">
                 <label for="passwordRepeat">
-                    <span class="hint-icon" title="Полное соответствие с паролем.">!</span>
                     Повторите пароль
+                    <span class="hint-icon" title="Полное соответствие с паролем.">!</span>
                 </label>
-                <div class="password-wrapper">
-                    <input type="password" id="passwordRepeat" name="password_repeat" autocomplete="new-password" maxlength="20">
-                    <button type="button" class="eye-btn" onclick="togglePassword('passwordRepeat')">👁</button>
+                <div class="auth-password-wrapper">
+                    <input type="password" id="passwordRepeat" name="password_repeat" autocomplete="new-password" maxlength="20" placeholder="Повторите пароль">
+                    <button type="button" class="auth-eye-btn" aria-label="Показать пароль" onclick="togglePassword('passwordRepeat', this)">👁</button>
                 </div>
                 <div class="field-error" id="passwordRepeatError"></div>
             </div>
 
-            <button type="submit" class="submit-btn">Зарегистрироваться</button>
+            <button type="submit" class="auth-submit-btn">Зарегистрироваться</button>
             <div class="form-message" id="formMessage"></div>
         </form>
 
-        <div class="auth-actions">
-            <a href="/" class="back-btn">Назад</a>
+        <div class="auth-links auth-links-center">
+            <a href="/auth/login">Уже есть аккаунт? Войти</a>
         </div>
-    </div>
+    </main>
 
     <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
