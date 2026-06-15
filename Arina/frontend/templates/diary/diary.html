@@ -10,13 +10,14 @@
     <div id="dateTimeBar"></div>
     <div class="container diary-container">
         <h2 id="pageTitle">Дневник</h2>
-        <p class="diary-subtitle">Выберите предмет, чтобы посмотреть оценки по темам за текущий месяц.</p>
+        <p class="diary-subtitle">Выберите предмет и класс, чтобы посмотреть оценки по темам за текущий месяц.</p>
         <div id="statsContent" class="diary-loading">Загрузка дневника...</div>
         <a href="/subjects" class="back-btn">← Назад</a>
     </div>
 
     <script>
         const SUBJECT_ICONS = { math: '🔢', russian: '✍️', world: '🌍', english: '🇬🇧' };
+        const SCHOOL_CLASSES = Array.from({length: 11}, (_, index) => index + 1);
 
         function getAuthStorageForDiary() {
             if (localStorage.getItem('arinaAccessToken')) return localStorage;
@@ -66,7 +67,7 @@
                         <button type="button" class="diary-subject-tab ${index === 0 ? 'active' : ''}" data-subject-code="${subject.code}">
                             <span class="subject-icon">${SUBJECT_ICONS[subject.code] || '📘'}</span>
                             <span>${subject.title}</span>
-                            <small>Средний бал: ${formatGrade(subject.month_avg)}</small>
+                            <small>Средний балл: ${formatGrade(subject.month_avg)}</small>
                         </button>
                     `).join('')}
                 </div>
@@ -78,8 +79,41 @@
             return `<div class="topic-title control-topic-title">⭐ ${topic.topic_title}</div><div class="topic-class">Итоговая проверка по всем темам</div>`;
         }
 
+        function getInitialClassForSubject(subject) {
+            const withGrades = (subject.topics || []).find(topic => topic.class_number && topic.month_grades && topic.month_grades.length);
+            if (withGrades) return withGrades.class_number;
+            const withTopics = (subject.topics || []).find(topic => topic.class_number);
+            return withTopics ? withTopics.class_number : 1;
+        }
+
+        function renderClassTabs(subject) {
+            const existingClasses = new Set((subject.topics || []).map(topic => Number(topic.class_number)).filter(Boolean));
+            return `
+                <div class="diary-class-tabs" data-class-tabs-for="${subject.code}">
+                    ${SCHOOL_CLASSES.map(classNumber => `
+                        <button type="button" class="diary-class-tab ${classNumber === getInitialClassForSubject(subject) ? 'active' : ''} ${existingClasses.has(classNumber) ? '' : 'empty-class'}" data-subject-code="${subject.code}" data-class-number="${classNumber}">${classNumber}</button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderTopicRows(topics, subjectCode, activeClassNumber) {
+            const classTopics = (topics || []).filter(topic => Number(topic.class_number || activeClassNumber) === Number(activeClassNumber));
+            if (!classTopics.length) return `<tr><td colspan="5" class="empty-diary">Темы для ${activeClassNumber} класса пока не добавлены в БД.</td></tr>`;
+            return classTopics.map(topic => `
+                <tr class="${topic.month_grades && topic.month_grades.length ? '' : 'empty-topic-row'} ${topic.is_control_slice ? 'control-slice-row' : ''}" data-subject-code="${subjectCode}" data-class-number="${activeClassNumber}">
+                    <td>${renderTopicTitle(topic)}</td>
+                    <td><div class="grades-timeline">${renderGradesTimeline(topic.month_grades)}</div></td>
+                    <td>${topic.month_avg ? formatGrade(topic.month_avg) : '—'}</td>
+                    <td>${topic.best_grade ? `<span class="${gradeClass(topic.best_grade)}">${topic.best_grade}</span>` : '—'}</td>
+                    <td>${topic.last_grade ? `<span class="${gradeClass(topic.last_grade)}">${topic.last_grade}</span><div class="last-date">${formatDate(topic.last_date)}</div>` : '—'}</td>
+                </tr>
+            `).join('');
+        }
+
         function renderSubjectPanel(subject, isActive) {
             const topics = subject.topics || [];
+            const activeClassNumber = getInitialClassForSubject(subject);
             const filledTopics = topics.filter(topic => topic.month_grades && topic.month_grades.length > 0).length;
             return `
                 <section class="diary-subject-panel ${isActive ? 'active' : ''}" data-subject-panel="${subject.code}">
@@ -95,26 +129,18 @@
                         </div>
                     </div>
 
-                    <div class="diary-table-wrap">
-                        <table class="diary-topic-table">
-                            <thead>
-                                <tr><th>Тема</th><th>Оценки за месяц</th><th>Средний балл</th><th>Лучшая</th><th>Последняя</th></tr>
-                            </thead>
-                            <tbody>
-                                ${topics.length ? topics.map(topic => `
-                                    <tr class="${topic.month_grades && topic.month_grades.length ? '' : 'empty-topic-row'} ${topic.is_control_slice ? 'control-slice-row' : ''}">
-                                        <td>
-                                            ${renderTopicTitle(topic)}
-                                            ${topic.class_number && !topic.is_control_slice ? `<div class="topic-class">${topic.class_number} класс</div>` : ''}
-                                        </td>
-                                        <td><div class="grades-timeline">${renderGradesTimeline(topic.month_grades)}</div></td>
-                                        <td>${topic.month_avg ? formatGrade(topic.month_avg) : '—'}</td>
-                                        <td>${topic.best_grade ? `<span class="${gradeClass(topic.best_grade)}">${topic.best_grade}</span>` : '—'}</td>
-                                        <td>${topic.last_grade ? `<span class="${gradeClass(topic.last_grade)}">${topic.last_grade}</span><div class="last-date">${formatDate(topic.last_date)}</div>` : '—'}</td>
-                                    </tr>
-                                `).join('') : `<tr><td colspan="5" class="empty-diary">Темы пока не добавлены в БД.</td></tr>`}
-                            </tbody>
-                        </table>
+                    <div class="diary-class-layout">
+                        ${renderClassTabs(subject)}
+                        <div class="diary-table-wrap">
+                            <table class="diary-topic-table">
+                                <thead>
+                                    <tr><th>Тема</th><th>Оценки за месяц</th><th>Средний балл</th><th>Лучшая</th><th>Последняя</th></tr>
+                                </thead>
+                                <tbody data-topic-body="${subject.code}">
+                                    ${renderTopicRows(topics, subject.code, activeClassNumber)}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
             `;
@@ -123,6 +149,14 @@
         function activateSubject(code) {
             document.querySelectorAll('.diary-subject-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.subjectCode === code));
             document.querySelectorAll('.diary-subject-panel').forEach(panel => panel.classList.toggle('active', panel.dataset.subjectPanel === code));
+        }
+
+        function activateClass(subjects, subjectCode, classNumber) {
+            const subject = subjects.find(item => item.code === subjectCode);
+            if (!subject) return;
+            document.querySelectorAll(`.diary-class-tab[data-subject-code="${subjectCode}"]`).forEach(tab => tab.classList.toggle('active', Number(tab.dataset.classNumber) === Number(classNumber)));
+            const body = document.querySelector(`[data-topic-body="${subjectCode}"]`);
+            if (body) body.innerHTML = renderTopicRows(subject.topics || [], subjectCode, classNumber);
         }
 
         function renderDiary(data) {
@@ -135,6 +169,7 @@
             content.className = 'diary-content';
             content.innerHTML = `${renderSubjectCards(subjects)}<div class="diary-panels">${subjects.map((subject, index) => renderSubjectPanel(subject, index === 0)).join('')}</div>`;
             document.querySelectorAll('.diary-subject-tab').forEach(tab => tab.addEventListener('click', () => activateSubject(tab.dataset.subjectCode)));
+            document.querySelectorAll('.diary-class-tab').forEach(tab => tab.addEventListener('click', () => activateClass(subjects, tab.dataset.subjectCode, Number(tab.dataset.classNumber))));
         }
 
         async function loadDiary() {
