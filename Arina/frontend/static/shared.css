@@ -61,7 +61,7 @@ body {
 /* === ОБЩИЕ БЛОКИ === */
 .settings-box,
 .test-block,
-rules-container,
+.rules-container,
 .vocabulary-container {
     background: #fff;
     border-radius: 20px;
