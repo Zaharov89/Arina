@@ -5,6 +5,14 @@
     <title>Тренировка — Английский язык {{ class_num }} класс</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='russian/test.css') }}">
+    <style>
+        .choice-options { display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; max-width: 760px; margin: 25px auto 15px auto; }
+        .choice-option { display: flex; align-items: center; gap: 12px; padding: 16px 18px; background: #fff; border: 2px solid #cfe0f6; border-radius: 14px; color: #27407a; font-size: 22px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .choice-option:hover { border-color: #5d92e0; background: #f8fafd; transform: translateY(-2px); }
+        .choice-option input[type="radio"] { width: 22px; height: 22px; cursor: pointer; accent-color: #5d92e0; }
+        .choice-option.selected-choice { border-color: #2fd072; background: #d5f4e6; }
+        .choice-option.disabled-choice { cursor: default; opacity: 0.8; }
+    </style>
 </head>
 <body>
     <div id="dateTimeBar"></div>
@@ -12,123 +20,35 @@
         <div id="englishTopicTestBlock" class="test-block">
             <div class="question-counter" id="questionCounter">Задание №1 из {{ total_questions }}</div>
             <div class="question-topic" id="questionTopic" style="display: none;"></div>
-            <div class="question-container">
-                <div class="question-text" id="questionDisplay">Загрузка...</div>
-                <button class="question-sound-btn" type="button" onclick="speakQuestion('questionDisplay')">🔊 Прослушать</button>
-            </div>
+            <div class="question-container"><div class="question-text" id="questionDisplay">Загрузка...</div><button class="question-sound-btn" type="button" onclick="speakQuestion('questionDisplay')">🔊 Прослушать</button></div>
             <input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off">
+            <div id="choiceOptions" class="choice-options"></div>
             <div id="resultMessage" class="result-message"></div>
-            <div class="test-buttons">
-                <button id="checkBtn" class="test-btn" onclick="checkEnglishTopicAnswer()">Ответить</button>
-                <button id="nextBtn" class="test-btn" onclick="nextEnglishTopicQuestion()" disabled>Далее</button>
-                <button id="finishBtn" class="test-btn" onclick="finishEnglishTopicTest()">Закончить тест</button>
-            </div>
+            <div class="test-buttons"><button id="checkBtn" class="test-btn" onclick="checkEnglishTopicAnswer()">Ответить</button><button id="nextBtn" class="test-btn" onclick="nextEnglishTopicQuestion()" disabled>Далее</button><button id="finishBtn" class="test-btn" onclick="finishEnglishTopicTest()">Закончить тест</button></div>
             <div style="text-align: center; margin-top: 20px;"><div class="test-timer" id="testTimer">Время: 0:00</div></div>
         </div>
     </div>
-
-    <script>
-        window.englishTopicTestSettings = {{ test_settings | tojson }};
-        window.totalEnglishTopicQuestions = {{ total_questions }};
-    </script>
+    <script>window.englishTopicTestSettings = {{ test_settings | tojson }}; window.totalEnglishTopicQuestions = {{ total_questions }};</script>
     <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script>
-        let currentQuestion = 1;
-        let correctAnswers = 0;
-        let wrongAnswers = 0;
-        let emptyAnswers = 0;
-        let wrongAnswersList = [];
-        let currentTask = null;
-        let usedQuestions = [];
-        let testStartTime = Date.now();
-        let timerInterval = null;
-
+        let currentQuestion = 1, correctAnswers = 0, wrongAnswers = 0, emptyAnswers = 0;
+        let wrongAnswersList = [], currentTask = null, usedQuestions = [];
+        let testStartTime = Date.now(), timerInterval = null;
         function normalizeAnswer(value) { return String(value || '').trim().toLowerCase().replace(/ё/g, 'е'); }
-        function renderDateBar() {
-            const now = new Date();
-            const monthsRu = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-            document.getElementById('dateTimeBar').textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-        }
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                document.getElementById('testTimer').textContent = `Время: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-        function generateEnglishTopicQuestion() {
-            if (currentQuestion > window.totalEnglishTopicQuestions) { finishEnglishTopicTest(); return; }
-            document.getElementById('answerInput').value = '';
-            document.getElementById('answerInput').disabled = false;
-            document.getElementById('resultMessage').textContent = '';
-            document.getElementById('resultMessage').className = 'result-message';
-            document.getElementById('checkBtn').disabled = false;
-            document.getElementById('nextBtn').disabled = true;
-            document.getElementById('questionCounter').textContent = `Задание №${currentQuestion} из ${window.totalEnglishTopicQuestions}`;
-            fetch('/english/generate_task', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({class: window.englishTopicTestSettings.classNum, topic: window.englishTopicTestSettings.topicId, used_questions: usedQuestions})
-            }).then(r => r.json()).then(task => {
-                currentTask = task;
-                usedQuestions.push(task.question || '');
-                const topic = document.getElementById('questionTopic');
-                topic.style.display = task.topic_title ? 'block' : 'none';
-                topic.textContent = task.topic_title || '';
-                let text = task.question || 'Задание недоступно';
-                if (Array.isArray(task.choices) && task.choices.length) text += `\nВарианты: ${task.choices.join('   ')}`;
-                document.getElementById('questionDisplay').textContent = text;
-                document.getElementById('answerInput').focus();
-            });
-        }
-        function checkEnglishTopicAnswer() {
-            const answer = document.getElementById('answerInput').value.trim();
-            const correct = currentTask?.correct || '';
-            const result = document.getElementById('resultMessage');
-            if (!answer) {
-                emptyAnswers++;
-                wrongAnswersList.push({...currentTask, userAnswer: '(пусто)', correctAnswer: correct});
-                result.textContent = `Вы ничего не ввели. Правильный ответ: ${correct}`;
-                result.className = 'result-message empty-answer';
-            } else if (normalizeAnswer(answer) === normalizeAnswer(correct)) {
-                correctAnswers++;
-                result.textContent = '✓ Правильно!';
-                result.className = 'result-message correct';
-            } else {
-                wrongAnswers++;
-                wrongAnswersList.push({...currentTask, userAnswer: answer, correctAnswer: correct});
-                result.textContent = `✗ Неправильно. Правильный ответ: ${correct}`;
-                result.className = 'result-message incorrect';
-            }
-            document.getElementById('checkBtn').disabled = true;
-            document.getElementById('nextBtn').disabled = false;
-            document.getElementById('answerInput').disabled = true;
-        }
+        function renderDateBar() { const now = new Date(); const monthsRu = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']; document.getElementById('dateTimeBar').textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`; }
+        function startTimer() { timerInterval = setInterval(() => { const elapsed = Math.floor((Date.now() - testStartTime) / 1000); const minutes = Math.floor(elapsed / 60); const seconds = elapsed % 60; document.getElementById('testTimer').textContent = `Время: ${minutes}:${seconds.toString().padStart(2, '0')}`; }, 1000); }
+        function clearChoices() { const c = document.getElementById('choiceOptions'); c.innerHTML = ''; c.style.display = 'none'; }
+        function renderChoices(choices) { const c = document.getElementById('choiceOptions'); c.innerHTML = ''; choices.forEach((choice, index) => { const id = `englishChoice_${index}`; const label = document.createElement('label'); label.className = 'choice-option'; label.setAttribute('for', id); const radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'englishChoice'; radio.id = id; radio.value = String(choice); radio.addEventListener('change', () => { document.querySelectorAll('.choice-option').forEach(item => item.classList.remove('selected-choice')); label.classList.add('selected-choice'); }); const text = document.createElement('span'); text.textContent = String(choice); label.appendChild(radio); label.appendChild(text); c.appendChild(label); }); c.style.display = 'grid'; }
+        function getSelectedChoice() { const selected = document.querySelector('input[name="englishChoice"]:checked'); return selected ? selected.value : ''; }
+        function setChoicesDisabled(disabled) { document.querySelectorAll('input[name="englishChoice"]').forEach(input => { input.disabled = disabled; const label = input.closest('.choice-option'); if (label) label.classList.toggle('disabled-choice', disabled); }); }
+        function setAnswerMode(task) { const input = document.getElementById('answerInput'); if (task?.answer_type === 'choice' && Array.isArray(task.choices) && task.choices.length) { input.value = ''; input.style.display = 'none'; renderChoices(task.choices); return; } clearChoices(); input.style.display = 'block'; input.disabled = false; input.focus(); }
+        function getCurrentAnswer() { return currentTask?.answer_type === 'choice' ? getSelectedChoice() : document.getElementById('answerInput').value.trim(); }
+        function generateEnglishTopicQuestion() { if (currentQuestion > window.totalEnglishTopicQuestions) { finishEnglishTopicTest(); return; } const input = document.getElementById('answerInput'); input.value = ''; input.style.display = 'block'; input.disabled = false; clearChoices(); document.getElementById('resultMessage').textContent = ''; document.getElementById('resultMessage').className = 'result-message'; document.getElementById('checkBtn').disabled = false; document.getElementById('nextBtn').disabled = true; document.getElementById('questionCounter').textContent = `Задание №${currentQuestion} из ${window.totalEnglishTopicQuestions}`; fetch('/english/generate_task', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({class: window.englishTopicTestSettings.classNum, topic: window.englishTopicTestSettings.topicId, used_questions: usedQuestions})}).then(r => r.json()).then(task => { currentTask = task; usedQuestions.push(task.question || ''); const topic = document.getElementById('questionTopic'); topic.style.display = task.topic_title ? 'block' : 'none'; topic.textContent = task.topic_title || ''; document.getElementById('questionDisplay').textContent = task.question || 'Задание недоступно'; setAnswerMode(task); }); }
+        function checkEnglishTopicAnswer() { const answer = getCurrentAnswer(); const correct = currentTask?.correct || ''; const result = document.getElementById('resultMessage'); if (!answer) { emptyAnswers++; wrongAnswersList.push({...currentTask, userAnswer: '(пусто)', correctAnswer: correct}); result.textContent = `Вы ничего не выбрали или не ввели. Правильный ответ: ${correct}`; result.className = 'result-message empty-answer'; } else if (normalizeAnswer(answer) === normalizeAnswer(correct)) { correctAnswers++; result.textContent = '✓ Правильно!'; result.className = 'result-message correct'; } else { wrongAnswers++; wrongAnswersList.push({...currentTask, userAnswer: answer, correctAnswer: correct}); result.textContent = `✗ Неправильно. Правильный ответ: ${correct}`; result.className = 'result-message incorrect'; } document.getElementById('checkBtn').disabled = true; document.getElementById('nextBtn').disabled = false; document.getElementById('answerInput').disabled = true; setChoicesDisabled(true); }
         function nextEnglishTopicQuestion() { currentQuestion++; generateEnglishTopicQuestion(); }
-        function finishEnglishTopicTest() {
-            if (timerInterval) clearInterval(timerInterval);
-            const totalTime = Math.round((Date.now() - testStartTime) / 1000);
-            localStorage.setItem('testSubject', 'Английский язык');
-            localStorage.setItem('resultSubjectCode', 'english');
-            localStorage.setItem('resultClassNumber', window.englishTopicTestSettings.classNum || '2');
-            localStorage.setItem('resultTopicCode', window.englishTopicTestSettings.topicId || '');
-            localStorage.setItem('totalQuestions', window.totalEnglishTopicQuestions);
-            localStorage.setItem('correctAnswers', correctAnswers);
-            localStorage.setItem('wrongAnswers', wrongAnswers);
-            localStorage.setItem('emptyAnswers', emptyAnswers);
-            localStorage.setItem('timeSpent', totalTime);
-            localStorage.setItem('averageTime', window.totalEnglishTopicQuestions > 0 ? (totalTime / window.totalEnglishTopicQuestions).toFixed(1) : 0);
-            localStorage.setItem('wrongAnswersList', JSON.stringify(wrongAnswersList));
-            window.location.href = '/results/english';
-        }
+        function finishEnglishTopicTest() { if (timerInterval) clearInterval(timerInterval); const totalTime = Math.round((Date.now() - testStartTime) / 1000); localStorage.setItem('testSubject', 'Английский язык'); localStorage.setItem('resultSubjectCode', 'english'); localStorage.setItem('resultClassNumber', window.englishTopicTestSettings.classNum || '2'); localStorage.setItem('resultTopicCode', window.englishTopicTestSettings.topicId || ''); localStorage.setItem('totalQuestions', window.totalEnglishTopicQuestions); localStorage.setItem('correctAnswers', correctAnswers); localStorage.setItem('wrongAnswers', wrongAnswers); localStorage.setItem('emptyAnswers', emptyAnswers); localStorage.setItem('timeSpent', totalTime); localStorage.setItem('averageTime', window.totalEnglishTopicQuestions > 0 ? (totalTime / window.totalEnglishTopicQuestions).toFixed(1) : 0); localStorage.setItem('wrongAnswersList', JSON.stringify(wrongAnswersList)); window.location.href = '/results/english'; }
         document.addEventListener('DOMContentLoaded', () => { renderDateBar(); startTimer(); generateEnglishTopicQuestion(); });
-        document.getElementById('answerInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (!document.getElementById('checkBtn').disabled) checkEnglishTopicAnswer();
-                else if (!document.getElementById('nextBtn').disabled) nextEnglishTopicQuestion();
-            }
-        });
+        document.getElementById('answerInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') { if (!document.getElementById('checkBtn').disabled) checkEnglishTopicAnswer(); else if (!document.getElementById('nextBtn').disabled) nextEnglishTopicQuestion(); } });
     </script>
 </body>
 </html>

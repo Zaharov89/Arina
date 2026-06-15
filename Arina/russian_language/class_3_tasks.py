@@ -1,25 +1,82 @@
+import random
+
 from Arina.russian_language.class_1_tasks import make_choice_task, make_text_task, generate_unique_task
 from Arina.russian_language.class_3_topics import RUSSIAN_CLASS_3_TOPICS
 
 
+TASKS_BY_TOPIC = {
+    "word_structure": [
+        lambda t: make_choice_task("Какая часть слова общая у родственных слов?", ["корень", "предлог", "точка"], "корень", t),
+        lambda t: make_choice_task("Что изменяется при изменении формы слова?", ["окончание", "корень", "приставка"], "окончание", t),
+        lambda t: make_choice_task("Что помогает образовать новое слово?", ["суффикс", "точка", "ударение"], "суффикс", t),
+    ],
+    "root_prefix_suffix": [
+        lambda t: make_choice_task("Что стоит перед корнем?", ["приставка", "суффикс", "окончание"], "приставка", t),
+        lambda t: make_choice_task("В слове “лесник” корень:", ["лес", "ник", "и"], "лес", t),
+        lambda t: make_choice_task("В слове “подводный” приставка:", ["под", "вод", "ный"], "под", t),
+    ],
+    "spelling_prefixes": [
+        lambda t: make_choice_task("Как пишется приставка со словом?", ["слитно", "отдельно", "через дефис"], "слитно", t),
+        lambda t: make_choice_task("Где приставка написана правильно?", ["подбежал", "под бежал", "под-бежал"], "подбежал", t),
+        lambda t: make_choice_task("Что пишется отдельно от слова?", ["предлог", "приставка", "корень"], "предлог", t),
+    ],
+    "checked_vowels_3": [
+        lambda t: make_choice_task("Проверочное слово к слову “поля”:", ["поле", "пыль", "полка"], "поле", t),
+        lambda t: make_choice_task("Проверочное слово к слову “трава”:", ["травы", "тропа", "травка"], "травы", t),
+        lambda t: make_choice_task("Чтобы проверить безударную гласную, нужно:", ["подобрать ударное слово", "поставить точку", "разделить на буквы"], "подобрать ударное слово", t),
+    ],
+    "paired_consonants_3": [
+        lambda t: make_choice_task("Проверочное слово к слову “дуб”:", ["дубы", "дубок", "дубовый"], "дубы", t),
+        lambda t: make_choice_task("Проверочное слово к слову “гриб”:", ["грибы", "грибной", "грибок"], "грибы", t),
+        lambda t: make_choice_task("Что нужно сделать, чтобы проверить парную согласную?", ["поставить после неё гласную", "убрать ударение", "поставить запятую"], "поставить после неё гласную", t),
+    ],
+    "parts_of_speech_3": [
+        lambda t: make_choice_task("Какое слово — глагол?", ["летит", "синий", "окно"], "летит", t),
+        lambda t: make_choice_task("Какое слово — существительное?", ["дом", "красный", "бежит"], "дом", t),
+        lambda t: make_choice_task("Какое слово — прилагательное?", ["весёлый", "прыгает", "тетрадь"], "весёлый", t),
+    ],
+    "noun_gender_number_case": [
+        lambda t: make_choice_task("Слово “стол” какого рода?", ["мужского", "женского", "среднего"], "мужского", t),
+        lambda t: make_choice_task("Слово “книга” какого рода?", ["женского", "мужского", "среднего"], "женского", t),
+        lambda t: make_choice_task("Слово “окно” какого рода?", ["среднего", "мужского", "женского"], "среднего", t),
+    ],
+    "adjective_gender_number": [
+        lambda t: make_choice_task("Как правильно: ___ лента", ["красная", "красный", "красное"], "красная", t),
+        lambda t: make_choice_task("Как правильно: ___ мяч", ["красный", "красная", "красное"], "красный", t),
+        lambda t: make_choice_task("Как правильно: ___ окно", ["большое", "большая", "большой"], "большое", t),
+    ],
+    "verb_tense": [
+        lambda t: make_choice_task("Глагол “читал” какого времени?", ["прошедшего", "настоящего", "будущего"], "прошедшего", t),
+        lambda t: make_choice_task("Глагол “читает” какого времени?", ["настоящего", "прошедшего", "будущего"], "настоящего", t),
+        lambda t: make_choice_task("Глагол “будет читать” какого времени?", ["будущего", "настоящего", "прошедшего"], "будущего", t),
+        lambda t: make_choice_task("Какой глагол называет действие сейчас?", ["пишет", "писал", "будет писать"], "пишет", t),
+    ],
+    "pronoun_intro": [
+        lambda t: make_choice_task("Какое слово — местоимение?", ["он", "дом", "красный"], "он", t),
+        lambda t: make_choice_task("Какое местоимение подходит: ___ читаю", ["я", "он", "они"], "я", t),
+        lambda t: make_choice_task("Местоимение указывает на предмет, но:", ["не называет его", "всегда пишет его", "делит на слоги"], "не называет его", t),
+    ],
+    "sentence_homogeneous": [
+        lambda t: make_choice_task("В предложении “Мама купила яблоки, груши и сливы” однородные слова:", ["яблоки, груши и сливы", "мама купила", "купила яблоки"], "яблоки, груши и сливы", t),
+        lambda t: make_choice_task("Однородные члены отвечают:", ["на один вопрос", "на разные вопросы", "только на вопрос кто"], "на один вопрос", t),
+        lambda t: make_choice_task("Где есть однородные члены?", ["На лугу росли ромашки и васильки.", "Светит солнце.", "Птица летит."], "На лугу росли ромашки и васильки.", t),
+    ],
+    "text_plan_3": [
+        lambda t: make_choice_task("Что помогает пересказать текст по частям?", ["план", "ударение", "алфавит"], "план", t),
+        lambda t: make_choice_task("Тема текста — это:", ["о чём текст", "сколько букв", "знак в конце"], "о чём текст", t),
+        lambda t: make_choice_task("План текста состоит из:", ["пунктов", "только звуков", "таблицы умножения"], "пунктов", t),
+    ],
+    "vocabulary_words_3": [
+        lambda t: make_text_task("Напиши словарное слово, которое означает торжественный день.", "праздник", t),
+        lambda t: make_text_task("Напиши словарное слово: люди работают __.", "вместе", t),
+        lambda t: make_text_task("Напиши словарное слово: место посадки поездов — __.", "вокзал", t),
+    ],
+}
+
+
 def generate_russian_class_3_topic_task(topic_id: str, used_questions: list[str] | None = None) -> dict:
-    generators = {
-        "word_structure": lambda: make_choice_task("Какая часть слова общая у родственных слов?", ["корень", "предлог", "точка"], "корень", topic_id),
-        "root_prefix_suffix": lambda: make_choice_task("Что стоит перед корнем?", ["приставка", "суффикс", "окончание"], "приставка", topic_id),
-        "spelling_prefixes": lambda: make_choice_task("Как пишется приставка со словом?", ["слитно", "отдельно", "через дефис"], "слитно", topic_id),
-        "checked_vowels_3": lambda: make_choice_task("Проверочное слово к слову “поля”:", ["поле", "пыль", "полка"], "поле", topic_id),
-        "paired_consonants_3": lambda: make_choice_task("Проверочное слово к слову “дуб”:", ["дубы", "дубок", "дубовый"], "дубы", topic_id),
-        "parts_of_speech_3": lambda: make_choice_task("Какое слово — глагол?", ["летит", "синий", "окно"], "летит", topic_id),
-        "noun_gender_number_case": lambda: make_choice_task("Слово “стол” какого рода?", ["мужского", "женского", "среднего"], "мужского", topic_id),
-        "adjective_gender_number": lambda: make_choice_task("Как правильно: ___ лента", ["красная", "красный", "красное"], "красная", topic_id),
-        "verb_tense": lambda: make_choice_task("Глагол “читал” какого времени?", ["прошедшего", "настоящего", "будущего"], "прошедшего", topic_id),
-        "pronoun_intro": lambda: make_choice_task("Какое слово — местоимение?", ["он", "дом", "красный"], "он", topic_id),
-        "sentence_homogeneous": lambda: make_choice_task("В предложении “Мама купила яблоки, груши и сливы” однородные слова:", ["яблоки, груши и сливы", "мама купила", "купила яблоки"], "яблоки, груши и сливы", topic_id),
-        "text_plan_3": lambda: make_choice_task("Что помогает пересказать текст по частям?", ["план", "ударение", "алфавит"], "план", topic_id),
-        "vocabulary_words_3": lambda: make_text_task("Вставь словарное слово: На станции находится __.", "вокзал", topic_id),
-    }
-    generator = generators.get(topic_id, generators["word_structure"])
-    task = generate_unique_task(generator, used_questions)
+    tasks = TASKS_BY_TOPIC.get(topic_id, TASKS_BY_TOPIC["word_structure"])
+    task = generate_unique_task(lambda: random.choice(tasks)(topic_id), used_questions)
     task["topic"] = topic_id
     task["topic_title"] = RUSSIAN_CLASS_3_TOPICS.get(topic_id, {}).get("title", "Русский язык 3 класс")
     return task
