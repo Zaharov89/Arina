@@ -10,7 +10,6 @@
     <div id="dateTimeBar"></div>
     <div class="container">
         <h1 class="subject-title">Математика</h1>
-        <p id="directTopicNote" class="direct-topic-note" style="display: none;">Тренировка по выбранной теме. Класс и раздел уже выбраны в обучении.</p>
 
         <div id="testStep1" class="settings-box">
             <h3>Настройки теста — Шаг 1/4</h3>
@@ -56,7 +55,6 @@
             if (!window.DIRECT_TOPIC_TEST) return;
             const classSelect = document.getElementById('classSelect');
             const typeSelect = document.getElementById('typeSelect');
-            const note = document.getElementById('directTopicNote');
             const step1 = document.getElementById('testStep1');
             const step2 = document.getElementById('testStep2');
             const step3 = document.getElementById('testStep3');
@@ -66,7 +64,6 @@
             if (classSelect) classSelect.value = '1';
             if (typeof updateTypeOptionsForClass === 'function') updateTypeOptionsForClass('1');
             if (typeSelect && window.INITIAL_MATH_TYPE) typeSelect.value = window.INITIAL_MATH_TYPE;
-            if (note) note.style.display = 'block';
             if (step1) step1.style.display = 'none';
             if (step2) step2.style.display = 'none';
             if (step3) step3.style.display = 'block';
