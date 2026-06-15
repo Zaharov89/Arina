@@ -14,10 +14,11 @@
         .orange-box { background: #fff4d6; color: #a15c00; }
         .detail-examples-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
         .detail-examples-grid .example-card { min-width: 0; overflow-wrap: anywhere; }
-        .english-word-row { display: grid; grid-template-columns: minmax(95px, 1fr) minmax(95px, 1fr) 44px; gap: 12px; align-items: center; min-width: 0; overflow: hidden; }
+        .english-word-row { display: grid; grid-template-columns: minmax(95px, 1fr) minmax(95px, 1fr) minmax(80px, .8fr) 44px; gap: 12px; align-items: center; min-width: 0; overflow: hidden; }
         .english-word-row strong, .english-word-row span { min-width: 0; overflow-wrap: anywhere; }
+        .word-pronunciation { color: #64748b; font-weight: 700; font-size: 14px; }
         .speak-word-btn { width: 42px; height: 42px; border: 0; border-radius: 12px; background: #5d92e0; color: #fff; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-        @media (max-width: 560px) { .english-word-row { grid-template-columns: 1fr; } .speak-word-btn { width: 100%; } .visual-rule { grid-template-columns: 1fr; } }
+        @media (max-width: 620px) { .english-word-row { grid-template-columns: 1fr; } .speak-word-btn { width: 100%; } .visual-rule { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -28,7 +29,7 @@
             <p class="topic-lead">{{ topic.description }}</p>
             <h2>Разбор правила</h2>
             {% for rule in topic.rules %}
-                <div class="detail-card"><strong>Шаг {{ loop.index }}.</strong> {{ rule }}<br><span>Прочитай правило, повтори вслух и найди похожий пример ниже.</span></div>
+                <div class="detail-card"><strong>Шаг {{ loop.index }}.</strong> {{ rule }}</div>
             {% else %}
                 <div class="detail-card">Подробное правило по этой теме будет добавлено.</div>
             {% endfor %}
@@ -46,7 +47,7 @@
             <h2>Слова к теме</h2>
             <div class="detail-examples-grid">
                 {% for word in topic_words %}
-                    <div class="example-card english-word-row"><strong>{{ word.english_word }}</strong><span>{{ word.russian_translation }}</span><button class="speak-word-btn" type="button" onclick="speakEnglishWord('{{ word.english_word }}')">🔊</button></div>
+                    <div class="example-card english-word-row"><strong>{{ word.english_word }}</strong><span>{{ word.russian_translation }}</span><span class="word-pronunciation">{{ word.transcription }}</span><button class="speak-word-btn" type="button" onclick="speakEnglishWord('{{ word.english_word }}')">🔊</button></div>
                 {% endfor %}
             </div>
             {% endif %}
