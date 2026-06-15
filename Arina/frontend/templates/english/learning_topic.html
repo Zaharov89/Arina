@@ -5,6 +5,7 @@
     <title>{{ topic.title }} — Английский язык {{ class_num }} класс</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='russian/learning.css') }}">
+    <style>.english-word-row{display:grid;grid-template-columns:1.2fr 1.2fr auto;gap:12px;align-items:center}.speak-word-btn{border:0;border-radius:10px;background:#5d92e0;color:#fff;font-weight:800;padding:9px 12px;cursor:pointer}</style>
 </head>
 <body>
     <div id="dateTimeBar"></div>
@@ -18,12 +19,20 @@
                 <h2>Примеры</h2>
                 <div class="examples-list">{% for example in topic.examples %}<div class="example-card">{{ example }}</div>{% endfor %}</div>
             </div>
+            {% if topic_words %}
+            <h2>Слова для повторения</h2>
+            <div class="examples-list">
+                {% for word in topic_words %}
+                    <div class="example-card english-word-row"><strong>{{ word.english_word }}</strong><span>{{ word.russian_translation }}</span><button class="speak-word-btn" type="button" onclick="speakEnglishWord('{{ word.english_word }}')">🔊</button></div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
         <div class="learning-actions">
+            <a href="/english/learning?class={{ class_num }}&student={{ student }}" class="learning-btn back-link">К темам {{ class_num }} класса</a>
             <a href="/english/topic-test?class={{ class_num }}&type={{ topic_id }}&questions=25&student={{ student }}" class="learning-btn test-link">Тренироваться по теме</a>
-            <a href="/english/learning?class={{ class_num }}&student={{ student }}" class="learning-btn secondary-link">К темам {{ class_num }} класса</a>
-            <a href="/english/menu?student={{ student }}" class="learning-btn back-link">К выбору класса</a>
         </div>
     </div>
+    <script>function speakEnglishWord(text){ if(!('speechSynthesis' in window)) return; const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=0.85; speechSynthesis.speak(u); }</script>
 </body>
 </html>
