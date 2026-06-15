@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, render_template, request
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
+from Arina.auth.login_services import LoginError, login_user
 from Arina.auth.services import (
     AuthTokenError,
     EmailAlreadyRegisteredError,
@@ -48,6 +49,7 @@ def auth_status():
             "module": "auth",
             "features": [
                 "registration",
+                "login",
                 "email_confirmation",
                 "password_hashing",
                 "input_validation",
@@ -55,7 +57,7 @@ def auth_status():
                 "verify_token",
                 "refresh_token",
             ],
-            "message": "Регистрация, подтверждение почты и JWT-токены подключены к PostgreSQL.",
+            "message": "Регистрация, авторизация, подтверждение почты и JWT-токены подключены к PostgreSQL.",
         }
     )
 
@@ -91,6 +93,48 @@ def register_api():
             {
                 "status": "error",
                 "message": "Ошибка регистрации. Проверьте подключение к БД и настройки SMTP.",
+                "error": str(error),
+            }
+        ), 500
+
+
+@auth_bp.route("/login", methods=["GET"])
+def login_page():
+    return render_template("auth/login.html")
+
+
+@auth_bp.route("/login", methods=["POST"])
+def login_api():
+    payload = request.get_json(silent=True) or {}
+
+    try:
+        session_factory = get_session_factory()
+        with session_factory() as session:
+            result = login_user(session, payload)
+
+        return jsonify(
+            {
+                "status": "authorized",
+                "message": "Авторизация выполнена.",
+                "data": result,
+            }
+        )
+    except LoginError as error:
+        return jsonify(
+            {
+                "status": "invalid_credentials",
+                "message": str(error),
+                "errors": {
+                    "login": "Логин или пароль не верный",
+                    "password": "Логин или пароль не верный",
+                },
+            }
+        ), 401
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        return jsonify(
+            {
+                "status": "error",
+                "message": "Ошибка авторизации. Проверьте подключение к БД.",
                 "error": str(error),
             }
         ), 500
