@@ -20,6 +20,7 @@ arina
 006_seed_class_2_topics.sql
 007_seed_class_3_topics.sql
 008_merge_world_topics.sql
+009_seed_english_topics_2_3.sql
 ```
 
 После этого приложение готово к регистрации пользователей, прохождению тестов и сохранению оценок.
@@ -67,6 +68,16 @@ WHERE t.class_number IN (2, 3)
 ORDER BY s.code, t.class_number, t.is_active DESC, t.title;
 ```
 
+### Проверить английские темы в дневнике
+
+```sql
+SELECT t.class_number, t.code, t.title, t.is_active
+FROM arina.topics t
+JOIN arina.subjects s ON s.id = t.subject_id
+WHERE s.code = 'english'
+ORDER BY t.class_number, t.title;
+```
+
 ### Проверить русские словарные слова
 
 ```sql
@@ -97,6 +108,7 @@ psql -U postgres -d arina_db -f database/migrations/005_create_english_vocabular
 psql -U postgres -d arina_db -f database/migrations/006_seed_class_2_topics.sql
 psql -U postgres -d arina_db -f database/migrations/007_seed_class_3_topics.sql
 psql -U postgres -d arina_db -f database/migrations/008_merge_world_topics.sql
+psql -U postgres -d arina_db -f database/migrations/009_seed_english_topics_2_3.sql
 ```
 
 ## Что хранится в БД после миграций
