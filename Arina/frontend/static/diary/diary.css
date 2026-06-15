@@ -76,13 +76,8 @@
     font-weight: 600;
 }
 
-.diary-subject-panel {
-    display: none;
-}
-
-.diary-subject-panel.active {
-    display: block;
-}
+.diary-subject-panel { display: none; }
+.diary-subject-panel.active { display: block; }
 
 .diary-summary-card {
     display: flex;
@@ -139,7 +134,7 @@
 
 .diary-class-layout {
     display: grid;
-    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-columns: 92px minmax(0, 1fr);
     gap: 14px;
     align-items: start;
 }
@@ -155,18 +150,20 @@
 }
 
 .diary-class-tab {
-    width: 36px;
-    height: 36px;
+    width: 72px;
+    min-height: 38px;
+    padding: 6px 8px;
     border: 2px solid #cfe0f6;
     border-radius: 12px;
     background: #f8fbff;
     color: #27407a;
+    font-size: 13px;
     font-weight: 900;
     cursor: pointer;
     transition: all 0.16s ease;
 }
 
-.diary-class-tab:hover {
+.diary-class-tab:not(:disabled):hover {
     transform: translateY(-1px);
     border-color: #5d92e0;
 }
@@ -177,8 +174,12 @@
     color: #ffffff;
 }
 
-.diary-class-tab.empty-class {
-    opacity: 0.45;
+.diary-class-tab.empty-class,
+.diary-class-tab:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    background: #f2f4f7;
+    color: #8a94a6;
 }
 
 .diary-table-wrap {
@@ -191,7 +192,7 @@
 .diary-topic-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 720px;
+    min-width: 700px;
     table-layout: fixed;
 }
 
@@ -222,21 +223,10 @@
     letter-spacing: 0.03em;
 }
 
-.diary-topic-table tbody tr:hover {
-    background: #f8fbff;
-}
-
-.empty-topic-row {
-    color: #7a869a;
-}
-
-.control-slice-row {
-    background: linear-gradient(90deg, #fff8e8 0%, #ffffff 100%);
-}
-
-.control-slice-row:hover {
-    background: linear-gradient(90deg, #fff1c8 0%, #fffdf8 100%) !important;
-}
+.diary-topic-table tbody tr:hover { background: #f8fbff; }
+.empty-topic-row { color: #7a869a; }
+.control-slice-row { background: linear-gradient(90deg, #fff8e8 0%, #ffffff 100%); }
+.control-slice-row:hover { background: linear-gradient(90deg, #fff1c8 0%, #fffdf8 100%) !important; }
 
 .topic-title {
     color: #1f2d4d;
@@ -244,9 +234,7 @@
     overflow-wrap: anywhere;
 }
 
-.control-topic-title {
-    color: #8a5a00;
-}
+.control-topic-title { color: #8a5a00; }
 
 .topic-class,
 .last-date {
@@ -297,9 +285,7 @@
     transition: background-color 0.3s;
 }
 
-.back-btn:hover {
-    background-color: #c82333;
-}
+.back-btn:hover { background-color: #c82333; }
 
 @media (max-width: 760px) {
     .diary-summary-card {
@@ -307,19 +293,8 @@
         align-items: stretch;
     }
 
-    .summary-values {
-        grid-template-columns: 1fr;
-    }
-
-    .diary-class-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .diary-class-tabs {
-        grid-template-columns: repeat(11, 1fr);
-    }
-
-    .diary-class-tab {
-        width: 100%;
-    }
+    .summary-values { grid-template-columns: 1fr; }
+    .diary-class-layout { grid-template-columns: 1fr; }
+    .diary-class-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .diary-class-tab { width: 100%; }
 }
