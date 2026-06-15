@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Обучение и проверка знаний — Математика 1 класс</title>
+    <title>Обучение и проверка знаний — Математика {{ class_num }} класс</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='math/menu.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='math/learning.css') }}">
@@ -10,21 +10,21 @@
 <body>
     <div id="dateTimeBar"></div>
     <div class="container">
-        <h1 class="subject-title">Обучение и проверка знаний — 1 класс</h1>
+        <h1 class="subject-title">Обучение и проверка знаний — {{ class_num }} класс</h1>
         <p class="learning-intro">Выбери тему: внутри каждого раздела есть правила, примеры и кнопка “Тренироваться по теме”.</p>
 
         <div class="topics-grid">
-            {% for topic_id, topic in class_1_topics.items() %}
-                <a class="topic-card" href="/math/learning/topic/{{ topic_id }}?student={{ student }}">
+            {% for topic_id, topic in topics.items() %}
+                <a class="topic-card" href="/math/learning/topic/{{ topic_id }}?class={{ class_num }}&student={{ student }}">
                     <div class="topic-title">{{ topic.title }}</div>
                     <div class="topic-description">{{ topic.description }}</div>
                     <div class="topic-action-hint">Открыть правила и тренировку</div>
                 </a>
             {% endfor %}
-            <a class="topic-card control-card" href="/math/test?class=1&type=control_slice&questions=50&speed=false&student={{ student }}">
+            <a class="topic-card control-card" href="/math/test?class={{ class_num }}&type=control_slice&questions=50&speed=false&student={{ student }}">
                 <div class="control-badge">Итоговая проверка</div>
                 <div class="topic-title">Контрольный срез</div>
-                <div class="topic-description">50 случайных заданий по всем темам математики за 1 класс. Каждая тема обязательно попадёт в тест.</div>
+                <div class="topic-description">50 случайных заданий по всем темам математики за {{ class_num }} класс. Каждая тема обязательно попадёт в тест.</div>
                 <div class="topic-action-hint">Сразу начать 50 заданий</div>
             </a>
         </div>
