@@ -127,6 +127,15 @@ def english_learning_topic(topic_id: str):
     return render_template("english/learning_topic.html", student=get_student(), class_num=class_num, topic_id=topic_id, topic=topic, topic_words=topic_words(topic_id))
 
 
+@english_bp.route("/english/learning/topic/<topic_id>/details")
+def english_learning_topic_details(topic_id: str):
+    class_num = get_int_arg("class", default=2, min_value=1, max_value=11)
+    topic = get_english_topic(class_num, topic_id)
+    if not topic:
+        abort(404)
+    return render_template("english/learning_detail.html", student=get_student(), class_num=class_num, topic_id=topic_id, topic=topic, topic_words=topic_words(topic_id))
+
+
 @english_bp.route("/english/vocabulary-menu")
 def english_vocabulary_menu():
     class_num = get_int_arg("class", default=2, min_value=2, max_value=3)
