@@ -17,6 +17,7 @@ arina
 002_seed_subjects_classes_topics.sql
 004_create_russian_vocabulary_words.sql
 005_create_english_vocabulary_words.sql
+006_seed_class_2_topics.sql
 ```
 
 После этого приложение готово к регистрации пользователей, прохождению тестов и сохранению оценок.
@@ -82,6 +83,17 @@ GROUP BY class_number
 ORDER BY class_number;
 ```
 
+### Проверить темы 2 класса
+
+```sql
+SELECT s.code AS subject_code, t.class_number, COUNT(*) AS topics_count
+FROM arina.topics t
+JOIN arina.subjects s ON s.id = t.subject_id
+WHERE t.class_number = 2
+GROUP BY s.code, t.class_number
+ORDER BY s.code;
+```
+
 ## Запуск через psql
 
 Пример для Windows PowerShell:
@@ -91,6 +103,7 @@ psql -U postgres -d arina_db -f database/migrations/001_create_base_schema.sql
 psql -U postgres -d arina_db -f database/migrations/002_seed_subjects_classes_topics.sql
 psql -U postgres -d arina_db -f database/migrations/004_create_russian_vocabulary_words.sql
 psql -U postgres -d arina_db -f database/migrations/005_create_english_vocabulary_words.sql
+psql -U postgres -d arina_db -f database/migrations/006_seed_class_2_topics.sql
 ```
 
 ## Что хранится в БД после миграций
