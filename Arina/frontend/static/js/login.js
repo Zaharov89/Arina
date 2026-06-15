@@ -76,6 +76,13 @@ function saveAuthData(data, rememberMe) {
     storage.setItem('arinaRememberMe', String(rememberMe));
 }
 
+function getNextUrl() {
+    const next = new URLSearchParams(window.location.search).get('next');
+    if (!next || !next.startsWith('/')) return '/';
+    if (next.startsWith('/auth/')) return '/';
+    return next;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('loginForm');
     if (!form) return;
@@ -121,6 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('arinaLoginFailedAttempts', '0');
             saveAuthData(data.data, rememberMe);
             setMessage(rememberMe ? 'Вход выполнен успешно. Вы останетесь авторизованы после закрытия браузера.' : 'Вход выполнен успешно. Авторизация действует до закрытия страницы или браузера.', 'success');
+            window.location.href = getNextUrl();
         } catch (error) {
             setMessage(`Ошибка авторизации: ${error}`, 'error');
         }
