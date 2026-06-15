@@ -20,9 +20,43 @@ SUPPORTED_ENGLISH_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {2, 3}
 CONTROL_SLICE_TYPE = "control_slice"
+VOCABULARY_TOPIC_CODES = {"vocabulary_words_en_2", "vocabulary_words_en_3"}
 control_topic_cursor = 0
 TOPICS_BY_CLASS = {2: ENGLISH_CLASS_2_TOPICS, 3: ENGLISH_CLASS_3_TOPICS}
 DEFAULT_TOPIC_BY_CLASS = {2: "alphabet_en", 3: "reading_rules_3"}
+
+ENGLISH_TOPIC_WORDS = {
+    "alphabet_en": [("A a", "эй", ""), ("B b", "би", ""), ("C c", "си", ""), ("D d", "ди", "")],
+    "sounds_reading": [("cat", "кот", ""), ("dog", "собака", ""), ("fish", "рыба", "")],
+    "greetings": [("Hello", "Привет", ""), ("Good morning", "Доброе утро", ""), ("Bye", "Пока", "")],
+    "family_en": [("mother", "мама", ""), ("father", "папа", ""), ("sister", "сестра", ""), ("brother", "брат", "")],
+    "colors_en": [("red", "красный", ""), ("blue", "синий", ""), ("green", "зелёный", ""), ("yellow", "жёлтый", "")],
+    "numbers_1_10_en": [("one", "один", ""), ("two", "два", ""), ("five", "пять", ""), ("ten", "десять", "")],
+    "school_items_en": [("book", "книга", ""), ("pen", "ручка", ""), ("pencil", "карандаш", ""), ("bag", "сумка", "")],
+    "toys_en": [("ball", "мяч", ""), ("doll", "кукла", ""), ("car", "машина", "")],
+    "animals_en": [("dog", "собака", ""), ("cat", "кошка", ""), ("bird", "птица", "")],
+    "food_en": [("apple", "яблоко", ""), ("milk", "молоко", ""), ("bread", "хлеб", "")],
+    "home_rooms_en": [("house", "дом", ""), ("room", "комната", ""), ("kitchen", "кухня", "")],
+    "simple_phrases_en": [("I have a pen", "У меня есть ручка", ""), ("I like cats", "Мне нравятся кошки", "")],
+    "vocabulary_words_en_2": [("sheep", "овца", ""), ("mouse", "мышь", ""), ("cheese", "сыр", "")],
+    "reading_rules_3": [("ship", "корабль", ""), ("chair", "стул", ""), ("phone", "телефон", "")],
+    "personal_info_3": [("My name is Ann", "Меня зовут Анна", ""), ("I am nine", "Мне девять", "")],
+    "family_friends_3": [("friend", "друг", ""), ("parents", "родители", ""), ("brother", "брат", "")],
+    "numbers_1_100_en": [("thirty", "тридцать", ""), ("forty", "сорок", ""), ("one hundred", "сто", "")],
+    "days_months_en": [("Monday", "понедельник", ""), ("Friday", "пятница", ""), ("January", "январь", "")],
+    "school_subjects_en": [("Maths", "математика", ""), ("English", "английский", ""), ("Music", "музыка", "")],
+    "daily_routine_en": [("get up", "вставать", ""), ("go to school", "идти в школу", ""), ("have breakfast", "завтракать", "")],
+    "food_likes_en": [("I like apples", "Мне нравятся яблоки", ""), ("I don't like milk", "Мне не нравится молоко", "")],
+    "animals_3_en": [("tiger", "тигр", ""), ("lion", "лев", ""), ("elephant", "слон", "")],
+    "home_city_en": [("city", "город", ""), ("street", "улица", ""), ("flat", "квартира", "")],
+    "present_simple_intro": [("he plays", "он играет", ""), ("I like", "мне нравится", ""), ("she likes", "ей нравится", "")],
+    "questions_short_answers": [("Yes, I do", "Да", ""), ("No, I don't", "Нет", ""), ("Do you like cats?", "Ты любишь кошек?", "")],
+    "vocabulary_words_en_3": [("holiday", "праздник", ""), ("together", "вместе", ""), ("weather", "погода", "")],
+}
+
+
+def topic_words(topic_id: str) -> list[dict]:
+    return [{"english_word": en, "russian_translation": ru, "transcription": tr} for en, ru, tr in ENGLISH_TOPIC_WORDS.get(topic_id, [])]
 
 
 def get_english_words_for_class(class_num: str) -> list[dict]:
@@ -52,7 +86,7 @@ def normalize_used_questions(raw_used_questions: Any) -> list[str]:
 
 def get_next_control_topic_id(class_num: int) -> str:
     global control_topic_cursor
-    topic_ids = list(get_english_topics(class_num).keys())
+    topic_ids = [topic_id for topic_id in get_english_topics(class_num).keys() if topic_id not in VOCABULARY_TOPIC_CODES]
     if not topic_ids:
         return DEFAULT_TOPIC_BY_CLASS.get(class_num, "alphabet_en")
     topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
@@ -70,7 +104,7 @@ def english_class_page(class_num: int):
     if class_num not in SUPPORTED_ENGLISH_CLASSES:
         abort(404)
     if class_num in IMPLEMENTED_LEARNING_CLASSES:
-        return render_template("english/learning.html", student=get_student(), class_num=class_num, topics=get_english_topics(class_num))
+        return render_template("english/learning.html", student=get_student(), class_num=class_num, topics=get_english_topics(class_num), vocabulary_topic_codes=VOCABULARY_TOPIC_CODES)
     return render_template("english/class_page.html", student=get_student(), class_num=class_num, is_first_class=class_num == 1, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
 
@@ -79,16 +113,36 @@ def english_learning():
     class_num = get_int_arg("class", default=2, min_value=1, max_value=11)
     if class_num not in IMPLEMENTED_LEARNING_CLASSES:
         return english_class_page(class_num)
-    return render_template("english/learning.html", student=get_student(), class_num=class_num, topics=get_english_topics(class_num))
+    return render_template("english/learning.html", student=get_student(), class_num=class_num, topics=get_english_topics(class_num), vocabulary_topic_codes=VOCABULARY_TOPIC_CODES)
 
 
 @english_bp.route("/english/learning/topic/<topic_id>")
 def english_learning_topic(topic_id: str):
     class_num = get_int_arg("class", default=2, min_value=1, max_value=11)
+    if topic_id in VOCABULARY_TOPIC_CODES:
+        return render_template("english/vocabulary_menu.html", student=get_student(), class_num=class_num)
     topic = get_english_topic(class_num, topic_id)
     if not topic:
         abort(404)
-    return render_template("english/learning_topic.html", student=get_student(), class_num=class_num, topic_id=topic_id, topic=topic)
+    return render_template("english/learning_topic.html", student=get_student(), class_num=class_num, topic_id=topic_id, topic=topic, topic_words=topic_words(topic_id))
+
+
+@english_bp.route("/english/vocabulary-menu")
+def english_vocabulary_menu():
+    class_num = get_int_arg("class", default=2, min_value=2, max_value=3)
+    return render_template("english/vocabulary_menu.html", student=get_student(), class_num=class_num)
+
+
+@english_bp.route("/english/vocabulary-list")
+def english_vocabulary_list():
+    class_num = get_int_arg("class", default=2, min_value=2, max_value=3)
+    try:
+        words = get_english_words_for_class(str(class_num))
+        error_message = None
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        words = []
+        error_message = f"Не удалось получить английский словарь из БД: {error}"
+    return render_template("english/vocabulary_list.html", student=get_student(), class_num=class_num, words=words, error_message=error_message)
 
 
 @english_bp.route("/english/topic-test")
@@ -98,7 +152,7 @@ def english_topic_test():
     total_questions = get_int_arg("questions", default=25, min_value=1, max_value=50)
     if topic_id == CONTROL_SLICE_TYPE:
         total_questions = 50
-    return render_template("english/topic_test.html", student=get_student(), class_num=class_num, test_settings={"classNum": str(class_num), "topicId": topic_id}, total_questions=total_questions)
+    return render_template("english/topic_test.html", student=get_student(), class_num=class_num, test_settings={"classNum": str(class_num), "topicId": topic_id}, total_questions=total_questions, is_control_slice=topic_id == CONTROL_SLICE_TYPE)
 
 
 @english_bp.route("/english/generate_task", methods=["POST"])
@@ -133,14 +187,7 @@ def check_english_task():
 
 @english_bp.route("/english/vocabulary")
 def english_vocabulary():
-    student = get_student()
-    try:
-        class2_words, class3_words = get_english_class_words()
-        error_message = None
-    except (RuntimeError, SQLAlchemyError, OSError) as error:
-        class2_words, class3_words = [], []
-        error_message = f"Не удалось получить английский словарь из БД: {error}"
-    return render_template("english/vocabulary.html", class2_words=class2_words, class3_words=class3_words, student=student, error_message=error_message)
+    return english_vocabulary_list()
 
 
 @english_bp.route("/english/rules")
