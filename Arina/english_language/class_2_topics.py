@@ -1,0 +1,15 @@
+ENGLISH_CLASS_2_TOPICS = {
+    "alphabet_en": {"description": "Учимся узнавать английские буквы.", "rules": ["В английском алфавите 26 букв.", "Буквы бывают заглавные и строчные."], "examples": ["A a", "B b", "C c"]},
+    "sounds_reading": {"description": "Читаем простые английские слова.", "rules": ["Одна буква может читаться по-разному.", "Слушай слово и повторяй вслух."], "examples": ["cat", "dog", "pen"]},
+    "greetings": {"description": "Приветствуем и знакомимся.", "rules": ["Hello — привет.", "My name is... — меня зовут..."], "examples": ["Hello!", "What is your name?"]},
+    "family_en": {"description": "Говорим о семье.", "rules": ["mother — мама", "father — папа"], "examples": ["This is my mother."]},
+    "colors_en": {"description": "Изучаем цвета.", "rules": ["Цвет отвечает на вопрос what colour?"], "examples": ["red", "blue", "green"]},
+    "numbers_1_10_en": {"description": "Считаем от 1 до 10.", "rules": ["one — один", "two — два", "ten — десять"], "examples": ["one, two, three"]},
+    "school_items_en": {"description": "Школьные предметы и принадлежности.", "rules": ["book — книга", "pen — ручка"], "examples": ["This is a book."]},
+    "toys_en": {"description": "Игрушки.", "rules": ["toy — игрушка", "ball — мяч"], "examples": ["I have a ball."]},
+    "animals_en": {"description": "Животные.", "rules": ["cat — кошка", "dog — собака"], "examples": ["This is a cat."]},
+    "food_en": {"description": "Еда.", "rules": ["apple — яблоко", "milk — молоко"], "examples": ["I like apples."]},
+    "home_rooms_en": {"description": "Дом и комнаты.", "rules": ["home — дом", "kitchen — кухня"], "examples": ["This is my room."]},
+    "simple_phrases_en": {"description": "Простые фразы.", "rules": ["I am — я есть/я являюсь.", "I have — у меня есть."], "examples": ["I am happy.", "I have a pen."]},
+    "vocabulary_words_en_2": {"description": "Повторяем английские слова 2 класса.", "rules": ["Слушай, повторяй и запоминай перевод."], "examples": ["sheep — овца", "family — семья"]},
+}
