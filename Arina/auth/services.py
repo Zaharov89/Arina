@@ -56,6 +56,22 @@ def has_injection_risk(value: str, password: bool = False) -> bool:
     return bool(pattern.search(value))
 
 
+def get_user_display_name(user: User) -> str:
+    full_name = " ".join(part for part in [user.first_name, user.last_name] if part)
+    return full_name or user.email
+
+
+def build_user_payload(user: User) -> dict:
+    return {
+        "user_id": user.id,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "display_name": get_user_display_name(user),
+        "is_active": user.is_active,
+    }
+
+
 def validate_name(value: str, field_title: str) -> str | None:
     if not value:
         return f"{field_title}: обязательное поле."
@@ -216,17 +232,14 @@ def verify_auth_token(session: Session, token: str) -> dict:
     if not user.is_active:
         raise AuthTokenError("Пользователь не активирован.")
 
-    return {
-        "valid": True,
-        "user_id": user.id,
-        "email": user.email,
-        "is_active": user.is_active,
-        "token_payload": {
-            "type": payload.get("type"),
-            "exp": payload.get("exp"),
-            "iat": payload.get("iat"),
-        },
+    result = build_user_payload(user)
+    result["valid"] = True
+    result["token_payload"] = {
+        "type": payload.get("type"),
+        "exp": payload.get("exp"),
+        "iat": payload.get("iat"),
     }
+    return result
 
 
 def refresh_auth_token(session: Session, refresh_token: str, remember_me: bool = True) -> dict:
@@ -290,6 +303,8 @@ def register_user(session: Session, payload: dict) -> dict:
     user = User(
         email=data.email,
         password_hash=generate_password_hash(data.password),
+        first_name=data.child_first_name,
+        last_name=data.child_last_name,
         is_active=True,
         is_admin=False,
     )
@@ -305,12 +320,13 @@ def register_user(session: Session, payload: dict) -> dict:
     session.add(student)
     session.flush()
 
-    return {
-        "user_id": user.id,
-        "student_id": student.id,
-        "email": user.email,
-        "is_active": user.is_active,
-        "activation_email_sent": False,
-        "activation_link_dev": None,
-        "auto_activated": True,
-    }
+    result = build_user_payload(user)
+    result.update(
+        {
+            "student_id": student.id,
+            "activation_email_sent": False,
+            "activation_link_dev": None,
+            "auto_activated": True,
+        }
+    )
+    return result
