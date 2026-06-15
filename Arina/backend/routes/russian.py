@@ -16,6 +16,8 @@ russian_bp = Blueprint("russian", __name__)
 SUPPORTED_RUSSIAN_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1}
+CONTROL_SLICE_TYPE = "control_slice"
+control_topic_cursor = 0
 
 
 def get_russian_class_1_topics() -> dict:
@@ -24,6 +26,16 @@ def get_russian_class_1_topics() -> dict:
 
 def get_russian_class_1_topic_from_catalog(topic_id: str) -> dict | None:
     return get_topic_or_none("russian", 1, topic_id, RUSSIAN_CLASS_1_TOPICS)
+
+
+def get_next_control_topic_id() -> str:
+    global control_topic_cursor
+    topic_ids = list(get_russian_class_1_topics().keys())
+    if not topic_ids:
+        return "sounds_and_letters"
+    topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
+    control_topic_cursor += 1
+    return topic_id
 
 
 def get_russian_vocabulary_words_for_class(class_num: str) -> list[str]:
@@ -59,7 +71,6 @@ def ensure_unique_task(task: dict, used_questions: list[str]) -> dict:
     task_key = build_task_key(task)
     if task_key in used_questions:
         task_key = f"{task_key} | repeat-{len(used_questions) + 1}"
-
     task["question_key"] = task_key
     task["is_repeat"] = False
     return task
@@ -113,18 +124,16 @@ def russian_test():
     class_num = request.args.get("class", "all")
     topic_id = request.args.get("type", "")
     total_requested = get_int_arg("words", default=25, min_value=1, max_value=50)
-
+    if topic_id == CONTROL_SLICE_TYPE:
+        total_requested = 50
     if class_num == "1" and topic_id:
         return render_template("russian/topic_test_radio.html", test_settings={"classNum": "1", "topicId": topic_id}, total_questions=total_requested, student=student)
-
     if class_num not in {"1", "2", "3", "all"}:
         class_num = "all"
-
     try:
         all_available = get_russian_vocabulary_words_for_class(class_num)
     except (RuntimeError, SQLAlchemyError, OSError) as error:
         return render_template("russian/test.html", test_words=[], total_words=0, student=student, error_message=f"Не удалось получить словарные слова из БД: {error}")
-
     if not all_available:
         test_words = []
     elif len(all_available) >= total_requested:
@@ -143,6 +152,8 @@ def generate_russian_task():
     if class_num != 1:
         return jsonify({"error": "Topic tasks are available only for Russian class 1"}), 400
     topic_id = str(data.get("topic", "sounds_and_letters")).strip() or "sounds_and_letters"
+    if topic_id == CONTROL_SLICE_TYPE:
+        topic_id = get_next_control_topic_id()
     used_questions = normalize_used_questions(data.get("used_questions"))
     task = generate_russian_class_1_topic_task(topic_id, used_questions=used_questions)
     return jsonify(ensure_unique_task(task, used_questions))
