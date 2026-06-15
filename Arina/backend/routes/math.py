@@ -19,7 +19,6 @@ IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1, 2}
 CONTROL_SLICE_TYPE = "control_slice"
 control_topic_cursor = 0
-
 TOPICS_BY_CLASS = {1: CLASS_1_MATH_TOPICS, 2: CLASS_2_MATH_TOPICS}
 
 
@@ -57,8 +56,9 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
         return "all"
     example_type = str(example_type).strip()
     if class_num in {1, 2}:
-        allowed = set(get_math_topics(class_num).keys()) | {CONTROL_SLICE_TYPE, "all", "addsub", "+", "-"}
-        return example_type if example_type in allowed else next(iter(get_math_topics(class_num).keys()), "all")
+        topics = get_math_topics(class_num)
+        allowed = set(topics.keys()) | {CONTROL_SLICE_TYPE, "all", "addsub", "+", "-"}
+        return example_type if example_type in allowed else next(iter(topics.keys()), "all")
     allowed_for_class_3 = {"all", "addsub", "muldiv", "+", "-", "*", "/", "simple_equation", "parentheses"}
     return example_type if example_type in allowed_for_class_3 else "all"
 
@@ -132,8 +132,12 @@ def math_learning_topic(topic_id: str):
 
 @math_bp.route("/math/test_setup")
 def math_test_setup():
-    class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
-    return render_template("math/test_setup.html", student=get_student(), class_1_topics=build_topic_options(get_math_topics(class_num)))
+    return render_template(
+        "math/test_setup.html",
+        student=get_student(),
+        class_1_topics=build_topic_options(get_math_topics(1)),
+        class_2_topics=build_topic_options(get_math_topics(2)),
+    )
 
 
 @math_bp.route("/math/test")
