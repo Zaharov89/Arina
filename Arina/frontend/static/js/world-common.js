@@ -9,245 +9,26 @@ let usedWorldQuestionTexts = [];
 let testStartTime = null;
 let testTimerInterval = null;
 
-function goBackToMenu() {
-    const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
-    window.location.href = `/world?student=${encodeURIComponent(student)}`;
-}
-
-function goBackFromWorldQuestionCount() {
-    const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
-    const topic = window.INITIAL_WORLD_TOPIC || 'living_nonliving';
-    window.location.href = `/world/learning/topic/${topic}?student=${encodeURIComponent(student)}`;
-}
-
-function startWorldTest() {
-    const activeBtn = document.querySelector('.question-btn.active');
-    const total = activeBtn ? parseInt(activeBtn.getAttribute('data-count')) : 25;
-    const topic = window.INITIAL_WORLD_TOPIC || 'living_nonliving';
-    const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
-
-    const params = new URLSearchParams({
-        class: '1',
-        type: topic,
-        questions: total,
-        student: student,
-    });
-
-    window.location.href = `/world/test?${params.toString()}`;
-}
-
-function startTestTimer() {
-    clearInterval(testTimerInterval);
-    testStartTime = Date.now();
-    testTimerInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        const timerEl = document.getElementById('testTimer');
-        if (timerEl) {
-            timerEl.textContent = `Время: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
-    }, 1000);
-}
-
-function getWorldTaskQuestionKey(task) {
-    if (!task || task.question === undefined || task.question === null) return '';
-    return String(task.question).trim();
-}
-
-function rememberWorldTaskQuestion(task) {
-    const key = getWorldTaskQuestionKey(task);
-    if (!key) return;
-
-    if (!usedWorldQuestionTexts.includes(key)) {
-        usedWorldQuestionTexts.push(key);
-    }
-
-    if (usedWorldQuestionTexts.length > 300) {
-        usedWorldQuestionTexts = usedWorldQuestionTexts.slice(-300);
-    }
-}
-
+function goBackToMenu() { const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; window.location.href = `/world?student=${encodeURIComponent(student)}`; }
+function goBackFromWorldQuestionCount() { const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; const topic = window.INITIAL_WORLD_TOPIC || 'living_nonliving'; const classNum = window.INITIAL_WORLD_CLASS || '1'; window.location.href = `/world/learning/topic/${topic}?class=${classNum}&student=${encodeURIComponent(student)}`; }
+function startWorldTest() { const activeBtn = document.querySelector('.question-btn.active'); const total = activeBtn ? parseInt(activeBtn.getAttribute('data-count')) : 25; const topic = window.INITIAL_WORLD_TOPIC || 'living_nonliving'; const classNum = window.INITIAL_WORLD_CLASS || '1'; const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; const params = new URLSearchParams({ class: classNum, type: topic, questions: total, student: student }); window.location.href = `/world/test?${params.toString()}`; }
+function startTestTimer() { clearInterval(testTimerInterval); testStartTime = Date.now(); testTimerInterval = setInterval(() => { const elapsed = Math.floor((Date.now() - testStartTime) / 1000); const minutes = Math.floor(elapsed / 60); const seconds = elapsed % 60; const timerEl = document.getElementById('testTimer'); if (timerEl) timerEl.textContent = `Время: ${minutes}:${seconds.toString().padStart(2, '0')}`; }, 1000); }
+function getWorldTaskQuestionKey(task) { if (!task || task.question === undefined || task.question === null) return ''; return String(task.question).trim(); }
+function rememberWorldTaskQuestion(task) { const key = getWorldTaskQuestionKey(task); if (!key) return; if (!usedWorldQuestionTexts.includes(key)) usedWorldQuestionTexts.push(key); if (usedWorldQuestionTexts.length > 300) usedWorldQuestionTexts = usedWorldQuestionTexts.slice(-300); }
 function generateWorldTopicQuestion() {
-    const answerInput = document.getElementById('answerInput');
-    const resultMessage = document.getElementById('resultMessage');
-    if (!answerInput || !resultMessage) return;
-
-    if (currentQuestion > totalQuestions) {
-        finishWorldTopicTest();
-        return;
-    }
-
-    answerInput.value = '';
-    answerInput.style.display = 'block';
-    if (typeof clearWorldChoiceOptions === 'function') clearWorldChoiceOptions();
-    resultMessage.textContent = '';
-    resultMessage.className = 'result-message';
-    document.getElementById('checkBtn').disabled = false;
-    document.getElementById('nextBtn').disabled = true;
-    answerInput.disabled = false;
-
-    const counter = document.getElementById('questionCounter');
-    if (counter) counter.textContent = `Задание №${currentQuestion} из ${totalQuestions}`;
-
-    fetch('/world/generate_task', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            class: window.worldTopicTestSettings?.classNum || '1',
-            topic: window.worldTopicTestSettings?.topicId || 'living_nonliving',
-            used_questions: usedWorldQuestionTexts,
-        })
-    })
-    .then(response => response.json())
-    .then(task => {
-        currentWorldTask = task;
-        rememberWorldTaskQuestion(task);
-
-        const topicEl = document.getElementById('questionTopic');
-        if (topicEl && task.topic_title) {
-            topicEl.style.display = 'block';
-            topicEl.textContent = task.topic_title;
-        }
-
-        const display = document.getElementById('questionDisplay');
-        if (display) display.textContent = String(task.question || '').trim() || 'Задание недоступно';
-
-        if (typeof setWorldAnswerMode === 'function') {
-            setWorldAnswerMode(task);
-        } else {
-            answerInput.focus();
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка загрузки задания:', error);
-        const display = document.getElementById('questionDisplay');
-        if (display) display.textContent = 'Ошибка загрузки задания';
-    });
+    const answerInput = document.getElementById('answerInput'); const resultMessage = document.getElementById('resultMessage'); if (!answerInput || !resultMessage) return;
+    if (currentQuestion > totalQuestions) { finishWorldTopicTest(); return; }
+    answerInput.value = ''; answerInput.style.display = 'block'; if (typeof clearWorldChoiceOptions === 'function') clearWorldChoiceOptions(); resultMessage.textContent = ''; resultMessage.className = 'result-message'; document.getElementById('checkBtn').disabled = false; document.getElementById('nextBtn').disabled = true; answerInput.disabled = false;
+    const counter = document.getElementById('questionCounter'); if (counter) counter.textContent = `Задание №${currentQuestion} из ${totalQuestions}`;
+    fetch('/world/generate_task', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class: window.worldTopicTestSettings?.classNum || '1', topic: window.worldTopicTestSettings?.topicId || 'living_nonliving', used_questions: usedWorldQuestionTexts, question_number: currentQuestion }) })
+    .then(response => response.json()).then(task => { currentWorldTask = task; rememberWorldTaskQuestion(task); const topicEl = document.getElementById('questionTopic'); if (topicEl && task.topic_title) { topicEl.style.display = 'block'; topicEl.textContent = task.topic_title; } const display = document.getElementById('questionDisplay'); if (display) display.textContent = String(task.question || '').trim() || 'Задание недоступно'; if (typeof setWorldAnswerMode === 'function') setWorldAnswerMode(task); else answerInput.focus(); })
+    .catch(error => { console.error('Ошибка загрузки задания:', error); const display = document.getElementById('questionDisplay'); if (display) display.textContent = 'Ошибка загрузки задания'; });
 }
-
-function getCurrentWorldAnswer() {
-    if (typeof getCurrentWorldTopicAnswer === 'function') {
-        return getCurrentWorldTopicAnswer();
-    }
-
-    const answerInput = document.getElementById('answerInput');
-    return answerInput ? answerInput.value.trim() : '';
-}
-
-function checkWorldTopicAnswer() {
-    const userAnswer = getCurrentWorldAnswer();
-    const resultMessage = document.getElementById('resultMessage');
-    if (!resultMessage) return;
-
-    fetch('/world/check_task', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            answer: userAnswer,
-            correct: currentWorldTask?.correct,
-            answer_type: currentWorldTask?.answer_type,
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.result === 'correct') {
-            resultMessage.textContent = '✓ Правильно!';
-            resultMessage.className = 'result-message correct';
-            correctAnswers++;
-        } else if (data.result === 'empty') {
-            resultMessage.textContent = `Вы ничего не выбрали или не ввели. Правильный ответ: ${data.correct_answer}`;
-            resultMessage.className = 'result-message empty-answer';
-            emptyAnswers++;
-            wrongAnswersList.push({...currentWorldTask, userAnswer: '(пусто)', correctAnswer: data.correct_answer});
-        } else {
-            resultMessage.textContent = `✗ Неправильно. Правильный ответ: ${data.correct_answer}`;
-            resultMessage.className = 'result-message incorrect';
-            wrongAnswers++;
-            wrongAnswersList.push({...currentWorldTask, userAnswer: userAnswer, correctAnswer: data.correct_answer});
-        }
-
-        document.getElementById('checkBtn').disabled = true;
-        document.getElementById('nextBtn').disabled = false;
-        document.getElementById('answerInput').disabled = true;
-        if (typeof setWorldChoiceOptionsDisabled === 'function') setWorldChoiceOptionsDisabled(true);
-    })
-    .catch(error => {
-        console.error('Ошибка проверки:', error);
-        resultMessage.textContent = 'Ошибка проверки ответа';
-        resultMessage.className = 'result-message incorrect';
-    });
-}
-
-function nextWorldTopicQuestion() {
-    currentQuestion++;
-    generateWorldTopicQuestion();
-}
-
-function finishWorldTopicTest() {
-    if (testTimerInterval) clearInterval(testTimerInterval);
-    const totalTime = Math.round((Date.now() - testStartTime) / 1000);
-
-    localStorage.setItem('testSubject', 'Окружающий мир');
-    localStorage.setItem('totalQuestions', totalQuestions);
-    localStorage.setItem('correctAnswers', correctAnswers);
-    localStorage.setItem('wrongAnswers', wrongAnswers);
-    localStorage.setItem('emptyAnswers', emptyAnswers);
-    localStorage.setItem('timeSpent', totalTime);
-    localStorage.setItem('averageTime', totalQuestions > 0 ? (totalTime / totalQuestions).toFixed(1) : 0);
-    localStorage.setItem('wrongAnswersList', JSON.stringify(wrongAnswersList));
-
-    const student = new URLSearchParams(window.location.search).get('student') || 'Арина';
-    window.location.href = `/results/world?student=${encodeURIComponent(student)}`;
-}
-
-function renderDateBar() {
-    const dateTimeBar = document.getElementById('dateTimeBar');
-    if (!dateTimeBar) return;
-
-    const now = new Date();
-    const monthsRu = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-    dateTimeBar.textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    renderDateBar();
-
-    const questionButtons = document.getElementById('questionCountButtons');
-    if (questionButtons) {
-        questionButtons.addEventListener('click', function(e) {
-            if (e.target.classList.contains('question-btn')) {
-                document.querySelectorAll('.question-btn').forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
-            }
-        });
-    }
-
-    if (document.getElementById('worldTopicTestBlock')) {
-        totalQuestions = window.totalWorldTopicQuestions || 25;
-        currentQuestion = 1;
-        correctAnswers = 0;
-        wrongAnswers = 0;
-        emptyAnswers = 0;
-        wrongAnswersList = [];
-        usedWorldQuestionTexts = [];
-        currentWorldTask = null;
-        startTestTimer();
-        generateWorldTopicQuestion();
-    }
-
-    const answerInput = document.getElementById('answerInput');
-    if (answerInput) {
-        answerInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const checkBtn = document.getElementById('checkBtn');
-                const nextBtn = document.getElementById('nextBtn');
-                if (checkBtn && !checkBtn.disabled) {
-                    checkWorldTopicAnswer();
-                } else if (nextBtn && !nextBtn.disabled) {
-                    nextWorldTopicQuestion();
-                }
-            }
-        });
-    }
-});
+function getCurrentWorldAnswer() { if (typeof getCurrentWorldTopicAnswer === 'function') return getCurrentWorldTopicAnswer(); const answerInput = document.getElementById('answerInput'); return answerInput ? answerInput.value.trim() : ''; }
+function checkWorldTopicAnswer() { const userAnswer = getCurrentWorldAnswer(); const resultMessage = document.getElementById('resultMessage'); if (!resultMessage) return; fetch('/world/check_task', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answer: userAnswer, correct: currentWorldTask?.correct, answer_type: currentWorldTask?.answer_type }) })
+.then(response => response.json()).then(data => { if (data.result === 'correct') { resultMessage.textContent = '✓ Правильно!'; resultMessage.className = 'result-message correct'; correctAnswers++; } else if (data.result === 'empty') { resultMessage.textContent = `Вы ничего не выбрали или не ввели. Правильный ответ: ${data.correct_answer}`; resultMessage.className = 'result-message empty-answer'; emptyAnswers++; wrongAnswersList.push({...currentWorldTask, userAnswer: '(пусто)', correctAnswer: data.correct_answer}); } else { resultMessage.textContent = `✗ Неправильно. Правильный ответ: ${data.correct_answer}`; resultMessage.className = 'result-message incorrect'; wrongAnswers++; wrongAnswersList.push({...currentWorldTask, userAnswer: userAnswer, correctAnswer: data.correct_answer}); } document.getElementById('checkBtn').disabled = true; document.getElementById('nextBtn').disabled = false; document.getElementById('answerInput').disabled = true; if (typeof setWorldChoiceOptionsDisabled === 'function') setWorldChoiceOptionsDisabled(true); })
+.catch(error => { console.error('Ошибка проверки:', error); resultMessage.textContent = 'Ошибка проверки ответа'; resultMessage.className = 'result-message incorrect'; }); }
+function nextWorldTopicQuestion() { currentQuestion++; generateWorldTopicQuestion(); }
+function finishWorldTopicTest() { if (testTimerInterval) clearInterval(testTimerInterval); const totalTime = Math.round((Date.now() - testStartTime) / 1000); localStorage.setItem('testSubject', 'Окружающий мир'); localStorage.setItem('resultSubjectCode', 'world'); localStorage.setItem('resultClassNumber', window.worldTopicTestSettings?.classNum || '1'); localStorage.setItem('resultTopicCode', window.worldTopicTestSettings?.topicId || ''); localStorage.setItem('totalQuestions', totalQuestions); localStorage.setItem('correctAnswers', correctAnswers); localStorage.setItem('wrongAnswers', wrongAnswers); localStorage.setItem('emptyAnswers', emptyAnswers); localStorage.setItem('timeSpent', totalTime); localStorage.setItem('averageTime', totalQuestions > 0 ? (totalTime / totalQuestions).toFixed(1) : 0); localStorage.setItem('wrongAnswersList', JSON.stringify(wrongAnswersList)); const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; window.location.href = `/results/world?student=${encodeURIComponent(student)}`; }
+function renderDateBar() { const dateTimeBar = document.getElementById('dateTimeBar'); if (!dateTimeBar) return; const now = new Date(); const monthsRu = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']; dateTimeBar.textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`; }
+document.addEventListener('DOMContentLoaded', function () { renderDateBar(); const questionButtons = document.getElementById('questionCountButtons'); if (questionButtons) questionButtons.addEventListener('click', function(e) { if (e.target.classList.contains('question-btn')) { document.querySelectorAll('.question-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); } }); if (document.getElementById('worldTopicTestBlock')) { totalQuestions = window.totalWorldTopicQuestions || 25; currentQuestion = 1; correctAnswers = 0; wrongAnswers = 0; emptyAnswers = 0; wrongAnswersList = []; usedWorldQuestionTexts = []; currentWorldTask = null; startTestTimer(); generateWorldTopicQuestion(); } const answerInput = document.getElementById('answerInput'); if (answerInput) answerInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { const checkBtn = document.getElementById('checkBtn'); const nextBtn = document.getElementById('nextBtn'); if (checkBtn && !checkBtn.disabled) checkWorldTopicAnswer(); else if (nextBtn && !nextBtn.disabled) nextWorldTopicQuestion(); } }); });
