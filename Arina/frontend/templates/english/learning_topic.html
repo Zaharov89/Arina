@@ -6,10 +6,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='russian/learning.css') }}">
     <style>
-        .english-word-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(120px, 1fr) 44px; gap: 12px; align-items: center; }
+        .english-topic-words-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+        .english-word-row { display: grid; grid-template-columns: minmax(95px, 1fr) minmax(95px, 1fr) 44px; gap: 12px; align-items: center; min-width: 0; overflow: hidden; }
         .english-word-row strong, .english-word-row span { min-width: 0; overflow-wrap: anywhere; }
         .speak-word-btn { width: 42px; height: 42px; border: 0; border-radius: 12px; background: #5d92e0; color: #fff; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
         .orange-link { background: #f5a623 !important; color: #fff !important; }
+        @media (max-width: 520px) { .english-word-row { grid-template-columns: 1fr; } .speak-word-btn { width: 100%; } }
     </style>
 </head>
 <body>
@@ -26,7 +28,7 @@
             </div>
             {% if topic_words %}
             <h2>Слова для повторения</h2>
-            <div class="examples-list">
+            <div class="english-topic-words-grid">
                 {% for word in topic_words %}
                     <div class="example-card english-word-row"><strong>{{ word.english_word }}</strong><span>{{ word.russian_translation }}</span><button class="speak-word-btn" type="button" onclick="speakEnglishWord('{{ word.english_word }}')">🔊</button></div>
                 {% endfor %}

@@ -1,15 +1,34 @@
 from datetime import date
 from decimal import Decimal
+from types import SimpleNamespace
 
 from Arina.auth.services import AuthTokenError, decode_jwt_token, get_token_user_id
 from Arina.database.session import get_session_factory
 from Arina.stats.repositories import StatsRepository
 from Arina.stats.schemas import TestAttemptPayload, parse_test_attempt_payload
+from Arina.math.class_1_topics import MATH_CLASS_1_TOPICS
+from Arina.math.class_2_topics import MATH_CLASS_2_TOPICS
+from Arina.math.class_3_topics import MATH_CLASS_3_TOPICS
+from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS
+from Arina.russian_language.class_2_topics import RUSSIAN_CLASS_2_TOPICS
+from Arina.russian_language.class_3_topics import RUSSIAN_CLASS_3_TOPICS
+from Arina.world.class_1_topics import WORLD_CLASS_1_TOPICS
+from Arina.world.class_2_topics import WORLD_CLASS_2_TOPICS
+from Arina.world.class_3_topics import WORLD_CLASS_3_TOPICS
+from Arina.english_language.class_2_topics import ENGLISH_CLASS_2_TOPICS
+from Arina.english_language.class_3_topics import ENGLISH_CLASS_3_TOPICS
 
 SUBJECT_TITLES = {"math": "Математика", "russian": "Русский язык", "world": "Окружающий мир", "english": "Английский язык"}
 SUBJECT_ORDER = ["math", "russian", "world", "english"]
 CONTROL_SLICE_CODE = "control_slice"
 CONTROL_SLICE_TITLE = "Контрольный срез"
+
+TOPIC_FALLBACKS = {
+    "math": {1: MATH_CLASS_1_TOPICS, 2: MATH_CLASS_2_TOPICS, 3: MATH_CLASS_3_TOPICS},
+    "russian": {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS, 3: RUSSIAN_CLASS_3_TOPICS},
+    "world": {1: WORLD_CLASS_1_TOPICS, 2: WORLD_CLASS_2_TOPICS, 3: WORLD_CLASS_3_TOPICS},
+    "english": {2: ENGLISH_CLASS_2_TOPICS, 3: ENGLISH_CLASS_3_TOPICS},
+}
 
 
 def get_user_id_from_access_token(access_token: str) -> int:
@@ -51,8 +70,21 @@ def get_topic_title(row) -> str:
     return row.topic_title or "Общий тест"
 
 
-def add_class_prefix(title: str, class_number: int | None) -> str:
-    return f"{class_number} класс — {title}" if class_number else title
+def fallback_title(topic_code: str, topic_data: dict) -> str:
+    return topic_data.get("title") or topic_data.get("short_title") or topic_data.get("description") or topic_code.replace("_", " ").capitalize()
+
+
+def merge_topics_with_code_fallbacks(subject_code: str, db_topics: list) -> list:
+    merged = list(db_topics)
+    existing = {(topic.class_number, topic.code) for topic in merged}
+    fake_id = -1
+    for class_number, topics in TOPIC_FALLBACKS.get(subject_code, {}).items():
+        for topic_code, topic_data in topics.items():
+            if (class_number, topic_code) in existing:
+                continue
+            merged.append(SimpleNamespace(id=f"fallback-{subject_code}-{class_number}-{topic_code}", code=topic_code, title=fallback_title(topic_code, topic_data), class_number=class_number, is_active=True))
+            fake_id -= 1
+    return merged
 
 
 def format_grade_row(row) -> dict:
@@ -60,15 +92,15 @@ def format_grade_row(row) -> dict:
 
 
 def build_topic_diary(topics: list, month_rows: list) -> list[dict]:
-    topic_map: dict[int | None, dict] = {}
+    topic_map: dict[int | str | None, dict] = {}
     for topic in topics:
-        topic_map[topic.id] = {"topic_id": topic.id, "topic_code": topic.code, "topic_title": add_class_prefix(topic.title, topic.class_number), "class_number": topic.class_number, "month_grades": [], "month_avg": 0, "best_grade": None, "last_grade": None, "last_date": None, "is_control_slice": topic.code == CONTROL_SLICE_CODE}
+        topic_map[topic.id] = {"topic_id": topic.id, "topic_code": topic.code, "topic_title": topic.title, "class_number": topic.class_number, "month_grades": [], "month_avg": 0, "best_grade": None, "last_grade": None, "last_date": None, "is_control_slice": topic.code == CONTROL_SLICE_CODE}
     for row in month_rows:
         topic_id = row.topic_id
         topic_code = get_topic_code(row)
         topic_title = get_topic_title(row)
         if topic_id not in topic_map:
-            topic_map[topic_id] = {"topic_id": topic_id, "topic_code": topic_code, "topic_title": topic_title, "class_number": None, "month_grades": [], "month_avg": 0, "best_grade": None, "last_grade": None, "last_date": None, "is_control_slice": topic_code == CONTROL_SLICE_CODE}
+            topic_map[topic_id] = {"topic_id": topic_id, "topic_code": topic_code, "topic_title": topic_title, "class_number": getattr(row, "class_number", None), "month_grades": [], "month_avg": 0, "best_grade": None, "last_grade": None, "last_date": None, "is_control_slice": topic_code == CONTROL_SLICE_CODE}
         grade_item = {"date": str(row.grade_date), "grade": int(row.grade)}
         topic_map[topic_id]["month_grades"].append(grade_item)
     for topic in topic_map.values():
@@ -91,7 +123,7 @@ def build_diary_stats(repository: StatsRepository, student) -> dict:
         title = SUBJECT_TITLES.get(subject_code, subject_code)
         subject_data = build_empty_subject(subject_code, title)
         if subject and student:
-            topics = repository.get_subject_topics(subject)
+            topics = merge_topics_with_code_fallbacks(subject_code, repository.get_subject_topics(subject))
             month_rows = repository.get_grade_rows(student, subject, month_start)
             year_rows = repository.get_grade_rows(student, subject, year_start)
             month_grades = [int(row.grade) for row in month_rows if row.grade is not None]

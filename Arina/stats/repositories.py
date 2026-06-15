@@ -38,14 +38,7 @@ class StatsRepository:
         topic = self.get_topic(subject, class_number, topic_code)
         if topic:
             return topic
-
-        topic = Topic(
-            subject_id=subject.id,
-            class_number=class_number,
-            code=topic_code,
-            title=title,
-            is_active=False,
-        )
+        topic = Topic(subject_id=subject.id, class_number=class_number, code=topic_code, title=title, is_active=False)
         self.session.add(topic)
         self.session.flush()
         return topic
@@ -63,6 +56,7 @@ class StatsRepository:
         return self.session.execute(
             select(
                 cast(TestAttempt.created_at, Date).label("grade_date"),
+                TestAttempt.class_number.label("class_number"),
                 TestAttempt.topic_id.label("topic_id"),
                 Topic.code.label("topic_code"),
                 Topic.title.label("topic_title"),
@@ -76,7 +70,7 @@ class StatsRepository:
                 TestAttempt.grade.is_not(None),
                 cast(TestAttempt.created_at, Date) >= start_date,
             )
-            .group_by(cast(TestAttempt.created_at, Date), TestAttempt.topic_id, Topic.code, Topic.title)
+            .group_by(cast(TestAttempt.created_at, Date), TestAttempt.class_number, TestAttempt.topic_id, Topic.code, Topic.title)
             .order_by(cast(TestAttempt.created_at, Date).desc(), Topic.title)
         ).all()
 
@@ -91,55 +85,16 @@ class StatsRepository:
             query = query.where(TestAttempt.topic_id.is_(None))
         else:
             query = query.where(TestAttempt.topic_id == topic_id)
-
         return self.session.scalar(query.order_by(TestAttempt.created_at.desc()).limit(1))
 
-    def create_attempt(
-        self,
-        student_id: int,
-        subject_id: int,
-        class_number: int,
-        topic_id: int | None,
-        total_questions: int,
-        correct_answers: int,
-        wrong_answers: int,
-        empty_answers: int,
-        score_percent: Decimal,
-        grade: int,
-        time_spent_seconds: int,
-        average_time_seconds: Decimal,
-    ) -> TestAttempt:
-        attempt = TestAttempt(
-            student_id=student_id,
-            subject_id=subject_id,
-            class_number=class_number,
-            topic_id=topic_id,
-            total_questions=total_questions,
-            correct_answers=correct_answers,
-            wrong_answers=wrong_answers,
-            empty_answers=empty_answers,
-            score_percent=score_percent,
-            grade=grade,
-            time_spent_seconds=time_spent_seconds,
-            average_time_seconds=average_time_seconds,
-        )
+    def create_attempt(self, student_id: int, subject_id: int, class_number: int, topic_id: int | None, total_questions: int, correct_answers: int, wrong_answers: int, empty_answers: int, score_percent: Decimal, grade: int, time_spent_seconds: int, average_time_seconds: Decimal) -> TestAttempt:
+        attempt = TestAttempt(student_id=student_id, subject_id=subject_id, class_number=class_number, topic_id=topic_id, total_questions=total_questions, correct_answers=correct_answers, wrong_answers=wrong_answers, empty_answers=empty_answers, score_percent=score_percent, grade=grade, time_spent_seconds=time_spent_seconds, average_time_seconds=average_time_seconds)
         self.session.add(attempt)
         self.session.flush()
         return attempt
 
     @staticmethod
-    def update_attempt(
-        attempt: TestAttempt,
-        class_number: int,
-        total_questions: int,
-        correct_answers: int,
-        wrong_answers: int,
-        empty_answers: int,
-        score_percent: Decimal,
-        grade: int,
-        time_spent_seconds: int,
-        average_time_seconds: Decimal,
-    ) -> None:
+    def update_attempt(attempt: TestAttempt, class_number: int, total_questions: int, correct_answers: int, wrong_answers: int, empty_answers: int, score_percent: Decimal, grade: int, time_spent_seconds: int, average_time_seconds: Decimal) -> None:
         attempt.class_number = class_number
         attempt.total_questions = total_questions
         attempt.correct_answers = correct_answers
@@ -154,13 +109,4 @@ class StatsRepository:
         self.session.query(TestAnswer).filter(TestAnswer.attempt_id == attempt.id).delete(synchronize_session=False)
         for answer in answers:
             question_text = str(answer.get("question") or answer.get("question_text") or answer.get("example") or "Задание")
-            self.session.add(
-                TestAnswer(
-                    attempt_id=attempt.id,
-                    question_text=question_text,
-                    user_answer=None if answer.get("userAnswer") is None else str(answer.get("userAnswer")),
-                    correct_answer=None if answer.get("correctAnswer") is None else str(answer.get("correctAnswer")),
-                    is_correct=bool(answer.get("is_correct", False)),
-                    answer_type=answer.get("answer_type"),
-                )
-            )
+            self.session.add(TestAnswer(attempt_id=attempt.id, question_text=question_text, user_answer=str(answer.get("userAnswer") or answer.get("user_answer") or ""), correct_answer=str(answer.get("correctAnswer") or answer.get("correct_answer") or answer.get("correct") or ""), is_correct=bool(answer.get("is_correct", False))))
