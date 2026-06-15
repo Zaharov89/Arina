@@ -9,30 +9,33 @@ from Arina.backend.services.catalog import build_topic_options, get_topic_or_non
 from Arina.database.session import get_session_factory
 from Arina.russian_language.class_1_tasks import generate_russian_class_1_topic_task, normalize_text
 from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS
+from Arina.russian_language.class_2_tasks import generate_russian_class_2_topic_task
+from Arina.russian_language.class_2_topics import RUSSIAN_CLASS_2_TOPICS
 from Arina.russian_language.vocabulary import get_russian_vocabulary_word_list
 
 russian_bp = Blueprint("russian", __name__)
 
 SUPPORTED_RUSSIAN_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
-IMPLEMENTED_LEARNING_CLASSES = {1}
+IMPLEMENTED_LEARNING_CLASSES = {1, 2}
 CONTROL_SLICE_TYPE = "control_slice"
 control_topic_cursor = 0
+TOPICS_BY_CLASS = {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS}
 
 
-def get_russian_class_1_topics() -> dict:
-    return merge_db_topics_with_content("russian", 1, RUSSIAN_CLASS_1_TOPICS)
+def get_russian_topics(class_num: int) -> dict:
+    return merge_db_topics_with_content("russian", class_num, TOPICS_BY_CLASS.get(class_num, RUSSIAN_CLASS_1_TOPICS))
 
 
-def get_russian_class_1_topic_from_catalog(topic_id: str) -> dict | None:
-    return get_topic_or_none("russian", 1, topic_id, RUSSIAN_CLASS_1_TOPICS)
+def get_russian_topic_from_catalog(class_num: int, topic_id: str) -> dict | None:
+    return get_topic_or_none("russian", class_num, topic_id, TOPICS_BY_CLASS.get(class_num, RUSSIAN_CLASS_1_TOPICS))
 
 
-def get_next_control_topic_id() -> str:
+def get_next_control_topic_id(class_num: int) -> str:
     global control_topic_cursor
-    topic_ids = list(get_russian_class_1_topics().keys())
+    topic_ids = list(get_russian_topics(class_num).keys())
     if not topic_ids:
-        return "sounds_and_letters"
+        return "sounds_and_letters" if class_num == 1 else "sounds_letters_review"
     topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
     control_topic_cursor += 1
     return topic_id
@@ -78,33 +81,33 @@ def ensure_unique_task(task: dict, used_questions: list[str]) -> dict:
 
 @russian_bp.route("/russian")
 def russian_menu():
-    student = get_student()
-    return render_template("russian/menu.html", classes=SUPPORTED_RUSSIAN_CLASSES, implemented_test_classes=IMPLEMENTED_TEST_CLASSES, implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES, student=student)
+    return render_template("russian/menu.html", classes=SUPPORTED_RUSSIAN_CLASSES, implemented_test_classes=IMPLEMENTED_TEST_CLASSES, implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES, student=get_student())
 
 
 @russian_bp.route("/russian/class/<int:class_num>")
 def russian_class_page(class_num: int):
     if class_num not in SUPPORTED_RUSSIAN_CLASSES:
         abort(404)
-    if class_num == 1:
-        return render_template("russian/learning.html", student=get_student(), class_1_topics=get_russian_class_1_topics(), from_class_page=True)
-    return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
+    if class_num in IMPLEMENTED_LEARNING_CLASSES:
+        return render_template("russian/learning.html", student=get_student(), topics=get_russian_topics(class_num), class_num=class_num, from_class_page=True)
+    return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
 
 @russian_bp.route("/russian/learning")
 def russian_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
-    if class_num != 1:
+    if class_num not in IMPLEMENTED_LEARNING_CLASSES:
         return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
-    return render_template("russian/learning.html", student=get_student(), class_1_topics=get_russian_class_1_topics(), from_class_page=False)
+    return render_template("russian/learning.html", student=get_student(), topics=get_russian_topics(class_num), class_num=class_num, from_class_page=False)
 
 
 @russian_bp.route("/russian/learning/topic/<topic_id>")
 def russian_learning_topic(topic_id: str):
-    topic = get_russian_class_1_topic_from_catalog(topic_id)
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
+    topic = get_russian_topic_from_catalog(class_num, topic_id)
     if not topic:
         abort(404)
-    return render_template("russian/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic)
+    return render_template("russian/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic, class_num=class_num)
 
 
 @russian_bp.route("/russian/rules")
@@ -114,8 +117,8 @@ def russian_rules():
 
 @russian_bp.route("/russian/test_setup")
 def russian_test_setup():
-    student = get_student()
-    return render_template("russian/test_setup.html", class_1_topics=build_topic_options(get_russian_class_1_topics()), student=student)
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
+    return render_template("russian/test_setup.html", class_1_topics=build_topic_options(get_russian_topics(class_num if class_num in {1, 2} else 1)), student=get_student())
 
 
 @russian_bp.route("/russian/test")
@@ -126,8 +129,8 @@ def russian_test():
     total_requested = get_int_arg("words", default=25, min_value=1, max_value=50)
     if topic_id == CONTROL_SLICE_TYPE:
         total_requested = 50
-    if class_num == "1" and topic_id:
-        return render_template("russian/topic_test_radio.html", test_settings={"classNum": "1", "topicId": topic_id}, total_questions=total_requested, student=student)
+    if class_num in {"1", "2"} and topic_id:
+        return render_template("russian/topic_test_radio.html", test_settings={"classNum": class_num, "topicId": topic_id}, total_questions=total_requested, student=student)
     if class_num not in {"1", "2", "3", "all"}:
         class_num = "all"
     try:
@@ -149,13 +152,16 @@ def generate_russian_task():
     if error_response:
         return error_response
     class_num = normalize_class_num(data.get("class"), default=1)
-    if class_num != 1:
-        return jsonify({"error": "Topic tasks are available only for Russian class 1"}), 400
-    topic_id = str(data.get("topic", "sounds_and_letters")).strip() or "sounds_and_letters"
+    if class_num not in {1, 2}:
+        return jsonify({"error": "Topic tasks are available only for Russian class 1 and 2"}), 400
+    topic_id = str(data.get("topic", "sounds_and_letters" if class_num == 1 else "sounds_letters_review")).strip()
     if topic_id == CONTROL_SLICE_TYPE:
-        topic_id = get_next_control_topic_id()
+        topic_id = get_next_control_topic_id(class_num)
     used_questions = normalize_used_questions(data.get("used_questions"))
-    task = generate_russian_class_1_topic_task(topic_id, used_questions=used_questions)
+    if class_num == 2:
+        task = generate_russian_class_2_topic_task(topic_id, used_questions=used_questions)
+    else:
+        task = generate_russian_class_1_topic_task(topic_id, used_questions=used_questions)
     return jsonify(ensure_unique_task(task, used_questions))
 
 
