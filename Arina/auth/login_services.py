@@ -13,6 +13,7 @@ class LoginError(Exception):
 def login_user(session: Session, payload: dict) -> dict:
     login = sanitize_text(payload.get("login")).lower()
     password = str(payload.get("password") or "")
+    remember_me = bool(payload.get("remember_me"))
 
     if validate_email(login) or not password:
         raise LoginError("Логин или пароль не верный")
@@ -24,7 +25,7 @@ def login_user(session: Session, payload: dict) -> dict:
     if not user.is_active:
         raise LoginError("Аккаунт не активирован. Подтвердите почту по ссылке из письма.")
 
-    tokens = issue_token_pair(user)
+    tokens = issue_token_pair(user, remember_me=remember_me)
     return {
         "user_id": str(user.id),
         "email": user.email,
