@@ -32,6 +32,28 @@
     box-shadow: 0 12px 34px rgba(48,100,150,0.22);
 }
 
+.control-card {
+    border-color: #f2b84b;
+    background: linear-gradient(135deg, #fff8e8 0%, #ffffff 100%);
+    box-shadow: 0 10px 32px rgba(242, 184, 75, 0.26);
+}
+
+.control-card:hover {
+    border-color: #e09b16;
+    box-shadow: 0 14px 38px rgba(224, 155, 22, 0.32);
+}
+
+.control-badge {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f2b84b;
+    color: #402900;
+    font-size: 13px;
+    font-weight: 800;
+}
+
 .topic-title {
     color: #27407a;
     font-size: 21px;
