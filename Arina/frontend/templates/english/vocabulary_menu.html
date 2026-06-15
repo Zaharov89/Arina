@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Английские слова — {{ class_num }} класс</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='english/menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/learning.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <h1 class="subject-title">Английские слова — {{ class_num }} класс</h1>
+        <p class="learning-intro">Выбери режим: повторить словарь или пройти тестирование.</p>
+        <div class="topics-grid vocabulary-mode-grid">
+            <a class="topic-card" href="/english/vocabulary-list?class={{ class_num }}&student={{ student }}">
+                <div class="topic-title">Словарь</div>
+                <div class="topic-description">Английское слово, перевод и кнопка воспроизведения.</div>
+                <div class="topic-action-hint">Открыть словарь</div>
+            </a>
+            <a class="topic-card control-card" href="/english/test_setup?class={{ class_num }}&student={{ student }}">
+                <div class="control-badge">Проверка</div>
+                <div class="topic-title">Тестирование</div>
+                <div class="topic-description">Проверка знания английских слов.</div>
+                <div class="topic-action-hint">Начать настройку теста</div>
+            </a>
+        </div>
+        <div class="learning-actions">
+            <a href="/english/learning?class={{ class_num }}&student={{ student }}" class="learning-btn back-link">К темам</a>
+            <a href="/english/menu?student={{ student }}" class="learning-btn secondary-link">К выбору класса</a>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/english-common.js') }}"></script>
+</body>
+</html>
