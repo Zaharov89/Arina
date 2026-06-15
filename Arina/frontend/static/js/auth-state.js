@@ -22,7 +22,7 @@
     }
 
     function clearAuthData() {
-        const keys = ['arinaAccessToken', 'arinaRefreshToken', 'arinaUserId', 'arinaUserEmail', 'arinaRememberMe'];
+        const keys = ['arinaAccessToken', 'arinaRefreshToken', 'arinaUserId', 'arinaUserEmail', 'arinaUserFirstName', 'arinaUserLastName', 'arinaUserDisplayName', 'arinaRememberMe'];
         keys.forEach(key => {
             localStorage.removeItem(key);
             sessionStorage.removeItem(key);
@@ -67,13 +67,23 @@
         return true;
     }
 
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value || '';
+        return div.innerHTML;
+    }
+
+    function getPanelName(user) {
+        return user.display_name || [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email || '';
+    }
+
     function injectAuthPanel(user) {
         if (document.getElementById('arinaAuthPanel')) return;
 
         const panel = document.createElement('div');
         panel.id = 'arinaAuthPanel';
         panel.innerHTML = `
-            <span class="arina-auth-email">${user.email || ''}</span>
+            <span class="arina-auth-name">${escapeHtml(getPanelName(user))}</span>
             <button type="button" id="arinaLogoutBtn">Выйти</button>
         `;
         document.body.appendChild(panel);
@@ -104,7 +114,7 @@
                 box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
                 font-family: Arial, sans-serif;
             }
-            #arinaAuthPanel .arina-auth-email {
+            #arinaAuthPanel .arina-auth-name {
                 color: #27407a;
                 font-weight: 700;
                 font-size: 14px;
@@ -172,6 +182,9 @@
 
         storage.setItem('arinaUserId', data.data.user_id);
         storage.setItem('arinaUserEmail', data.data.email);
+        storage.setItem('arinaUserFirstName', data.data.first_name || '');
+        storage.setItem('arinaUserLastName', data.data.last_name || '');
+        storage.setItem('arinaUserDisplayName', data.data.display_name || data.data.email);
         injectAuthStyles();
         injectAuthPanel(data.data);
     }
