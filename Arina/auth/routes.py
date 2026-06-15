@@ -52,14 +52,14 @@ def auth_status():
                 "registration",
                 "login",
                 "password_recovery",
-                "email_confirmation",
+                "temporary_auto_activation",
                 "password_hashing",
                 "input_validation",
                 "delete_user",
                 "verify_token",
                 "refresh_token",
             ],
-            "message": "Регистрация, авторизация, восстановление пароля, подтверждение почты и JWT-токены подключены к PostgreSQL.",
+            "message": "Регистрация временно активирует пользователя сразу, без подтверждения почты.",
         }
     )
 
@@ -82,7 +82,7 @@ def register_api():
         return jsonify(
             {
                 "status": "created",
-                "message": "Регистрация создана. Проверьте почту и подтвердите аккаунт по ссылке.",
+                "message": "Регистрация успешно завершена. Аккаунт активирован, теперь можно войти в приложение.",
                 "data": result,
             }
         ), 201
@@ -94,7 +94,7 @@ def register_api():
         return jsonify(
             {
                 "status": "error",
-                "message": "Ошибка регистрации. Проверьте подключение к БД и настройки SMTP.",
+                "message": "Ошибка регистрации. Проверьте подключение к БД.",
                 "error": str(error),
             }
         ), 500

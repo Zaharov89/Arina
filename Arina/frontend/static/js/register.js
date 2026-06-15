@@ -137,11 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             form.reset();
             formMessage.className = 'form-message success';
-            formMessage.textContent = data.message || 'Регистрация создана. Проверьте почту.';
-
-            if (data.data && data.data.activation_link_dev) {
-                formMessage.textContent += ` SMTP пока не настроен. Тестовая ссылка подтверждения: ${data.data.activation_link_dev}`;
-            }
+            formMessage.textContent = data.message || 'Регистрация успешно завершена. Теперь можно войти в приложение.';
         } catch (error) {
             formMessage.className = 'form-message error';
             formMessage.textContent = `Ошибка отправки формы: ${error}`;
