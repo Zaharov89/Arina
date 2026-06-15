@@ -9,11 +9,9 @@
     <div id="dateTimeBar"></div>
 
     <div class="container">
-        <!-- Основной блок с результатами -->
         <div class="main-box">
             <h3 class="result-title" id="resultTitle">Результаты теста по Русскому языку</h3>
 
-            <!-- ЗВЁЗДЫ -->
             <div class="star-container" id="starContainer">
                 <img class="star" data-index="0" src="/static/img/star_empty.png" alt="Звезда">
                 <img class="star" data-index="1" src="/static/img/star_empty.png" alt="Звезда">
@@ -22,51 +20,25 @@
                 <img class="star" data-index="4" src="/static/img/star_empty.png" alt="Звезда">
             </div>
 
-            <!-- НОВОЕ: Предупреждение о пустых ответах -->
-            <div class="warning-message" id="warningMessage">
-                ⚠️ Вы не прорешали ни одного примера!
-            </div>
+            <div class="warning-message" id="warningMessage">⚠️ Вы не прорешали ни одного примера!</div>
 
             <div class="stats-container">
                 <div class="stats-left">
                     <div class="results-grid">
-                        <div class="result-item correct-answers">
-                            <div class="result-label">Правильных ответов</div>
-                            <div class="result-value" id="correctAnswersValue">0 из 0</div>
-                        </div>
-
-                        <div class="result-item percentage">
-                            <div class="result-label">Процент правильных ответов</div>
-                            <div class="result-value" id="percentageValue">0%</div>
-                        </div>
-
-                        <div class="result-item time-stats">
-                            <div class="result-label">Среднее время на ответ</div>
-                            <div class="result-value" id="avgTimeValue">0.0 сек</div>
-                        </div>
-
-                        <div class="result-item record">
-                            <div class="result-label">Длительность тренировки</div>
-                            <div class="result-value" id="totalTimeValue">0 секунд</div>
-                        </div>
+                        <div class="result-item correct-answers"><div class="result-label">Правильных ответов</div><div class="result-value" id="correctAnswersValue">0 из 0</div></div>
+                        <div class="result-item percentage"><div class="result-label">Процент правильных ответов</div><div class="result-value" id="percentageValue">0%</div></div>
+                        <div class="result-item time-stats"><div class="result-label">Среднее время на ответ</div><div class="result-value" id="avgTimeValue">0.0 сек</div></div>
+                        <div class="result-item record"><div class="result-label">Длительность тренировки</div><div class="result-value" id="totalTimeValue">0 секунд</div></div>
                     </div>
                 </div>
-
-                <div class="grade-box">
-                    <div class="grade-label">Общая оценка</div>
-                    <div class="grade" id="finalGrade">5</div>
-                </div>
+                <div class="grade-box"><div class="grade-label">Общая оценка</div><div class="grade" id="finalGrade">5</div></div>
             </div>
 
             <div class="divider"></div>
-
             <div class="section-title">Ошибки:</div>
-            <div class="wrong-list" id="testWrongAnswersBlock">
-                <!-- Здесь будут отображаться ошибки -->
-            </div>
+            <div class="wrong-list" id="testWrongAnswersBlock"></div>
         </div>
 
-        <!-- Блок с кнопками -->
         <div class="buttons-container">
             <button id="restartButton" class="btn">Начать заново</button>
             <a href="/russian" class="btn menu-btn">Вернуться в меню</a>
@@ -74,17 +46,12 @@
     </div>
 
     <script>
-    // Функция для отображения даты и времени
     function renderDateBar() {
         const now = new Date();
-        const monthsRu = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
-        document.getElementById("dateTimeBar").textContent =
-            `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ` +
-            `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        const monthsRu = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+        document.getElementById('dateTimeBar').textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     }
-    renderDateBar();
 
-    // Функция для вычисления оценки на основе процента ошибок
     function calculateGrade(errorPercentage) {
         if (errorPercentage <= 5) return 5;
         if (errorPercentage <= 15) return 4;
@@ -92,202 +59,75 @@
         return 2;
     }
 
-    // Функция для правильного склонения слов
-    function getSecondsWord(seconds) {
-        if (!seconds || seconds < 0) seconds = 0;
-        const lastDigit = seconds % 10;
-        const lastTwoDigits = seconds % 100;
-
-        if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'секунд';
-        if (lastDigit === 1) return 'секунда';
-        if (lastDigit >= 2 && lastDigit <= 4) return 'секунды';
-        return 'секунд';
-    }
-
-    function getMinutesWord(minutes) {
-        if (!minutes || minutes < 0) minutes = 0;
-        const lastDigit = minutes % 10;
-        const lastTwoDigits = minutes % 100;
-
-        if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'минут';
-        if (lastDigit === 1) return 'минута';
-        if (lastDigit >= 2 && lastDigit <= 4) return 'минуты';
-        return 'минут';
-    }
-
-    // Функция для форматирования времени
     function formatTime(seconds) {
-        if (!seconds || seconds < 0) seconds = 0;
-
+        seconds = parseInt(seconds) || 0;
         const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-
-        if (mins === 0 && secs === 0) return "0 секунд";
-        if (mins === 0) return `${secs} ${getSecondsWord(secs)}`;
-        if (secs === 0) return `${mins} ${getMinutesWord(mins)}`;
-        return `${mins} ${getMinutesWord(mins)} ${secs} ${getSecondsWord(secs)}`;
+        const secs = seconds % 60;
+        if (mins === 0) return `${secs} секунд`;
+        return `${mins} мин ${secs} сек`;
     }
 
-    // Основная функция отображения результатов
-    document.addEventListener('DOMContentLoaded', function() {
-        const subject = localStorage.getItem('testSubject') || 'Русский язык';
-        const totalWords = parseInt(localStorage.getItem('totalQuestions')) || 0;
-        const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
-        const wrongAnswers = parseInt(localStorage.getItem('wrongAnswers')) || 0;
-
-        // НОВОЕ: Проверка на пустые ответы
-        const answeredQuestions = correctAnswers + wrongAnswers;
-        const warningMessage = document.getElementById('warningMessage');
-
-        if (answeredQuestions === 0 && totalWords > 0) {
-            warningMessage.style.display = 'block';
-        } else {
-            warningMessage.style.display = 'none';
-        }
-
-        // Получаем время
-        let timeSpent = 0;
-        const storedTime = localStorage.getItem('timeSpent');
-        if (storedTime) {
-            timeSpent = parseInt(storedTime);
-        }
-        if (timeSpent <= 0 && totalWords > 0) {
-            timeSpent = totalWords * 2;
-        }
-
-        const wrongAnswersList = JSON.parse(localStorage.getItem('wrongAnswersList') || '[]');
-
-        // Вычисляем проценты
-        const percentage = totalWords > 0 ? Math.round((correctAnswers / totalWords) * 100) : 0;
-        const errorPercentage = 100 - percentage;
-
-        // Вычисляем среднее время на ответ
-        const avgTime = totalWords > 0 ? (timeSpent / totalWords).toFixed(1) : 0;
-
-        // Определяем оценку
-        const grade = calculateGrade(errorPercentage);
-
-        // Устанавливаем заголовок
-        document.getElementById('resultTitle').textContent = `Результаты теста по ${subject}`;
-
-        // Заполняем результаты
-        document.getElementById('correctAnswersValue').textContent = `${correctAnswers} из ${totalWords}`;
-        document.getElementById('percentageValue').textContent = `${percentage}%`;
-        document.getElementById('avgTimeValue').textContent = `${avgTime} сек`;
-        document.getElementById('totalTimeValue').textContent = formatTime(timeSpent);
-
-        // Устанавливаем оценку
-        const gradeElement = document.getElementById('finalGrade');
-        gradeElement.textContent = grade;
-        gradeElement.className = `grade grade-${grade}`;
-
-        // === АНИМАЦИЯ ЗВЁЗД ===
-        function animateStars(grade) {
-            const stars = document.querySelectorAll('.star');
-            stars.forEach((star, index) => {
-                if (index < grade) {
-                    setTimeout(() => {
-                        star.src = '/static/img/star_filled.png';
-                        star.classList.add('filled');
-                    }, index * 350);
-                }
-            });
-        }
-
-        // Запускаем анимацию звёзд
-        animateStars(grade);
-
-        // Отображаем ошибки
-        renderWrongAnswers(wrongAnswersList, answeredQuestions);
-
-        // === АВТОМАТИЧЕСКАЯ ОТПРАВКА В GOOGLE ТАБЛИЦУ ===
-        autoSaveToGoogle();
-
-        // Обработчик кнопки "Начать заново"
-        document.getElementById('restartButton').addEventListener('click', function() {
-            window.location.href = '/russian';
-        });
-    });
-
-    // === ФУНКЦИЯ ОТПРАВКИ ===
-    function autoSaveToGoogle() {
-        const totalQuestions = parseInt(localStorage.getItem('totalQuestions')) || 0;
-        const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
-        const studentName = new URLSearchParams(window.location.search).get('student') || 'Арина';
-
-        if (totalQuestions <= 0) return;
-
-        const scorePercent = Math.round((correctAnswers / totalQuestions) * 100);
-
-        fetch('/api/save_result', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                subject: 'russian', // ← замени на 'russian' или 'english'
-                score_percent: scorePercent,
-                studentName: studentName
-            })
-        }).catch(err => {
-            console.error("Не удалось сохранить результат в Google Таблицу:", err);
+    function animateStars(grade) {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < grade) {
+                setTimeout(() => {
+                    star.src = '/static/img/star_filled.png';
+                    star.classList.add('filled');
+                }, index * 350);
+            }
         });
     }
 
     function renderWrongAnswers(wrongAnswersList, answeredQuestions) {
         const wrongBlock = document.getElementById('testWrongAnswersBlock');
-
-        // НОВОЕ: Проверяем, были ли вообще ответы
         if (answeredQuestions === 0) {
-            wrongBlock.innerHTML = `
-                <div class="no-errors">
-                    <div>📝 Вы не ответили ни на один вопрос</div>
-                    <div>Попробуйте пройти тест еще раз</div>
-                </div>
-            `;
+            wrongBlock.innerHTML = '<div class="no-errors"><div>📝 Вы не ответили ни на один вопрос</div><div>Попробуйте пройти тест еще раз</div></div>';
             return;
         }
-
         if (!wrongAnswersList || wrongAnswersList.length === 0) {
-            wrongBlock.innerHTML = `
-                <div class="no-errors">
-                    <div>🎉 Все ответы верны!</div>
-                    <div>Отличная работа!</div>
-                </div>
-            `;
+            wrongBlock.innerHTML = '<div class="no-errors"><div>🎉 Все ответы верны!</div><div>Отличная работа!</div></div>';
             return;
         }
-
-        let html = "";
-        wrongAnswersList.forEach((item, index) => {
-            const exampleText = item.word || "неизвестно";
-
-            // Получаем правильный ответ
-            let correctAnswer = '';
-            if (item.correctAnswer !== undefined) {
-                correctAnswer = item.correctAnswer;
-            } else if (item.correct !== undefined) {
-                correctAnswer = item.correct;
-            } else {
-                correctAnswer = 'Не указан';
-            }
-
-            // Получаем ответ пользователя
-            let userAnswer = '';
-            if (item.userAnswer !== undefined) {
-                userAnswer = item.userAnswer;
-            } else {
-                userAnswer = 'Не указан';
-            }
-
-            html += `
-                <div class="wrong-item">
-                    <div class="example-text">${index + 1}. ${exampleText}</div>
-                    <div class="answer-row">Ваш ответ: <span class="user-answer">${userAnswer}</span></div>
-                    <div class="answer-row">Правильный ответ: <span class="correct-answer">${correctAnswer}</span></div>
-                </div>
-            `;
-        });
-        wrongBlock.innerHTML = html;
+        wrongBlock.innerHTML = wrongAnswersList.map((item, index) => {
+            const question = item.word || item.question || item.example || 'Задание';
+            const correctAnswer = item.correctAnswer !== undefined ? item.correctAnswer : (item.correct !== undefined ? item.correct : 'Не указан');
+            const userAnswer = item.userAnswer !== undefined ? item.userAnswer : 'Не указан';
+            return `<div class="wrong-item"><div class="example-text">${index + 1}. ${question}</div><div class="answer-row">Ваш ответ: <span class="user-answer">${userAnswer}</span></div><div class="answer-row">Правильный ответ: <span class="correct-answer">${correctAnswer}</span></div></div>`;
+        }).join('');
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        renderDateBar();
+        const subject = localStorage.getItem('testSubject') || 'Русский язык';
+        const totalQuestions = parseInt(localStorage.getItem('totalQuestions')) || 0;
+        const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
+        const wrongAnswers = parseInt(localStorage.getItem('wrongAnswers')) || 0;
+        const emptyAnswers = parseInt(localStorage.getItem('emptyAnswers')) || 0;
+        const timeSpent = parseInt(localStorage.getItem('timeSpent')) || 0;
+        const wrongAnswersList = JSON.parse(localStorage.getItem('wrongAnswersList') || '[]');
+        const answeredQuestions = correctAnswers + wrongAnswers;
+        const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+        const errorPercentage = totalQuestions > 0 ? Math.round(((wrongAnswers + emptyAnswers) / totalQuestions) * 100) : 100;
+        const avgTime = totalQuestions > 0 ? (timeSpent / totalQuestions).toFixed(1) : 0;
+        const grade = calculateGrade(errorPercentage);
+
+        document.getElementById('warningMessage').style.display = answeredQuestions === 0 && totalQuestions > 0 ? 'block' : 'none';
+        document.getElementById('resultTitle').textContent = `Результаты теста по ${subject}`;
+        document.getElementById('correctAnswersValue').textContent = `${correctAnswers} из ${totalQuestions}`;
+        document.getElementById('percentageValue').textContent = `${percentage}%`;
+        document.getElementById('avgTimeValue').textContent = `${avgTime} сек`;
+        document.getElementById('totalTimeValue').textContent = formatTime(timeSpent);
+        const gradeElement = document.getElementById('finalGrade');
+        gradeElement.textContent = grade;
+        gradeElement.className = `grade grade-${grade}`;
+        animateStars(grade);
+        renderWrongAnswers(wrongAnswersList, answeredQuestions);
+
+        document.getElementById('restartButton').addEventListener('click', function() {
+            window.location.href = '/russian';
+        });
+    });
     </script>
 </body>
 </html>
