@@ -150,6 +150,13 @@ def get_refresh_token_days(remember_me: bool = True) -> int:
     return int(os.getenv("ARINA_SESSION_REFRESH_TOKEN_DAYS", "1"))
 
 
+def get_token_user_id(payload: dict) -> int:
+    try:
+        return int(payload.get("sub"))
+    except (TypeError, ValueError) as error:
+        raise AuthTokenError("В токене некорректный id пользователя.") from error
+
+
 def create_jwt_token(user: User, token_type: str, expires_delta: timedelta) -> str:
     now = datetime.now(timezone.utc)
     payload = {
@@ -202,7 +209,7 @@ def decode_jwt_token(token: str, expected_type: str | None = None) -> dict:
 
 def verify_auth_token(session: Session, token: str) -> dict:
     payload = decode_jwt_token(token, expected_type="access")
-    user = session.get(User, payload.get("sub"))
+    user = session.get(User, get_token_user_id(payload))
 
     if not user:
         raise AuthTokenError("Пользователь из токена не найден.")
@@ -211,7 +218,7 @@ def verify_auth_token(session: Session, token: str) -> dict:
 
     return {
         "valid": True,
-        "user_id": str(user.id),
+        "user_id": user.id,
         "email": user.email,
         "is_active": user.is_active,
         "token_payload": {
@@ -224,7 +231,7 @@ def verify_auth_token(session: Session, token: str) -> dict:
 
 def refresh_auth_token(session: Session, refresh_token: str, remember_me: bool = True) -> dict:
     payload = decode_jwt_token(refresh_token, expected_type="refresh")
-    user = session.get(User, payload.get("sub"))
+    user = session.get(User, get_token_user_id(payload))
 
     if not user:
         raise AuthTokenError("Пользователь из refresh-токена не найден.")
@@ -299,8 +306,8 @@ def register_user(session: Session, payload: dict) -> dict:
     session.flush()
 
     return {
-        "user_id": str(user.id),
-        "student_id": str(student.id),
+        "user_id": user.id,
+        "student_id": student.id,
         "email": user.email,
         "is_active": user.is_active,
         "activation_email_sent": False,
