@@ -35,6 +35,15 @@
     </script>
     <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+    <script>
+        const originalFinishRussianTopicTest = finishRussianTopicTest;
+        finishRussianTopicTest = function () {
+            localStorage.setItem('resultSubjectCode', 'russian');
+            localStorage.setItem('resultClassNumber', window.russianTopicTestSettings?.classNum || '1');
+            localStorage.setItem('resultTopicCode', window.russianTopicTestSettings?.topicId || '');
+            originalFinishRussianTopicTest();
+        };
+    </script>
     <script src="{{ url_for('static', filename='js/question-unique-key.js') }}"></script>
     <script src="{{ url_for('static', filename='js/russian-choice-radio.js') }}"></script>
     <script src="{{ url_for('static', filename='js/enter-submit-next.js') }}"></script>

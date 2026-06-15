@@ -21,6 +21,22 @@ FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 TEMPLATE_DIR = os.path.join(FRONTEND_DIR, "templates")
 STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
 AUTH_STATE_SCRIPT = '<script src="/static/js/auth-state.js" defer></script>'
+RESULTS_SAVE_SCRIPT = '<script src="/static/js/results-save.js" defer></script>'
+RESULTS_AUTO_SAVE_SCRIPT = """
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const path = window.location.pathname;
+    let subjectCode = '';
+    if (path.includes('/results/math')) subjectCode = 'math';
+    if (path.includes('/results/russian')) subjectCode = 'russian';
+    if (path.includes('/results/world')) subjectCode = 'world';
+    if (path.includes('/results/english')) subjectCode = 'english';
+    if (subjectCode && typeof saveTestAttemptResult === 'function') {
+        saveTestAttemptResult(subjectCode, localStorage.getItem('resultClassNumber') || '1', localStorage.getItem('resultTopicCode') || '');
+    }
+});
+</script>
+""".strip()
 
 
 def create_app() -> Flask:
@@ -61,23 +77,25 @@ def register_auth_script_injector(app: Flask) -> None:
 
     @app.after_request
     def inject_auth_state_script(response):
-        if not should_inject_auth_script(response):
+        if not should_inject_frontend_scripts(response):
             return response
 
         body = response.get_data(as_text=True)
-        if AUTH_STATE_SCRIPT in body:
-            return response
+        scripts = [AUTH_STATE_SCRIPT]
+        if request.path.startswith("/results/"):
+            scripts.extend([RESULTS_SAVE_SCRIPT, RESULTS_AUTO_SAVE_SCRIPT])
 
-        if "</body>" in body:
-            body = body.replace("</body>", f"    {AUTH_STATE_SCRIPT}\n</body>", 1)
+        injection = "".join(f"    {script}\n" for script in scripts if script not in body)
+        if injection and "</body>" in body:
+            body = body.replace("</body>", f"{injection}</body>", 1)
             response.set_data(body)
             response.headers["Content-Length"] = str(len(response.get_data()))
 
         return response
 
 
-def should_inject_auth_script(response) -> bool:
-    """Return True for protected HTML pages where frontend auth guard is needed."""
+def should_inject_frontend_scripts(response) -> bool:
+    """Return True for protected HTML pages where frontend scripts are needed."""
     if request.path.startswith("/static/"):
         return False
     if request.path.startswith("/auth/"):

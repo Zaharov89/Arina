@@ -7,125 +7,99 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='diary/diary.css') }}">
 </head>
 <body>
+    <div id="dateTimeBar"></div>
     <div class="container">
-        <h2 id="pageTitle">Загрузка дневника...</h2>
-        <div id="statsContent"></div>
-        <a href="/subjects?student={{ request.args.get('student', 'Арина') }}" class="back-btn">← Назад</a>
+        <h2 id="pageTitle">Дневник</h2>
+        <div id="statsContent">Загрузка дневника...</div>
+        <a href="/subjects" class="back-btn">← Назад</a>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const studentName = urlParams.get('student');
+        function getAuthStorageForDiary() {
+            if (localStorage.getItem('arinaAccessToken')) return localStorage;
+            if (sessionStorage.getItem('arinaAccessToken')) return sessionStorage;
+            return null;
+        }
 
-        if (!studentName) {
-            document.getElementById('pageTitle').textContent = 'Ошибка';
-            document.getElementById('statsContent').innerHTML = `
-                <p style="color: red;">Не указан ученик (параметр 'student')</p>
-                <a href="/subjects" class="back-btn">← Назад к предметам</a>
+        function getDiaryAccessToken() {
+            const storage = getAuthStorageForDiary();
+            return storage ? storage.getItem('arinaAccessToken') : '';
+        }
+
+        function renderDateBar() {
+            const dateTimeBar = document.getElementById('dateTimeBar');
+            if (!dateTimeBar) return;
+            const now = new Date();
+            const monthsRu = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+            dateTimeBar.textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function formatGrade(value) {
+            const numberValue = Number(value || 0);
+            if (!numberValue) return '0';
+            return numberValue.toFixed(1).replace('.', ',');
+        }
+
+        function renderSubjectStats(title, data) {
+            return `
+                <div class="subject-stats">
+                    <h3>${title}</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div>Средний бал (месяц)</div>
+                            <div class="stat-value">${formatGrade(data?.month_avg || 0)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div>Дней с оценками (месяц)</div>
+                            <div class="stat-value">${data?.month_days || 0}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div>Средний бал (год)</div>
+                            <div class="stat-value">${formatGrade(data?.year_avg || 0)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div>Дней с оценками (год)</div>
+                            <div class="stat-value">${data?.year_days || 0}</div>
+                        </div>
+                    </div>
+                </div>
             `;
-        } else {
-            document.getElementById('pageTitle').textContent = `Дневник: ${studentName}`;
         }
 
-        if (studentName) {
-            fetch(`/api/stats?student=${encodeURIComponent(studentName)}`)
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        document.getElementById('statsContent').innerHTML = `<p style="color: red;">Ошибка: ${data.error}</p>`;
-                        return;
-                    }
+        function renderDiary(data) {
+            const content = document.getElementById('statsContent');
+            content.innerHTML = [
+                renderSubjectStats('Математика', data.math),
+                renderSubjectStats('Русский язык', data.russian),
+                renderSubjectStats('Окружающий мир', data.world),
+                renderSubjectStats('Английский язык', data.english),
+            ].join('');
+        }
 
-                    let html = '';
-                    function formatGrade(value) {
-                        if (value === 0) return "0";
-                        return parseFloat(value).toFixed(1).replace('.', ',');
-                    }
+        async function loadDiary() {
+            const token = getDiaryAccessToken();
+            if (!token) {
+                document.getElementById('statsContent').innerHTML = '<p style="color: red;">Нужно авторизоваться, чтобы открыть дневник.</p>';
+                return;
+            }
 
-                    // Математика
-                    html += `
-                        <div class="subject-stats">
-                            <h3>Математика</h3>
-                            <div class="stats-grid">
-                                <div class="stat-item">
-                                    <div>Средний бал (месяц)</div>
-                                    <div class="stat-value">${formatGrade(data.math?.month_avg || 0)}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Дней (месяц)</div>
-                                    <div class="stat-value">${data.math?.month_days || 0}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Средний бал (год)</div>
-                                    <div class="stat-value">${formatGrade(data.math?.year_avg || 0)}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Дней (год)</div>
-                                    <div class="stat-value">${data.math?.year_days || 0}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // Русский язык
-                    html += `
-                        <div class="subject-stats">
-                            <h3>Русский язык</h3>
-                            <div class="stats-grid">
-                                <div class="stat-item">
-                                    <div>Средний бал (месяц)</div>
-                                    <div class="stat-value">${formatGrade(data.russian?.month_avg || 0)}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Дней (месяц)</div>
-                                    <div class="stat-value">${data.russian?.month_days || 0}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Средний бал (год)</div>
-                                    <div class="stat-value">${formatGrade(data.russian?.year_avg || 0)}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Дней (год)</div>
-                                    <div class="stat-value">${data.russian?.year_days || 0}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // Английский язык
-                    html += `
-                        <div class="subject-stats">
-                            <h3>Английский язык</h3>
-                            <div class="stats-grid">
-                                <div class="stat-item">
-                                    <div>Средний бал (месяц)</div>
-                                    <div class="stat-value">${formatGrade(data.english?.month_avg || 0)}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Дней (месяц)</div>
-                                    <div class="stat-value">${data.english?.month_days || 0}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Средний бал (год)</div>
-                                    <div class="stat-value">${formatGrade(data.english?.year_avg || 0)}</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div>Дней (год)</div>
-                                    <div class="stat-value">${data.english?.year_days || 0}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    document.getElementById('statsContent').innerHTML = html;
-                })
-                .catch(err => {
-                    document.getElementById('statsContent').innerHTML = `<p style="color: red;">Ошибка загрузки данных: ${err.message}</p>`;
+            try {
+                const response = await fetch('/api/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` },
                 });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    document.getElementById('statsContent').innerHTML = `<p style="color: red;">Ошибка: ${data.error || data.message || response.status}</p>`;
+                    return;
+                }
+                renderDiary(data);
+            } catch (error) {
+                document.getElementById('statsContent').innerHTML = `<p style="color: red;">Ошибка загрузки данных: ${error.message}</p>`;
+            }
         }
+
+        renderDateBar();
+        loadDiary();
     </script>
 </body>
 </html>
