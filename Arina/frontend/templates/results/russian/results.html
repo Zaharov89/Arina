@@ -129,5 +129,13 @@
         });
     });
     </script>
+    <script src="{{ url_for('static', filename='js/results-save.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof saveTestAttemptResult === 'function') {
+                saveTestAttemptResult('russian', localStorage.getItem('resultClassNumber') || '1', localStorage.getItem('resultTopicCode') || '');
+            }
+        });
+    </script>
 </body>
 </html>

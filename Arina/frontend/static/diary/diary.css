@@ -174,9 +174,21 @@
     color: #7a869a;
 }
 
+.control-slice-row {
+    background: linear-gradient(90deg, #fff8e8 0%, #ffffff 100%);
+}
+
+.control-slice-row:hover {
+    background: linear-gradient(90deg, #fff1c8 0%, #fffdf8 100%) !important;
+}
+
 .topic-title {
     color: #1f2d4d;
     font-weight: 800;
+}
+
+.control-topic-title {
+    color: #8a5a00;
 }
 
 .topic-class,

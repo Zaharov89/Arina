@@ -34,6 +34,22 @@ class StatsRepository:
             )
         )
 
+    def get_or_create_inactive_topic(self, subject: Subject, class_number: int, topic_code: str, title: str) -> Topic:
+        topic = self.get_topic(subject, class_number, topic_code)
+        if topic:
+            return topic
+
+        topic = Topic(
+            subject_id=subject.id,
+            class_number=class_number,
+            code=topic_code,
+            title=title,
+            is_active=False,
+        )
+        self.session.add(topic)
+        self.session.flush()
+        return topic
+
     def get_subject_topics(self, subject: Subject) -> list[Topic]:
         return list(
             self.session.scalars(

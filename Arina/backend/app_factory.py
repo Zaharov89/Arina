@@ -21,22 +21,6 @@ FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 TEMPLATE_DIR = os.path.join(FRONTEND_DIR, "templates")
 STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
 AUTH_STATE_SCRIPT = '<script src="/static/js/auth-state.js" defer></script>'
-RESULTS_SAVE_SCRIPT = '<script src="/static/js/results-save.js" defer></script>'
-RESULTS_AUTO_SAVE_SCRIPT = """
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const path = window.location.pathname;
-    let subjectCode = '';
-    if (path.includes('/results/math')) subjectCode = 'math';
-    if (path.includes('/results/russian')) subjectCode = 'russian';
-    if (path.includes('/results/world')) subjectCode = 'world';
-    if (path.includes('/results/english')) subjectCode = 'english';
-    if (subjectCode && typeof saveTestAttemptResult === 'function') {
-        saveTestAttemptResult(subjectCode, localStorage.getItem('resultClassNumber') || '1', localStorage.getItem('resultTopicCode') || '');
-    }
-});
-</script>
-""".strip()
 
 
 def create_app() -> Flask:
@@ -62,9 +46,6 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(results_bp)
     app.register_blueprint(vocabulary_api_bp)
     app.register_blueprint(stats_bp)
-
-    # Future architecture sections. They are registered now so URLs are ready,
-    # but real implementation will be added later.
     app.register_blueprint(auth_bp)
     app.register_blueprint(auth_me_bp)
     app.register_blueprint(database_bp)
@@ -81,13 +62,8 @@ def register_auth_script_injector(app: Flask) -> None:
             return response
 
         body = response.get_data(as_text=True)
-        scripts = [AUTH_STATE_SCRIPT]
-        if request.path.startswith("/results/"):
-            scripts.extend([RESULTS_SAVE_SCRIPT, RESULTS_AUTO_SAVE_SCRIPT])
-
-        injection = "".join(f"    {script}\n" for script in scripts if script not in body)
-        if injection and "</body>" in body:
-            body = body.replace("</body>", f"{injection}</body>", 1)
+        if AUTH_STATE_SCRIPT not in body and "</body>" in body:
+            body = body.replace("</body>", f"    {AUTH_STATE_SCRIPT}\n</body>", 1)
             response.set_data(body)
             response.headers["Content-Length"] = str(len(response.get_data()))
 
