@@ -18,6 +18,7 @@ arina
 004_create_russian_vocabulary_words.sql
 005_create_english_vocabulary_words.sql
 006_seed_class_2_topics.sql
+007_seed_class_3_topics.sql
 ```
 
 После этого приложение готово к регистрации пользователей, прохождению тестов и сохранению оценок.
@@ -83,15 +84,15 @@ GROUP BY class_number
 ORDER BY class_number;
 ```
 
-### Проверить темы 2 класса
+### Проверить темы 2 и 3 класса
 
 ```sql
 SELECT s.code AS subject_code, t.class_number, COUNT(*) AS topics_count
 FROM arina.topics t
 JOIN arina.subjects s ON s.id = t.subject_id
-WHERE t.class_number = 2
+WHERE t.class_number IN (2, 3)
 GROUP BY s.code, t.class_number
-ORDER BY s.code;
+ORDER BY s.code, t.class_number;
 ```
 
 ## Запуск через psql
@@ -104,6 +105,7 @@ psql -U postgres -d arina_db -f database/migrations/002_seed_subjects_classes_to
 psql -U postgres -d arina_db -f database/migrations/004_create_russian_vocabulary_words.sql
 psql -U postgres -d arina_db -f database/migrations/005_create_english_vocabulary_words.sql
 psql -U postgres -d arina_db -f database/migrations/006_seed_class_2_topics.sql
+psql -U postgres -d arina_db -f database/migrations/007_seed_class_3_topics.sql
 ```
 
 ## Что хранится в БД после миграций
