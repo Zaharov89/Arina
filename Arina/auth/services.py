@@ -283,7 +283,7 @@ def register_user(session: Session, payload: dict) -> dict:
     user = User(
         email=data.email,
         password_hash=generate_password_hash(data.password),
-        is_active=False,
+        is_active=True,
         is_admin=False,
     )
     session.add(user)
@@ -296,20 +296,14 @@ def register_user(session: Session, payload: dict) -> dict:
         class_number=1,
     )
     session.add(student)
-
-    token_value = secrets.token_urlsafe(48)
-    activation_token = AccountActivationToken(user_id=user.id, token=token_value, is_used=False)
-    session.add(activation_token)
     session.flush()
-
-    activation_link = create_activation_link(token_value)
-    email_sent = send_activation_email(data.email, data.child_first_name, activation_link)
 
     return {
         "user_id": str(user.id),
         "student_id": str(student.id),
         "email": user.email,
         "is_active": user.is_active,
-        "activation_email_sent": email_sent,
-        "activation_link_dev": None if email_sent else activation_link,
+        "activation_email_sent": False,
+        "activation_link_dev": None,
+        "auto_activated": True,
     }
