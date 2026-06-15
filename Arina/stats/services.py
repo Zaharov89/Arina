@@ -6,13 +6,7 @@ from Arina.database.session import get_session_factory
 from Arina.stats.repositories import StatsRepository
 from Arina.stats.schemas import TestAttemptPayload, parse_test_attempt_payload
 
-SUBJECT_TITLES = {
-    "math": "Математика",
-    "russian": "Русский язык",
-    "world": "Окружающий мир",
-    "english": "Английский язык",
-}
-
+SUBJECT_TITLES = {"math": "Математика", "russian": "Русский язык", "world": "Окружающий мир", "english": "Английский язык"}
 SUBJECT_ORDER = ["math", "russian", "world", "english"]
 CONTROL_SLICE_CODE = "control_slice"
 CONTROL_SLICE_TITLE = "Контрольный срез"
@@ -33,12 +27,9 @@ def get_current_user(repository: StatsRepository, user_id: int):
 def calculate_grade(score_percent: int | float | Decimal) -> int:
     score = float(score_percent or 0)
     error_percent = 100 - score
-    if error_percent <= 5:
-        return 5
-    if error_percent <= 15:
-        return 4
-    if error_percent <= 30:
-        return 3
+    if error_percent <= 5: return 5
+    if error_percent <= 15: return 4
+    if error_percent <= 30: return 3
     return 2
 
 
@@ -60,54 +51,26 @@ def get_topic_title(row) -> str:
     return row.topic_title or "Общий тест"
 
 
+def add_class_prefix(title: str, class_number: int | None) -> str:
+    return f"{class_number} класс — {title}" if class_number else title
+
+
 def format_grade_row(row) -> dict:
-    return {
-        "date": str(row.grade_date),
-        "grade": int(row.grade),
-        "topic_id": row.topic_id,
-        "topic_code": get_topic_code(row),
-        "topic_title": get_topic_title(row),
-    }
+    return {"date": str(row.grade_date), "grade": int(row.grade), "topic_id": row.topic_id, "topic_code": get_topic_code(row), "topic_title": get_topic_title(row)}
 
 
 def build_topic_diary(topics: list, month_rows: list) -> list[dict]:
     topic_map: dict[int | None, dict] = {}
-
     for topic in topics:
-        topic_map[topic.id] = {
-            "topic_id": topic.id,
-            "topic_code": topic.code,
-            "topic_title": topic.title,
-            "class_number": topic.class_number,
-            "month_grades": [],
-            "month_avg": 0,
-            "best_grade": None,
-            "last_grade": None,
-            "last_date": None,
-            "is_control_slice": topic.code == CONTROL_SLICE_CODE,
-        }
-
+        topic_map[topic.id] = {"topic_id": topic.id, "topic_code": topic.code, "topic_title": add_class_prefix(topic.title, topic.class_number), "class_number": topic.class_number, "month_grades": [], "month_avg": 0, "best_grade": None, "last_grade": None, "last_date": None, "is_control_slice": topic.code == CONTROL_SLICE_CODE}
     for row in month_rows:
         topic_id = row.topic_id
         topic_code = get_topic_code(row)
         topic_title = get_topic_title(row)
         if topic_id not in topic_map:
-            topic_map[topic_id] = {
-                "topic_id": topic_id,
-                "topic_code": topic_code,
-                "topic_title": topic_title,
-                "class_number": None,
-                "month_grades": [],
-                "month_avg": 0,
-                "best_grade": None,
-                "last_grade": None,
-                "last_date": None,
-                "is_control_slice": topic_code == CONTROL_SLICE_CODE,
-            }
-
+            topic_map[topic_id] = {"topic_id": topic_id, "topic_code": topic_code, "topic_title": topic_title, "class_number": None, "month_grades": [], "month_avg": 0, "best_grade": None, "last_grade": None, "last_date": None, "is_control_slice": topic_code == CONTROL_SLICE_CODE}
         grade_item = {"date": str(row.grade_date), "grade": int(row.grade)}
         topic_map[topic_id]["month_grades"].append(grade_item)
-
     for topic in topic_map.values():
         grades = [item["grade"] for item in topic["month_grades"]]
         if grades:
@@ -115,7 +78,6 @@ def build_topic_diary(topics: list, month_rows: list) -> list[dict]:
             topic["best_grade"] = max(grades)
             topic["last_grade"] = topic["month_grades"][0]["grade"]
             topic["last_date"] = topic["month_grades"][0]["date"]
-
     return sorted(topic_map.values(), key=lambda item: (item.get("class_number") or 99, 1 if item.get("is_control_slice") else 0, item["topic_title"]))
 
 
@@ -124,33 +86,19 @@ def build_diary_stats(repository: StatsRepository, student) -> dict:
     month_start = today.replace(day=1)
     year_start = today.replace(month=1, day=1)
     result = {"server_date": str(today), "month_dates": get_month_dates(today), "subjects": []}
-
     for subject_code in SUBJECT_ORDER:
         subject = repository.get_subject(subject_code)
         title = SUBJECT_TITLES.get(subject_code, subject_code)
         subject_data = build_empty_subject(subject_code, title)
-
         if subject and student:
             topics = repository.get_subject_topics(subject)
             month_rows = repository.get_grade_rows(student, subject, month_start)
             year_rows = repository.get_grade_rows(student, subject, year_start)
             month_grades = [int(row.grade) for row in month_rows if row.grade is not None]
             year_grades = [int(row.grade) for row in year_rows if row.grade is not None]
-
-            subject_data.update(
-                {
-                    "month_avg": round(sum(month_grades) / len(month_grades), 2) if month_grades else 0,
-                    "month_days": len({row.grade_date for row in month_rows}),
-                    "year_avg": round(sum(year_grades) / len(year_grades), 2) if year_grades else 0,
-                    "year_days": len({row.grade_date for row in year_rows}),
-                    "topics": build_topic_diary(topics, month_rows),
-                    "grades": [format_grade_row(row) for row in year_rows],
-                }
-            )
-
+            subject_data.update({"month_avg": round(sum(month_grades) / len(month_grades), 2) if month_grades else 0, "month_days": len({row.grade_date for row in month_rows}), "year_avg": round(sum(year_grades) / len(year_grades), 2) if year_grades else 0, "year_days": len({row.grade_date for row in year_rows}), "topics": build_topic_diary(topics, month_rows), "grades": [format_grade_row(row) for row in year_rows]})
         result[subject_code] = subject_data
         result["subjects"].append(subject_data)
-
     return result
 
 
@@ -165,12 +113,9 @@ def get_diary_stats(access_token: str) -> dict:
 
 
 def build_save_message(previous_grade: int | None, current_grade: int, action: str) -> str:
-    if action == "created":
-        return f"Сегодня вы еще не решали эту тему, ваша оценка {current_grade}"
-    if action == "improved":
-        return f"Ваша прошлая оценка {previous_grade}, сейчас получили {current_grade}, поздравляем, Вы исправили оценку!"
-    if action == "same":
-        return f"Ваша прошлая оценка {previous_grade}, сейчас получили {current_grade}, оценка не изменилась"
+    if action == "created": return f"Сегодня вы еще не решали эту тему, ваша оценка {current_grade}"
+    if action == "improved": return f"Ваша прошлая оценка {previous_grade}, сейчас получили {current_grade}, поздравляем, Вы исправили оценку!"
+    if action == "same": return f"Ваша прошлая оценка {previous_grade}, сейчас получили {current_grade}, оценка не изменилась"
     return f"Ваша прошлая оценка {previous_grade}, сейчас получили {current_grade}, предыдущую оценку не исправляем"
 
 
@@ -184,38 +129,19 @@ def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
     payload = parse_test_attempt_payload(raw_payload)
     user_id = get_user_id_from_access_token(access_token)
     session_factory = get_session_factory()
-
     with session_factory() as session:
         repository = StatsRepository(session)
         user = get_current_user(repository, user_id)
         student = repository.get_student_by_user_id(user.id)
-        if not student:
-            return {"status": "not_found", "message": "У пользователя нет ученика."}, 404
-
+        if not student: return {"status": "not_found", "message": "У пользователя нет ученика."}, 404
         subject = repository.get_subject(payload.subject_code)
-        if not subject:
-            return {"status": "validation_error", "message": "Предмет не найден."}, 400
-
+        if not subject: return {"status": "validation_error", "message": "Предмет не найден."}, 400
         topic = resolve_attempt_topic(repository, subject, payload)
         grade = calculate_grade(payload.score_percent)
         existing = repository.find_today_attempt(student.id, subject.id, topic.id if topic else None)
         previous_grade = existing.grade if existing else None
-
         if existing is None:
-            attempt = repository.create_attempt(
-                student_id=student.id,
-                subject_id=subject.id,
-                class_number=payload.class_number,
-                topic_id=topic.id if topic else None,
-                total_questions=payload.total_questions,
-                correct_answers=payload.correct_answers,
-                wrong_answers=payload.wrong_answers,
-                empty_answers=payload.empty_answers,
-                score_percent=payload.score_percent,
-                grade=grade,
-                time_spent_seconds=payload.time_spent_seconds,
-                average_time_seconds=payload.average_time_seconds,
-            )
+            attempt = repository.create_attempt(student.id, subject.id, payload.class_number, topic.id if topic else None, payload.total_questions, payload.correct_answers, payload.wrong_answers, payload.empty_answers, payload.score_percent, grade, payload.time_spent_seconds, payload.average_time_seconds)
             repository.replace_attempt_answers(attempt, payload.answers)
             action = "created"
         elif grade > (existing.grade or 0):
@@ -226,13 +152,5 @@ def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
             action = "same"
         else:
             action = "lower"
-
         session.commit()
-        return {
-            "status": "ok",
-            "action": action,
-            "previous_grade": previous_grade,
-            "current_grade": grade,
-            "saved_grade": grade if action in {"created", "improved"} else previous_grade,
-            "message": build_save_message(previous_grade, grade, action),
-        }, 200
+        return {"status": "ok", "action": action, "previous_grade": previous_grade, "current_grade": grade, "saved_grade": grade if action in {"created", "improved"} else previous_grade, "message": build_save_message(previous_grade, grade, action)}, 200
