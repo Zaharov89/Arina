@@ -11,11 +11,11 @@ body.auth-page {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px 12px;
+    padding: 24px 44px 24px 12px;
 }
 
 .auth-card {
-    width: min(386px, calc(100vw - 24px));
+    width: min(386px, calc(100vw - 64px));
     margin: 0 auto;
     padding: 0 0 28px;
 }
@@ -70,6 +70,7 @@ body.auth-page {
     border-radius: 4px;
     background: #ffffff;
     overflow: visible;
+    position: relative;
 }
 
 .auth-input-wrapper:focus-within,
@@ -134,25 +135,56 @@ body.auth-page {
 }
 
 .hint-icon {
+    position: absolute;
+    right: -32px;
+    top: 50%;
+    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 20px;
     height: 20px;
-    margin-right: 8px;
     border-radius: 50%;
     background: #fbbc04;
     color: #ffffff;
     font-size: 14px;
     font-weight: 800;
     cursor: help;
-    flex: 0 0 20px;
     outline: none;
+    z-index: 4;
 }
 
 .hint-icon:hover,
 .hint-icon:focus {
     box-shadow: 0 0 0 3px rgba(251, 188, 4, 0.25);
+}
+
+.hint-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: 280px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #333333;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 400;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+}
+
+.hint-icon:hover::after,
+.hint-icon:focus::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 .field-error {
@@ -373,11 +405,11 @@ body.auth-page {
 
 @media (max-width: 420px) {
     body.auth-page {
-        padding: 16px 6px;
+        padding: 16px 38px 16px 6px;
     }
 
     .auth-card {
-        width: calc(100vw - 12px);
+        width: calc(100vw - 56px);
     }
 
     .auth-title {
@@ -388,5 +420,10 @@ body.auth-page {
         left: 12px;
         right: 12px;
         max-width: none;
+    }
+
+    .hint-icon::after {
+        right: -8px;
+        width: 240px;
     }
 }
