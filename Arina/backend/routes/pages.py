@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, render_template, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
 from Arina.backend.routes.common import get_student
@@ -48,14 +48,9 @@ def get_subjects_for_menu() -> list[dict]:
 
 @pages_bp.route("/")
 def home():
-    return render_template("index.html")
+    return redirect(url_for("pages.subjects_menu"))
 
 
 @pages_bp.route("/subjects")
 def subjects_menu():
     return render_template("subjects.html", student=get_student(), subjects=get_subjects_for_menu())
-
-
-@pages_bp.route("/student_selection")
-def student_selection():
-    return render_template("student_selection/index.html")
