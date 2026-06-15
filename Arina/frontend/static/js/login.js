@@ -1,16 +1,26 @@
 let failedAttempts = Number(localStorage.getItem('arinaLoginFailedAttempts') || '0');
 let captchaResult = null;
 
-function togglePassword(inputId) {
+function togglePassword(inputId, button) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    input.type = input.type === 'password' ? 'text' : 'password';
+
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+
+    if (button) {
+        button.textContent = visible ? '🙈' : '👁';
+        button.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
+    }
 }
 
 function setError(inputId, errorId, message) {
     const input = document.getElementById(inputId);
     const error = document.getElementById(errorId);
+    const wrapper = input ? input.closest('.auth-password-wrapper') : null;
+
     if (input) input.classList.toggle('invalid', Boolean(message));
+    if (wrapper) wrapper.classList.toggle('invalid', Boolean(message));
     if (error) error.textContent = message || '';
 }
 
@@ -119,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 failedAttempts += 1;
                 localStorage.setItem('arinaLoginFailedAttempts', String(failedAttempts));
                 setLoginFieldsError('Логин или пароль не верный');
-                setMessage(data.message || 'Логин или пароль не верный', 'error');
+                setMessage(data.message || 'Неверный логин или пароль', 'error');
                 showCaptchaIfNeeded();
                 return;
             }
