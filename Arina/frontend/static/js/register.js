@@ -41,6 +41,11 @@ function setFieldError(fieldName, message) {
     if (error) error.textContent = message || '';
 }
 
+function normalizeServerError(message) {
+    if (!message) return '';
+    return String(message).replace(/^.*?:\s*/, '').trim();
+}
+
 function clearErrors() {
     Object.keys(fieldMap).forEach(fieldName => setFieldError(fieldName, ''));
     const formMessage = document.getElementById('formMessage');
@@ -48,29 +53,34 @@ function clearErrors() {
     formMessage.textContent = '';
 }
 
-function validateName(value, title) {
-    if (!value) return `${title}: обязательное поле.`;
-    if (DANGEROUS_PATTERN.test(value)) return `${title}: запрещены спецсимволы и HTML/SQL-конструкции.`;
-    if (!NAME_PATTERN.test(value)) return `${title}: только кириллица или латиница, от 1 до 60 символов.`;
+function validateName(value) {
+    if (!value) return 'обязательное поле.';
+    if (DANGEROUS_PATTERN.test(value)) return 'запрещены спецсимволы.';
+    if (!NAME_PATTERN.test(value)) return 'только кириллица или латиница, от 1 до 60 символов.';
     return '';
 }
 
 function validateEmail(value) {
-    if (!value) return 'Почта: обязательное поле.';
-    if (value.length > 100) return 'Почта: максимум 100 символов.';
-    if (DANGEROUS_PATTERN.test(value)) return 'Почта: запрещены HTML/SQL-конструкции и опасные спецсимволы.';
-    if (!EMAIL_PATTERN.test(value)) return 'Почта: формат text@example.ru, только латиница.';
+    if (!value) return 'обязательное поле.';
+    if (value.length > 100) return 'максимум 100 символов.';
+    if (DANGEROUS_PATTERN.test(value)) return 'запрещены спецсимволы.';
+    if (!EMAIL_PATTERN.test(value)) return 'формат text@example.ru, только латиница.';
     return '';
 }
 
 function validatePassword(value) {
-    if (!value) return 'Пароль: обязательное поле.';
-    if (value.length < 8 || value.length > 20) return 'Пароль: от 8 до 20 символов.';
-    if (DANGEROUS_PATTERN.test(value)) return 'Пароль: запрещены опасные SQL/HTML-символы.';
-    if (!PASSWORD_HAS_UPPER.test(value)) return 'Пароль: нужна минимум 1 заглавная буква.';
-    if (!PASSWORD_HAS_LOWER.test(value)) return 'Пароль: нужна минимум 1 строчная буква.';
-    if (!PASSWORD_HAS_DIGIT.test(value)) return 'Пароль: нужна минимум 1 цифра.';
-    if (!PASSWORD_HAS_SPECIAL.test(value)) return 'Пароль: нужен минимум 1 спецсимвол.';
+    if (!value) return 'обязательное поле.';
+    if (value.length < 8 || value.length > 20) return 'от 8 до 20 символов.';
+    if (DANGEROUS_PATTERN.test(value)) return 'запрещены опасные спецсимволы.';
+    if (!PASSWORD_HAS_UPPER.test(value)) return 'нужна минимум 1 заглавная буква.';
+    if (!PASSWORD_HAS_LOWER.test(value)) return 'нужна минимум 1 строчная буква.';
+    if (!PASSWORD_HAS_DIGIT.test(value)) return 'нужна минимум 1 цифра.';
+    if (!PASSWORD_HAS_SPECIAL.test(value)) return 'нужен минимум 1 спецсимвол.';
+    return '';
+}
+
+function validatePasswordRepeat(password, passwordRepeat) {
+    if (password !== passwordRepeat) return 'Не соответствует введенному паролю';
     return '';
 }
 
@@ -86,16 +96,12 @@ function getPayload() {
 
 function validateForm(payload) {
     const errors = {
-        child_first_name: validateName(payload.child_first_name, 'Имя ребёнка'),
-        child_last_name: validateName(payload.child_last_name, 'Фамилия ребёнка'),
+        child_first_name: validateName(payload.child_first_name),
+        child_last_name: validateName(payload.child_last_name),
         email: validateEmail(payload.email),
         password: validatePassword(payload.password),
-        password_repeat: validatePassword(payload.password_repeat),
+        password_repeat: validatePasswordRepeat(payload.password, payload.password_repeat),
     };
-
-    if (!errors.password_repeat && payload.password !== payload.password_repeat) {
-        errors.password_repeat = 'Повторите пароль: пароль должен полностью совпадать.';
-    }
 
     Object.entries(errors).forEach(([fieldName, message]) => setFieldError(fieldName, message));
     return Object.values(errors).every(message => !message);
@@ -129,7 +135,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 if (data.errors) {
-                    Object.entries(data.errors).forEach(([fieldName, message]) => setFieldError(fieldName, message));
+                    Object.entries(data.errors).forEach(([fieldName, message]) => {
+                        setFieldError(fieldName, fieldName === 'password_repeat' ? 'Не соответствует введенному паролю' : normalizeServerError(message));
+                    });
                 }
                 formMessage.className = 'form-message error';
                 formMessage.textContent = data.message || 'Регистрация не выполнена. Проверьте поля.';

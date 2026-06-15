@@ -35,14 +35,19 @@ function setMessage(message, type) {
     box.textContent = message || '';
 }
 
+function normalizeServerError(message) {
+    if (!message) return '';
+    return String(message).replace(/^.*?:\s*/, '').trim();
+}
+
 function validatePassword(value) {
-    if (!value) return 'Пароль: обязательное поле.';
-    if (value.length < 8 || value.length > 20) return 'Пароль: от 8 до 20 символов.';
-    if (DANGEROUS_PATTERN.test(value)) return 'Пароль: запрещены опасные SQL/HTML-символы.';
-    if (!PASSWORD_HAS_UPPER.test(value)) return 'Пароль: нужна минимум 1 заглавная буква.';
-    if (!PASSWORD_HAS_LOWER.test(value)) return 'Пароль: нужна минимум 1 строчная буква.';
-    if (!PASSWORD_HAS_DIGIT.test(value)) return 'Пароль: нужна минимум 1 цифра.';
-    if (!PASSWORD_HAS_SPECIAL.test(value)) return 'Пароль: нужен минимум 1 спецсимвол.';
+    if (!value) return 'обязательное поле.';
+    if (value.length < 8 || value.length > 20) return 'от 8 до 20 символов.';
+    if (DANGEROUS_PATTERN.test(value)) return 'запрещены опасные спецсимволы.';
+    if (!PASSWORD_HAS_UPPER.test(value)) return 'нужна минимум 1 заглавная буква.';
+    if (!PASSWORD_HAS_LOWER.test(value)) return 'нужна минимум 1 строчная буква.';
+    if (!PASSWORD_HAS_DIGIT.test(value)) return 'нужна минимум 1 цифра.';
+    if (!PASSWORD_HAS_SPECIAL.test(value)) return 'нужен минимум 1 спецсимвол.';
     return '';
 }
 
@@ -60,11 +65,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const passwordRepeat = document.getElementById('newPasswordRepeat').value;
         const token = form.dataset.token;
         const passwordError = validatePassword(password);
-        const repeatError = validatePassword(passwordRepeat);
+        const repeatError = password !== passwordRepeat ? 'Не соответствует введенному паролю' : '';
 
-        if (passwordError || repeatError || password !== passwordRepeat) {
+        if (passwordError || repeatError) {
             setError('newPassword', 'newPasswordError', passwordError);
-            setError('newPasswordRepeat', 'newPasswordRepeatError', repeatError || (password !== passwordRepeat ? 'Повторите пароль: пароль должен полностью совпадать.' : ''));
+            setError('newPasswordRepeat', 'newPasswordRepeatError', repeatError);
             setMessage('Исправьте ошибки в полях.', 'error');
             return;
         }
@@ -79,8 +84,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 if (data.errors) {
-                    if (data.errors.password) setError('newPassword', 'newPasswordError', data.errors.password);
-                    if (data.errors.password_repeat) setError('newPasswordRepeat', 'newPasswordRepeatError', data.errors.password_repeat);
+                    if (data.errors.password) setError('newPassword', 'newPasswordError', normalizeServerError(data.errors.password));
+                    if (data.errors.password_repeat) setError('newPasswordRepeat', 'newPasswordRepeatError', 'Не соответствует введенному паролю');
                 }
                 setMessage(data.message || 'Не удалось заменить пароль.', 'error');
                 return;
