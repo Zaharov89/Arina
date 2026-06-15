@@ -12,6 +12,8 @@ world_bp = Blueprint("world", __name__)
 SUPPORTED_WORLD_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1}
 IMPLEMENTED_LEARNING_CLASSES = {1}
+CONTROL_SLICE_TYPE = "control_slice"
+control_topic_cursor = 0
 
 
 def get_world_class_1_topics() -> dict:
@@ -20,6 +22,16 @@ def get_world_class_1_topics() -> dict:
 
 def get_world_class_1_topic_from_catalog(topic_id: str) -> dict | None:
     return get_topic_or_none("world", 1, topic_id, WORLD_CLASS_1_TOPICS)
+
+
+def get_next_control_topic_id() -> str:
+    global control_topic_cursor
+    topic_ids = list(get_world_class_1_topics().keys())
+    if not topic_ids:
+        return "living_nonliving"
+    topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
+    control_topic_cursor += 1
+    return topic_id
 
 
 def normalize_used_questions(raw_used_questions: Any) -> list[str]:
@@ -40,7 +52,6 @@ def ensure_unique_task(task: dict, used_questions: list[str]) -> dict:
     task_key = build_task_key(task)
     if task_key in used_questions:
         task_key = f"{task_key} | repeat-{len(used_questions) + 1}"
-
     task["question_key"] = task_key
     task["is_repeat"] = False
     return task
@@ -85,6 +96,8 @@ def world_test_setup():
 def world_test():
     topic_id = request.args.get("type", "living_nonliving")
     total_requested = get_int_arg("questions", default=25, min_value=1, max_value=50)
+    if topic_id == CONTROL_SLICE_TYPE:
+        total_requested = 50
     return render_template("world/topic_test.html", test_settings={"classNum": "1", "topicId": topic_id or "living_nonliving"}, total_questions=total_requested, student=get_student())
 
 
@@ -94,6 +107,8 @@ def generate_world_task():
     if error_response:
         return error_response
     topic_id = str(data.get("topic", "living_nonliving")).strip() or "living_nonliving"
+    if topic_id == CONTROL_SLICE_TYPE:
+        topic_id = get_next_control_topic_id()
     used_questions = normalize_used_questions(data.get("used_questions"))
     task = generate_world_class_1_topic_task(topic_id, used_questions=used_questions)
     return jsonify(ensure_unique_task(task, used_questions))
