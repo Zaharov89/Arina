@@ -2,13 +2,14 @@ import random
 from typing import Any
 
 from flask import Blueprint, abort, jsonify, render_template, request
+from sqlalchemy.exc import SQLAlchemyError
 
 from Arina.backend.routes.common import get_int_arg, get_json_body, get_student
 from Arina.backend.services.catalog import build_topic_options, get_topic_or_none, merge_db_topics_with_content
+from Arina.database.session import get_session_factory
 from Arina.russian_language.class_1_tasks import generate_russian_class_1_topic_task, normalize_text
 from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS
-from Arina.russian_language.class_2 import russianQuestions as questions2
-from Arina.russian_language.class_3 import russianQuestions as questions3
+from Arina.russian_language.vocabulary import get_russian_vocabulary_word_list
 
 russian_bp = Blueprint("russian", __name__)
 
@@ -23,6 +24,13 @@ def get_russian_class_1_topics() -> dict:
 
 def get_russian_class_1_topic_from_catalog(topic_id: str) -> dict | None:
     return get_topic_or_none("russian", 1, topic_id, RUSSIAN_CLASS_1_TOPICS)
+
+
+def get_russian_vocabulary_words_for_class(class_num: str) -> list[str]:
+    class_number = None if class_num == "all" else int(class_num)
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        return get_russian_vocabulary_word_list(session, class_number)
 
 
 def normalize_used_questions(raw_used_questions: Any) -> list[str]:
@@ -96,7 +104,7 @@ def russian_rules():
 @russian_bp.route("/russian/test_setup")
 def russian_test_setup():
     student = get_student()
-    return render_template("russian/test_setup.html", class_1_topics=build_topic_options(get_russian_class_1_topics()), class2_words=list(questions2.keys()), class3_words=list(questions3.keys()), student=student)
+    return render_template("russian/test_setup.html", class_1_topics=build_topic_options(get_russian_class_1_topics()), student=student)
 
 
 @russian_bp.route("/russian/test")
@@ -105,14 +113,18 @@ def russian_test():
     class_num = request.args.get("class", "all")
     topic_id = request.args.get("type", "")
     total_requested = get_int_arg("words", default=25, min_value=1, max_value=50)
-    if class_num == "1":
-        return render_template("russian/topic_test_radio.html", test_settings={"classNum": "1", "topicId": topic_id or "sounds_and_letters"}, total_questions=total_requested, student=student)
-    if class_num == "2":
-        all_available = list(questions2.keys())
-    elif class_num == "3":
-        all_available = list(questions3.keys())
-    else:
-        all_available = list(set(list(questions2.keys()) + list(questions3.keys())))
+
+    if class_num == "1" and topic_id:
+        return render_template("russian/topic_test_radio.html", test_settings={"classNum": "1", "topicId": topic_id}, total_questions=total_requested, student=student)
+
+    if class_num not in {"1", "2", "3", "all"}:
+        class_num = "all"
+
+    try:
+        all_available = get_russian_vocabulary_words_for_class(class_num)
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        return render_template("russian/test.html", test_words=[], total_words=0, student=student, error_message=f"Не удалось получить словарные слова из БД: {error}")
+
     if not all_available:
         test_words = []
     elif len(all_available) >= total_requested:

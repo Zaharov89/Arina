@@ -13,7 +13,18 @@
 
         <div id="testStep1" class="settings-box">
             <h3>Настройки теста — Шаг 1/3</h3>
-            <div class="settings-row"><div class="setting"><label>Класс:</label><select id="classSelect"><option value="1">1 класс</option><option value="2">2 класс</option><option value="3">3 класс</option><option value="all">Все слова 2–3 класса</option></select></div></div>
+            <div class="settings-row">
+                <div class="setting">
+                    <label>Класс:</label>
+                    <select id="classSelect">
+                        <option value="1">1 класс — темы</option>
+                        <option value="vocab_1">1 класс — словарные слова</option>
+                        <option value="2">2 класс — словарные слова</option>
+                        <option value="3">3 класс — словарные слова</option>
+                        <option value="all">Все словарные слова 1–3 класса</option>
+                    </select>
+                </div>
+            </div>
             <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goBackToMenu()">Назад</button><button class="nav-btn next-btn" onclick="goToStep2()">Далее</button></div>
         </div>
 

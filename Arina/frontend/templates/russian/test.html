@@ -9,22 +9,31 @@
 <body>
     <div id="dateTimeBar"></div>
     <div class="container">
-        <div id="testBlock" class="test-block">
-            <div class="question-counter" id="questionCounter">Слово №1 из {{ total_words }}</div>
-            <div class="question-container">
-                <button class="question-sound-btn" id="questionSoundBtn" onclick="speakCurrentWord()">Воспроизвести 🔊</button>
+        {% if error_message %}
+            <div class="test-block">
+                <div class="result-message incorrect">{{ error_message }}</div>
+                <div class="test-buttons">
+                    <a href="/russian" class="test-btn">Вернуться в меню</a>
+                </div>
             </div>
-            <input type="text" id="answerInput" class="answer-input" placeholder="Введите слово">
-            <div id="resultMessage" class="result-message"></div>
-            <div class="test-buttons">
-                <button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>
-                <button id="nextBtn" class="test-btn" onclick="nextQuestion()" disabled>Далее</button>
-                <button id="finishBtn" class="test-btn" onclick="finishTest()">Закончить тест</button>
+        {% else %}
+            <div id="testBlock" class="test-block">
+                <div class="question-counter" id="questionCounter">Слово №1 из {{ total_words }}</div>
+                <div class="question-container">
+                    <button class="question-sound-btn" id="questionSoundBtn" onclick="speakCurrentWord()">Воспроизвести 🔊</button>
+                </div>
+                <input type="text" id="answerInput" class="answer-input" placeholder="Введите слово">
+                <div id="resultMessage" class="result-message"></div>
+                <div class="test-buttons">
+                    <button id="checkBtn" class="test-btn" onclick="checkAnswer()">Ответить</button>
+                    <button id="nextBtn" class="test-btn" onclick="nextQuestion()" disabled>Далее</button>
+                    <button id="finishBtn" class="test-btn" onclick="finishTest()">Закончить тест</button>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <div class="test-timer" id="testTimer">Время: 0:00</div>
+                </div>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <div class="test-timer" id="testTimer">Время: 0:00</div>
-            </div>
-        </div>
+        {% endif %}
     </div>
 
     <script>
