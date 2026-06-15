@@ -22,7 +22,7 @@ def humanize_topic_code(topic_code: str) -> str:
 def normalize_fallback_topics(fallback_topics: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
     topics = deepcopy(fallback_topics)
     for topic_code, topic in topics.items():
-        title = topic.get("title") or topic.get("short_title") or humanize_topic_code(topic_code)
+        title = topic.get("title") or topic.get("short_title") or topic.get("description") or humanize_topic_code(topic_code)
         topic.setdefault("id", topic_code)
         topic.setdefault("code", topic_code)
         topic["title"] = title
@@ -61,7 +61,7 @@ def merge_db_topics_with_content(subject_code: str, class_number: int, fallback_
 
 
 def build_topic_options(topics: dict[str, dict[str, Any]]) -> list[dict[str, str]]:
-    return [{"id": topic_code, "title": str(topic.get("title") or humanize_topic_code(topic_code)), "value": topic_code, "label": str(topic.get("title") or humanize_topic_code(topic_code))} for topic_code, topic in topics.items()]
+    return [{"id": topic_code, "title": str(topic.get("title") or topic.get("description") or humanize_topic_code(topic_code)), "value": topic_code, "label": str(topic.get("title") or topic.get("description") or humanize_topic_code(topic_code))} for topic_code, topic in topics.items()]
 
 
 def get_topic_or_none(subject_code: str, class_number: int, topic_id: str, fallback_topics: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
