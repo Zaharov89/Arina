@@ -144,8 +144,10 @@ def get_access_token_minutes() -> int:
     return int(os.getenv("ARINA_ACCESS_TOKEN_MINUTES", "30"))
 
 
-def get_refresh_token_days() -> int:
-    return int(os.getenv("ARINA_REFRESH_TOKEN_DAYS", "30"))
+def get_refresh_token_days(remember_me: bool = True) -> int:
+    if remember_me:
+        return int(os.getenv("ARINA_REFRESH_TOKEN_DAYS", "30"))
+    return int(os.getenv("ARINA_SESSION_REFRESH_TOKEN_DAYS", "1"))
 
 
 def create_jwt_token(user: User, token_type: str, expires_delta: timedelta) -> str:
@@ -162,19 +164,21 @@ def create_jwt_token(user: User, token_type: str, expires_delta: timedelta) -> s
     return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
 
 
-def issue_token_pair(user: User) -> dict:
+def issue_token_pair(user: User, remember_me: bool = True) -> dict:
     if not user.is_active:
         raise AuthTokenError("Пользователь не активирован. Сначала подтвердите почту.")
 
+    refresh_token_days = get_refresh_token_days(remember_me=remember_me)
     access_token = create_jwt_token(user, "access", timedelta(minutes=get_access_token_minutes()))
-    refresh_token = create_jwt_token(user, "refresh", timedelta(days=get_refresh_token_days()))
+    refresh_token = create_jwt_token(user, "refresh", timedelta(days=refresh_token_days))
 
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "Bearer",
+        "remember_me": remember_me,
         "access_token_expires_minutes": get_access_token_minutes(),
-        "refresh_token_expires_days": get_refresh_token_days(),
+        "refresh_token_expires_days": refresh_token_days,
     }
 
 
@@ -218,7 +222,7 @@ def verify_auth_token(session: Session, token: str) -> dict:
     }
 
 
-def refresh_auth_token(session: Session, refresh_token: str) -> dict:
+def refresh_auth_token(session: Session, refresh_token: str, remember_me: bool = True) -> dict:
     payload = decode_jwt_token(refresh_token, expected_type="refresh")
     user = session.get(User, payload.get("sub"))
 
@@ -227,7 +231,7 @@ def refresh_auth_token(session: Session, refresh_token: str) -> dict:
     if not user.is_active:
         raise AuthTokenError("Пользователь не активирован.")
 
-    return issue_token_pair(user)
+    return issue_token_pair(user, remember_me=remember_me)
 
 
 def create_activation_link(token: str) -> str:
