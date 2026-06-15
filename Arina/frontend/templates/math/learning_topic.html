@@ -18,9 +18,11 @@
                 <h2>Примеры</h2>
                 <div class="examples-list">{% for example in topic.examples %}<div class="example-card">{{ example }}</div>{% endfor %}</div>
             </div>
+            {% if class_num == 1 %}
             <div class="learning-voice-row">
                 <button class="learning-voice-btn" type="button" onclick="speakLearningContent('learningVoiceContent')">🔊 Прослушать правила и примеры</button>
             </div>
+            {% endif %}
         </div>
         <div class="learning-actions">
             <a href="/math/test?student={{ student }}&class={{ class_num }}&type={{ topic_id }}&questions=25&speed=false" class="learning-btn test-link">Тренироваться по теме</a>
@@ -28,7 +30,7 @@
             <a href="/math?student={{ student }}" class="learning-btn back-link">Назад в математику</a>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
+    {% if class_num == 1 %}<script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>{% endif %}
     <script src="{{ url_for('static', filename='js/math-common.js') }}"></script>
 </body>
 </html>
