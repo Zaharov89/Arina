@@ -50,12 +50,32 @@ function buildTestAttemptPayload(defaultSubjectCode, defaultClassNumber, default
     };
 }
 
+function getGradeSaveMessageElement() {
+    let element = document.getElementById('gradeSaveMessage');
+    if (element) return element;
+
+    element = document.createElement('div');
+    element.id = 'gradeSaveMessage';
+    element.style.display = 'none';
+    element.style.margin = '16px 0';
+    element.style.padding = '14px 16px';
+    element.style.borderRadius = '10px';
+    element.style.fontWeight = '700';
+    element.style.textAlign = 'center';
+
+    const parent = document.querySelector('.main-box') || document.querySelector('.container') || document.body;
+    parent.appendChild(element);
+    return element;
+}
+
 function renderGradeSaveMessage(message, type) {
-    const element = document.getElementById('gradeSaveMessage');
-    if (!element) return;
+    const element = getGradeSaveMessageElement();
     element.textContent = message || '';
     element.className = `grade-save-message ${type || ''}`;
     element.style.display = message ? 'block' : 'none';
+    element.style.background = type === 'error' ? '#ffecec' : '#eaf7ee';
+    element.style.color = type === 'error' ? '#b00020' : '#137333';
+    element.style.border = type === 'error' ? '1px solid #ffb3b3' : '1px solid #b7e4c7';
 }
 
 async function saveTestAttemptResult(defaultSubjectCode, defaultClassNumber, defaultTopicCode) {
