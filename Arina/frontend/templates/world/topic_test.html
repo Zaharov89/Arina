@@ -35,6 +35,15 @@
     </script>
     <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
     <script src="{{ url_for('static', filename='js/world-common.js') }}"></script>
+    <script>
+        const originalFinishWorldTopicTest = finishWorldTopicTest;
+        finishWorldTopicTest = function () {
+            localStorage.setItem('resultSubjectCode', 'world');
+            localStorage.setItem('resultClassNumber', window.worldTopicTestSettings?.classNum || '1');
+            localStorage.setItem('resultTopicCode', window.worldTopicTestSettings?.topicId || '');
+            originalFinishWorldTopicTest();
+        };
+    </script>
     <script src="{{ url_for('static', filename='js/question-unique-key.js') }}"></script>
     <script src="{{ url_for('static', filename='js/world-choice-radio.js') }}"></script>
     <script src="{{ url_for('static', filename='js/enter-submit-next.js') }}"></script>
