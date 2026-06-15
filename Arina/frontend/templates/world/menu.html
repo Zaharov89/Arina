@@ -1,36 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Окружающий мир</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='world/menu.css') }}">
-</head>
+<head><meta charset="UTF-8"><title>Окружающий мир</title><link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='world/menu.css') }}"></head>
 <body>
-    <div id="dateTimeBar"></div>
-    <div class="container">
-        <h1 class="subject-title">Окружающий мир</h1>
-        <p class="world-menu-intro">Выбери класс. В 1 классе доступны обучение и проверка знаний. Остальные классы пока в разработке.</p>
-
-        <div class="classes-grid">
-            {% for class_num in classes %}
-                <a href="/world/class/{{ class_num }}?student={{ student }}" class="class-card {% if class_num not in implemented_test_classes and class_num not in implemented_learning_classes %}class-card-disabled{% endif %}">
-                    <div class="class-number">{{ class_num }}</div>
-                    <div class="class-title">{{ class_num }} класс</div>
-                    {% if class_num == 1 %}
-                        <div class="class-status ready">Обучение и проверка знаний</div>
-                    {% else %}
-                        <div class="class-status planned">В разработке</div>
-                    {% endif %}
-                </a>
-            {% endfor %}
-        </div>
-
-        <div class="menu-actions">
-            <a href="/subjects?student={{ student }}" class="back-btn world-back-link">Назад к предметам</a>
-        </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='js/world-common.js') }}"></script>
-</body>
-</html>
+<div id="dateTimeBar"></div><div class="container"><h1 class="subject-title">Окружающий мир</h1><p class="world-menu-intro">Выбери класс. Для реализованных классов доступны правила, тренировки и контрольный срез. Остальные классы пока в разработке.</p><div class="classes-grid">{% for class_num in classes %}<a href="/world/class/{{ class_num }}?student={{ student }}" class="class-card {% if class_num not in implemented_test_classes and class_num not in implemented_learning_classes %}class-card-disabled{% endif %}"><div class="class-number">{{ class_num }}</div><div class="class-title">{{ class_num }} класс</div>{% if class_num in implemented_learning_classes %}<div class="class-status ready">Правила и тренировки</div>{% elif class_num in implemented_test_classes %}<div class="class-status partial">Правила и тренировки</div>{% else %}<div class="class-status planned">В разработке</div>{% endif %}</a>{% endfor %}</div><div class="menu-actions"><a href="/subjects?student={{ student }}" class="back-btn world-back-link">Назад к предметам</a></div></div>
+<script src="{{ url_for('static', filename='js/world-common.js') }}"></script>
+</body></html>

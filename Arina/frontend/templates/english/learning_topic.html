@@ -18,7 +18,6 @@
                 <h2>Примеры</h2>
                 <div class="examples-list">{% for example in topic.examples %}<div class="example-card">{{ example }}</div>{% endfor %}</div>
             </div>
-            <div class="learning-voice-row"><button class="learning-voice-btn" type="button" onclick="speakLearningContent('learningVoiceContent')">🔊 Прослушать правила и примеры</button></div>
         </div>
         <div class="learning-actions">
             <a href="/english/topic-test?class={{ class_num }}&type={{ topic_id }}&questions=25&student={{ student }}" class="learning-btn test-link">Тренироваться по теме</a>
@@ -26,6 +25,5 @@
             <a href="/english/menu?student={{ student }}" class="learning-btn back-link">К выбору класса</a>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
 </body>
 </html>

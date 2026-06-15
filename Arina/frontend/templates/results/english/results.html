@@ -1,75 +1,14 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8" />
-    <title>Результаты теста — Английский язык</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='results/english/results.css') }}">
-</head>
+<head><meta charset="UTF-8" /><title>Результаты теста — Английский язык</title><link rel="stylesheet" href="{{ url_for('static', filename='results/english/results.css') }}"></head>
 <body>
-    <div id="dateTimeBar"></div>
-    <div class="container">
-        <div class="main-box">
-            <h3 class="result-title" id="resultTitle">Результаты теста по Английскому языку</h3>
-            <div class="star-container" id="starContainer">
-                <img class="star" data-index="0" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="1" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="2" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="3" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="4" src="/static/img/star_empty.png" alt="Звезда">
-            </div>
-            <div class="warning-message" id="warningMessage" style="display: none;">⚠️ Вы не прорешали ни одного примера!</div>
-            <div class="stats-container">
-                <div class="stats-left"><div class="results-grid">
-                    <div class="result-item correct-answers"><div class="result-label">Правильных ответов</div><div class="result-value" id="correctAnswersValue">0 из 0</div></div>
-                    <div class="result-item percentage"><div class="result-label">Процент правильных ответов</div><div class="result-value" id="percentageValue">0%</div></div>
-                    <div class="result-item time-stats"><div class="result-label">Среднее время на ответ</div><div class="result-value" id="avgTimeValue">0.0 сек</div></div>
-                    <div class="result-item record"><div class="result-label">Длительность тренировки</div><div class="result-value" id="totalTimeValue">0 секунд</div></div>
-                </div></div>
-                <div class="grade-box"><div class="grade-label">Общая оценка</div><div class="grade" id="finalGrade">5</div></div>
-            </div>
-            <div class="divider"></div><div class="section-title">Ошибки:</div><div class="wrong-list" id="testWrongAnswersBlock"></div>
-        </div>
-        <div class="buttons-container"><button id="restartButton" class="btn">Начать заново</button><a href="/english/menu" class="btn menu-btn">Вернуться в меню</a></div>
-    </div>
-    <script>
-    function renderDateBar() { const now = new Date(); const monthsRu = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']; document.getElementById('dateTimeBar').textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`; }
-    function calculateGrade(errorPercentage) { if (errorPercentage <= 5) return 5; if (errorPercentage <= 15) return 4; if (errorPercentage <= 30) return 3; return 2; }
-    function formatTime(seconds) { seconds = parseInt(seconds) || 0; const mins = Math.floor(seconds / 60); const secs = seconds % 60; if (mins === 0) return `${secs} секунд`; return `${mins} мин ${secs} сек`; }
-    function renderWrongAnswers(wrongAnswersList, answeredQuestions) {
-        const wrongBlock = document.getElementById('testWrongAnswersBlock');
-        if (answeredQuestions === 0) { wrongBlock.innerHTML = '<div class="no-errors"><div>📝 Вы не ответили ни на один вопрос</div><div>Попробуйте пройти тест еще раз</div></div>'; return; }
-        if (!wrongAnswersList || wrongAnswersList.length === 0) { wrongBlock.innerHTML = '<div class="no-errors"><div>🎉 Все ответы верны!</div><div>Отличная работа!</div></div>'; return; }
-        wrongBlock.innerHTML = wrongAnswersList.map((item, index) => { const question = item.question || (item.en ? `${item.en[0]} → ?` : 'Задание'); const correctAnswer = item.correctAnswer || item.correct || 'Не указан'; const userAnswer = item.userAnswer || 'Не указан'; return `<div class="wrong-item"><div class="example-text">${index + 1}. ${question}</div><div class="answer-row">Ваш ответ: <span class="user-answer">${userAnswer}</span></div><div class="answer-row">Правильный ответ: <span class="correct-answer">${correctAnswer}</span></div></div>`; }).join('');
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        renderDateBar();
-        const subject = localStorage.getItem('testSubject') || 'Английский язык';
-        const totalWords = parseInt(localStorage.getItem('totalQuestions')) || 0;
-        const correctAnswers = parseInt(localStorage.getItem('correctAnswers')) || 0;
-        const wrongAnswers = parseInt(localStorage.getItem('wrongAnswers')) || 0;
-        const emptyAnswers = parseInt(localStorage.getItem('emptyAnswers')) || 0;
-        const answeredQuestions = correctAnswers + wrongAnswers;
-        const timeSpent = parseInt(localStorage.getItem('timeSpent')) || 0;
-        const wrongAnswersList = JSON.parse(localStorage.getItem('wrongAnswersList') || '[]');
-        const percentage = totalWords > 0 ? Math.round((correctAnswers / totalWords) * 100) : 0;
-        const errorPercentage = totalWords > 0 ? Math.round(((wrongAnswers + emptyAnswers) / totalWords) * 100) : 100;
-        const avgTime = totalWords > 0 ? (timeSpent / totalWords).toFixed(1) : 0;
-        const grade = calculateGrade(errorPercentage);
-        document.getElementById('warningMessage').style.display = answeredQuestions === 0 && totalWords > 0 ? 'block' : 'none';
-        document.getElementById('resultTitle').textContent = `Результаты теста по ${subject}`;
-        document.getElementById('correctAnswersValue').textContent = `${correctAnswers} из ${totalWords}`;
-        document.getElementById('percentageValue').textContent = `${percentage}%`;
-        document.getElementById('avgTimeValue').textContent = `${avgTime} сек`;
-        document.getElementById('totalTimeValue').textContent = formatTime(timeSpent);
-        const gradeElement = document.getElementById('finalGrade'); gradeElement.textContent = grade; gradeElement.className = `grade grade-${grade}`;
-        document.querySelectorAll('.star').forEach((star, index) => { if (index < grade) setTimeout(() => { star.src = '/static/img/star_filled.png'; star.classList.add('filled'); }, index * 350); });
-        renderWrongAnswers(wrongAnswersList, answeredQuestions);
-        document.getElementById('restartButton').addEventListener('click', () => { window.location.href = '/english/menu'; });
-    });
-    </script>
-    <script src="{{ url_for('static', filename='js/results-save.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (typeof saveTestAttemptResult === 'function') {
-                saveTestAttemptResult('english', localStorage.getItem('resultClassNumber') || '2', localStorage.getItem('resultTopicCode') || '');
-            }
-        });
-    </script>
-</body>
-</html>
+<div id="dateTimeBar"></div><div class="container"><div class="main-box"><h3 class="result-title" id="resultTitle">Результаты теста по Английскому языку</h3><div class="star-container" id="starContainer"><img class="star" data-index="0" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="1" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="2" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="3" src="/static/img/star_empty.png" alt="Звезда"><img class="star" data-index="4" src="/static/img/star_empty.png" alt="Звезда"></div><div class="warning-message" id="warningMessage" style="display: none;">⚠️ Вы не прорешали ни одного примера!</div><div class="stats-container"><div class="stats-left"><div class="results-grid"><div class="result-item correct-answers"><div class="result-label">Правильных ответов</div><div class="result-value" id="correctAnswersValue">0 из 0</div></div><div class="result-item percentage"><div class="result-label">Процент правильных ответов</div><div class="result-value" id="percentageValue">0%</div></div><div class="result-item time-stats"><div class="result-label">Среднее время на ответ</div><div class="result-value" id="avgTimeValue">0.0 сек</div></div><div class="result-item record"><div class="result-label">Длительность тренировки</div><div class="result-value" id="totalTimeValue">0 секунд</div></div></div></div><div class="grade-box"><div class="grade-label">Общая оценка</div><div class="grade" id="finalGrade">5</div></div></div><div class="divider"></div><div class="section-title">Ошибки:</div><div class="wrong-list" id="testWrongAnswersBlock"></div></div><div class="buttons-container"><button id="restartButton" class="btn">Начать заново</button><a href="/english/menu" class="btn menu-btn">Вернуться в меню</a></div></div>
+<script>
+function renderDateBar(){const now=new Date();const monthsRu=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];document.getElementById('dateTimeBar').textContent=`${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;}
+function calculateGradeByScore(scorePercent){if(scorePercent>=95)return 5;if(scorePercent>=85)return 4;if(scorePercent>=70)return 3;return 2;}
+function formatTime(seconds){seconds=parseInt(seconds)||0;const mins=Math.floor(seconds/60);const secs=seconds%60;if(mins===0)return `${secs} секунд`;return `${mins} мин ${secs} сек`;}
+function renderWrongAnswers(wrongAnswersList,answeredQuestions,skippedAnswers){const wrongBlock=document.getElementById('testWrongAnswersBlock');if(answeredQuestions===0){wrongBlock.innerHTML='<div class="no-errors"><div>📝 Вы не ответили ни на один вопрос</div><div>Попробуйте пройти тест еще раз</div></div>';return;}let skippedHtml=skippedAnswers>0?`<div class="wrong-item"><div class="example-text">Пропущено заданий: ${skippedAnswers}</div><div class="answer-row">Пропущенные задания считаются ошибками.</div></div>`:'';if(!wrongAnswersList||wrongAnswersList.length===0){wrongBlock.innerHTML=skippedHtml||'<div class="no-errors"><div>🎉 Все ответы верны!</div><div>Отличная работа!</div></div>';return;}wrongBlock.innerHTML=skippedHtml+wrongAnswersList.map((item,index)=>{const question=item.question||(item.en?`${item.en[0]} → ?`:'Задание');const correctAnswer=item.correctAnswer||item.correct||'Не указан';const userAnswer=item.userAnswer||'Не указан';return `<div class="wrong-item"><div class="example-text">${index+1}. ${question}</div><div class="answer-row">Ваш ответ: <span class="user-answer">${userAnswer}</span></div><div class="answer-row">Правильный ответ: <span class="correct-answer">${correctAnswer}</span></div></div>`;}).join('');}
+document.addEventListener('DOMContentLoaded',function(){renderDateBar();const subject=localStorage.getItem('testSubject')||'Английский язык';const totalWords=parseInt(localStorage.getItem('totalQuestions'))||0;const correctAnswers=parseInt(localStorage.getItem('correctAnswers'))||0;const wrongAnswers=parseInt(localStorage.getItem('wrongAnswers'))||0;const storedEmptyAnswers=parseInt(localStorage.getItem('emptyAnswers'))||0;const skippedAnswers=Math.max(0,totalWords-correctAnswers-wrongAnswers-storedEmptyAnswers);const emptyAnswers=storedEmptyAnswers+skippedAnswers;const answeredQuestions=correctAnswers+wrongAnswers;const timeSpent=parseInt(localStorage.getItem('timeSpent'))||0;const wrongAnswersList=JSON.parse(localStorage.getItem('wrongAnswersList')||'[]');const percentage=totalWords>0?Math.round((correctAnswers/totalWords)*100):0;const avgTime=totalWords>0?(timeSpent/totalWords).toFixed(1):0;const grade=calculateGradeByScore(percentage);document.getElementById('warningMessage').style.display=answeredQuestions===0&&totalWords>0?'block':'none';document.getElementById('resultTitle').textContent=`Результаты теста по ${subject}`;document.getElementById('correctAnswersValue').textContent=`${correctAnswers} из ${totalWords}`;document.getElementById('percentageValue').textContent=`${percentage}%`;document.getElementById('avgTimeValue').textContent=`${avgTime} сек`;document.getElementById('totalTimeValue').textContent=formatTime(timeSpent);const gradeElement=document.getElementById('finalGrade');gradeElement.textContent=grade;gradeElement.className=`grade grade-${grade}`;document.querySelectorAll('.star').forEach((star,index)=>{if(index<grade)setTimeout(()=>{star.src='/static/img/star_filled.png';star.classList.add('filled');},index*350);});renderWrongAnswers(wrongAnswersList,answeredQuestions,emptyAnswers);document.getElementById('restartButton').addEventListener('click',()=>{window.location.href='/english/menu';});});
+</script>
+<script src="{{ url_for('static', filename='js/results-save.js') }}"></script><script>document.addEventListener('DOMContentLoaded',function(){if(typeof saveTestAttemptResult==='function'){saveTestAttemptResult('english',localStorage.getItem('resultClassNumber')||'2',localStorage.getItem('resultTopicCode')||'');}});</script>
+</body></html>

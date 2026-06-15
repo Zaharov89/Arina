@@ -2,59 +2,42 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Тест — Настройка — Русский</title>
+    <title>Тест — Словарные слова</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='russian/test-setup.css') }}">
 </head>
 <body>
     <div id="dateTimeBar"></div>
     <div class="container">
-        <h1 class="subject-title">Русский язык</h1>
-
+        <h1 class="subject-title">Словарные слова</h1>
         <div id="testStep1" class="settings-box">
-            <h3>Настройки теста — Шаг 1/3</h3>
-            <div class="settings-row">
-                <div class="setting">
-                    <label>Класс:</label>
-                    <select id="classSelect">
-                        <option value="1">1 класс — темы</option>
-                        <option value="vocab_1">1 класс — словарные слова</option>
-                        <option value="2">2 класс — словарные слова</option>
-                        <option value="3">3 класс — словарные слова</option>
-                        <option value="all">Все словарные слова 1–3 класса</option>
-                    </select>
-                </div>
-            </div>
+            <h3>Настройки теста — Шаг 1/2</h3>
+            <div class="settings-row"><div class="setting"><label>Класс:</label><select id="classSelect"><option value="vocab_1">1 класс — слова 1 класса</option><option value="vocab_2">2 класс — слова 1 и 2 класса</option><option value="vocab_3">3 класс — слова 1, 2 и 3 класса</option></select></div></div>
             <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goBackToMenu()">Назад</button><button class="nav-btn next-btn" onclick="goToStep2()">Далее</button></div>
         </div>
-
         <div id="testStep2" class="settings-box" style="display: none;">
-            <h3>Настройки теста — Шаг 2/3</h3>
-            <div class="settings-row" id="topicRow"><div class="setting"><label>Раздел:</label><select id="topicSelect">{% for topic in class_1_topics %}<option value="{{ topic.id }}">{{ topic.title }}</option>{% endfor %}</select></div></div>
-            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goToStep1()">Назад</button><button class="nav-btn next-btn" onclick="goToStep3()">Далее</button></div>
+            <h3 id="questionCountStepTitle">Настройки теста — Шаг 2/2</h3>
+            <div class="settings-row"><div class="setting"><label id="questionCountLabel">Количество слов:</label><div class="questions-options" id="wordCountButtons"><button class="question-btn" data-count="10">10</button><button class="question-btn active" data-count="25">25</button><button class="question-btn" data-count="50">50</button></div></div></div>
+            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goToStep1()">Назад</button><button class="nav-btn next-btn" onclick="startRussianTest()">Начать тест</button></div>
         </div>
-
-        <div id="testStep3" class="settings-box" style="display: none;">
-            <h3 id="questionCountStepTitle">Настройки теста — Шаг 3/3</h3>
-            <div class="settings-row"><div class="setting"><label id="questionCountLabel">Количество заданий:</label><div class="questions-options" id="wordCountButtons"><button class="question-btn" data-count="10">10</button><button class="question-btn active" data-count="25">25</button><button class="question-btn" data-count="50">50</button></div></div></div>
-            <div class="nav-buttons"><button class="nav-btn prev-btn" onclick="goBackFromRussianQuestionCount()">Назад</button><button class="nav-btn next-btn" onclick="startRussianTest()">Начать тест</button></div>
-        </div>
+        <div id="testStep3" style="display:none;"></div>
     </div>
-
     <script>
         window.RUSSIAN_CLASS_1_TOPICS = {{ class_1_topics | tojson }};
         window.INITIAL_RUSSIAN_CLASS = "{{ request.args.get('class', '1') }}";
-        window.INITIAL_RUSSIAN_TOPIC = "{{ request.args.get('type', '') }}";
-        window.DIRECT_RUSSIAN_TOPIC_TEST = Boolean(window.INITIAL_RUSSIAN_CLASS === "1" && window.INITIAL_RUSSIAN_TOPIC);
+        window.INITIAL_RUSSIAN_TOPIC = "";
+        window.DIRECT_RUSSIAN_TOPIC_TEST = false;
     </script>
     <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
     <script>
-        document.getElementById('wordCountButtons').addEventListener('click', function(e) {
-            if (e.target.classList.contains('question-btn')) {
-                document.querySelectorAll('.question-btn').forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
-            }
-        });
+        function normalizeRussianVocabularyClass(classNum) { return String(classNum || 'vocab_1').replace('vocab_', ''); }
+        function isRussianTopicClass() { return false; }
+        function isRussianVocabularyClass() { return true; }
+        function setInitialRussianSetupValues() { const classSelect = document.getElementById('classSelect'); if (!classSelect) return; const initial = String(window.INITIAL_RUSSIAN_CLASS || '1').replace('vocab_', ''); classSelect.value = `vocab_${initial}`; }
+        function updateRussianSetupForClass() {}
+        function goToStep2() { document.getElementById('testStep1').style.display = 'none'; document.getElementById('testStep2').style.display = 'block'; }
+        function startRussianTest() { const classSelect = document.getElementById('classSelect'); const activeBtn = document.querySelector('.question-btn.active'); const totalWords = activeBtn ? parseInt(activeBtn.getAttribute('data-count')) : 25; const classNum = normalizeRussianVocabularyClass(classSelect ? classSelect.value : 'vocab_1'); const student = new URLSearchParams(window.location.search).get('student') || 'Арина'; const params = new URLSearchParams({ class: classNum, words: totalWords, student: student }); window.location.href = `/russian/test?${params.toString()}`; }
+        document.getElementById('wordCountButtons').addEventListener('click', function(e) { if (e.target.classList.contains('question-btn')) { document.querySelectorAll('.question-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); } });
     </script>
 </body>
 </html>
