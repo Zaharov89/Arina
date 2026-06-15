@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Тренировка — Окружающий мир 1 класс</title>
+    <title>Тренировка — Окружающий мир {{ test_settings.classNum }} класс</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='world/test.css') }}">
 </head>
@@ -14,7 +14,7 @@
             <div class="question-topic" id="questionTopic" style="display: none;"></div>
             <div class="question-container">
                 <div class="question-text" id="questionDisplay">Загрузка...</div>
-                <button class="question-sound-btn" type="button" onclick="speakQuestion('questionDisplay')">🔊 Прослушать</button>
+                {% if test_settings.classNum == '1' %}<button class="question-sound-btn" type="button" onclick="speakQuestion('questionDisplay')">🔊 Прослушать</button>{% endif %}
             </div>
             <input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off">
             <div id="resultMessage" class="result-message"></div>
@@ -23,17 +23,11 @@
                 <button id="nextBtn" class="test-btn" onclick="nextWorldTopicQuestion()" disabled>Далее</button>
                 <button id="finishBtn" class="test-btn" onclick="finishWorldTopicTest()">Закончить тест</button>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <div class="test-timer" id="testTimer">Время: 0:00</div>
-            </div>
+            <div style="text-align: center; margin-top: 20px;"><div class="test-timer" id="testTimer">Время: 0:00</div></div>
         </div>
     </div>
-
-    <script>
-        window.worldTopicTestSettings = {{ test_settings | tojson }};
-        window.totalWorldTopicQuestions = {{ total_questions }};
-    </script>
-    <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
+    <script>window.worldTopicTestSettings = {{ test_settings | tojson }}; window.totalWorldTopicQuestions = {{ total_questions }};</script>
+    {% if test_settings.classNum == '1' %}<script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>{% endif %}
     <script src="{{ url_for('static', filename='js/world-common.js') }}"></script>
     <script>
         const originalFinishWorldTopicTest = finishWorldTopicTest;
