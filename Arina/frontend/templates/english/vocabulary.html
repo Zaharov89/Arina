@@ -15,6 +15,9 @@
     <div id="dateTimeBar"></div>
     <div class="container">
         <h2 class="vocabulary-title">Мой словарик</h2>
+        {% if error_message %}
+            <div class="result-message incorrect">{{ error_message }}</div>
+        {% endif %}
         <table class="vocabulary-table">
             <thead>
                 <tr>
