@@ -13,7 +13,7 @@ from Arina.russian_language.class_2_tasks import generate_russian_class_2_topic_
 from Arina.russian_language.class_2_topics import RUSSIAN_CLASS_2_TOPICS
 from Arina.russian_language.class_3_tasks import generate_russian_class_3_topic_task
 from Arina.russian_language.class_3_topics import RUSSIAN_CLASS_3_TOPICS
-from Arina.russian_language.vocabulary import get_russian_vocabulary_word_list
+from Arina.russian_language.vocabulary import get_russian_vocabulary_word_list, get_russian_vocabulary_words
 
 russian_bp = Blueprint("russian", __name__)
 
@@ -24,6 +24,7 @@ CONTROL_SLICE_TYPE = "control_slice"
 control_topic_cursor = 0
 TOPICS_BY_CLASS = {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS, 3: RUSSIAN_CLASS_3_TOPICS}
 DEFAULT_TOPIC_BY_CLASS = {1: "sounds_and_letters", 2: "sounds_letters_review", 3: "word_structure"}
+VOCABULARY_TOPIC_CODES = {"mini_dictations", "vocabulary_words_2", "vocabulary_words_3"}
 
 
 def get_russian_topics(class_num: int) -> dict:
@@ -36,7 +37,7 @@ def get_russian_topic_from_catalog(class_num: int, topic_id: str) -> dict | None
 
 def get_next_control_topic_id(class_num: int) -> str:
     global control_topic_cursor
-    topic_ids = list(get_russian_topics(class_num).keys())
+    topic_ids = [topic_id for topic_id in get_russian_topics(class_num).keys() if topic_id not in VOCABULARY_TOPIC_CODES]
     if not topic_ids:
         return DEFAULT_TOPIC_BY_CLASS.get(class_num, "sounds_and_letters")
     topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
@@ -49,6 +50,24 @@ def get_russian_vocabulary_words_for_class(class_num: str) -> list[str]:
     session_factory = get_session_factory()
     with session_factory() as session:
         return get_russian_vocabulary_word_list(session, class_number)
+
+
+def get_russian_vocabulary_words_for_test(class_num: str) -> list[str]:
+    class_number = None if class_num == "all" else int(class_num)
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        if class_number in {1, 2, 3}:
+            words = []
+            for current_class in range(1, class_number + 1):
+                words.extend(get_russian_vocabulary_word_list(session, current_class))
+            return list(dict.fromkeys(words))
+        return get_russian_vocabulary_word_list(session, None)
+
+
+def get_russian_vocabulary_items_for_class(class_num: int) -> list[dict]:
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        return get_russian_vocabulary_words(session, class_num)
 
 
 def normalize_used_questions(raw_used_questions: Any) -> list[str]:
@@ -92,7 +111,7 @@ def russian_class_page(class_num: int):
     if class_num not in SUPPORTED_RUSSIAN_CLASSES:
         abort(404)
     if class_num in IMPLEMENTED_LEARNING_CLASSES:
-        return render_template("russian/learning.html", student=get_student(), topics=get_russian_topics(class_num), class_num=class_num, from_class_page=True)
+        return render_template("russian/learning.html", student=get_student(), topics=get_russian_topics(class_num), class_num=class_num, from_class_page=True, vocabulary_topic_codes=VOCABULARY_TOPIC_CODES)
     return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
 
@@ -101,16 +120,36 @@ def russian_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
     if class_num not in IMPLEMENTED_LEARNING_CLASSES:
         return render_template("russian/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
-    return render_template("russian/learning.html", student=get_student(), topics=get_russian_topics(class_num), class_num=class_num, from_class_page=False)
+    return render_template("russian/learning.html", student=get_student(), topics=get_russian_topics(class_num), class_num=class_num, from_class_page=False, vocabulary_topic_codes=VOCABULARY_TOPIC_CODES)
 
 
 @russian_bp.route("/russian/learning/topic/<topic_id>")
 def russian_learning_topic(topic_id: str):
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
+    if topic_id in VOCABULARY_TOPIC_CODES:
+        return render_template("russian/vocabulary_menu.html", student=get_student(), class_num=class_num)
     topic = get_russian_topic_from_catalog(class_num, topic_id)
     if not topic:
         abort(404)
     return render_template("russian/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic, class_num=class_num)
+
+
+@russian_bp.route("/russian/vocabulary-menu")
+def russian_vocabulary_menu():
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=3)
+    return render_template("russian/vocabulary_menu.html", student=get_student(), class_num=class_num)
+
+
+@russian_bp.route("/russian/vocabulary")
+def russian_vocabulary_list():
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=3)
+    try:
+        words = get_russian_vocabulary_items_for_class(class_num)
+        error_message = None
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        words = []
+        error_message = f"Не удалось получить словарные слова из БД: {error}"
+    return render_template("russian/vocabulary_list.html", student=get_student(), class_num=class_num, words=words, error_message=error_message)
 
 
 @russian_bp.route("/russian/rules")
@@ -137,15 +176,16 @@ def russian_test():
     if class_num not in {"1", "2", "3", "all"}:
         class_num = "all"
     try:
-        all_available = get_russian_vocabulary_words_for_class(class_num)
+        all_available = get_russian_vocabulary_words_for_test(class_num)
     except (RuntimeError, SQLAlchemyError, OSError) as error:
         return render_template("russian/test.html", test_words=[], total_words=0, student=student, error_message=f"Не удалось получить словарные слова из БД: {error}")
+    random.shuffle(all_available)
     if not all_available:
         test_words = []
     elif len(all_available) >= total_requested:
-        test_words = random.sample(all_available, total_requested)
+        test_words = all_available[:total_requested]
     else:
-        test_words = random.choices(all_available, k=total_requested)
+        test_words = all_available + random.choices(all_available, k=total_requested - len(all_available))
     return render_template("russian/test.html", test_words=test_words, total_words=total_requested, student=student)
 
 
