@@ -37,13 +37,9 @@ def build_task_key(task: dict) -> str:
 
 
 def ensure_unique_task(task: dict, used_questions: list[str]) -> dict:
-    used_normalized = {normalize_text(question) for question in used_questions}
     task_key = build_task_key(task)
-
-    if normalize_text(task_key) in used_normalized:
-        task = dict(task)
-        task["question"] = f"{str(task.get('question', 'Задание')).strip()} Задание {len(used_questions) + 1}."
-        task_key = build_task_key(task)
+    if task_key in used_questions:
+        task_key = f"{task_key} | repeat-{len(used_questions) + 1}"
 
     task["question_key"] = task_key
     task["is_repeat"] = False
