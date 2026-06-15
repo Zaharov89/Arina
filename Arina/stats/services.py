@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 from decimal import Decimal
 from types import SimpleNamespace
@@ -6,9 +7,9 @@ from Arina.auth.services import AuthTokenError, decode_jwt_token, get_token_user
 from Arina.database.session import get_session_factory
 from Arina.stats.repositories import StatsRepository
 from Arina.stats.schemas import TestAttemptPayload, parse_test_attempt_payload
-from Arina.math.class_1_topics import MATH_CLASS_1_TOPICS
-from Arina.math.class_2_topics import MATH_CLASS_2_TOPICS
-from Arina.math.class_3_topics import MATH_CLASS_3_TOPICS
+from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS
+from Arina.math.class_2_topics import CLASS_2_MATH_TOPICS
+from Arina.math.class_3_topics import CLASS_3_MATH_TOPICS
 from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS
 from Arina.russian_language.class_2_topics import RUSSIAN_CLASS_2_TOPICS
 from Arina.russian_language.class_3_topics import RUSSIAN_CLASS_3_TOPICS
@@ -18,13 +19,15 @@ from Arina.world.class_3_topics import WORLD_CLASS_3_TOPICS
 from Arina.english_language.class_2_topics import ENGLISH_CLASS_2_TOPICS
 from Arina.english_language.class_3_topics import ENGLISH_CLASS_3_TOPICS
 
+logger = logging.getLogger(__name__)
+
 SUBJECT_TITLES = {"math": "Математика", "russian": "Русский язык", "world": "Окружающий мир", "english": "Английский язык"}
 SUBJECT_ORDER = ["math", "russian", "world", "english"]
 CONTROL_SLICE_CODE = "control_slice"
 CONTROL_SLICE_TITLE = "Контрольный срез"
 
 TOPIC_FALLBACKS = {
-    "math": {1: MATH_CLASS_1_TOPICS, 2: MATH_CLASS_2_TOPICS, 3: MATH_CLASS_3_TOPICS},
+    "math": {1: CLASS_1_MATH_TOPICS, 2: CLASS_2_MATH_TOPICS, 3: CLASS_3_MATH_TOPICS},
     "russian": {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS, 3: RUSSIAN_CLASS_3_TOPICS},
     "world": {1: WORLD_CLASS_1_TOPICS, 2: WORLD_CLASS_2_TOPICS, 3: WORLD_CLASS_3_TOPICS},
     "english": {2: ENGLISH_CLASS_2_TOPICS, 3: ENGLISH_CLASS_3_TOPICS},
@@ -39,6 +42,7 @@ def get_user_id_from_access_token(access_token: str) -> int:
 def get_current_user(repository: StatsRepository, user_id: int):
     user = repository.get_user(user_id)
     if not user or not user.is_active:
+        logger.warning("Stats access denied: user_id=%s active=%s", user_id, getattr(user, "is_active", None))
         raise AuthTokenError("Пользователь не авторизован.")
     return user
 
@@ -77,13 +81,12 @@ def fallback_title(topic_code: str, topic_data: dict) -> str:
 def merge_topics_with_code_fallbacks(subject_code: str, db_topics: list) -> list:
     merged = list(db_topics)
     existing = {(topic.class_number, topic.code) for topic in merged}
-    fake_id = -1
     for class_number, topics in TOPIC_FALLBACKS.get(subject_code, {}).items():
         for topic_code, topic_data in topics.items():
             if (class_number, topic_code) in existing:
                 continue
             merged.append(SimpleNamespace(id=f"fallback-{subject_code}-{class_number}-{topic_code}", code=topic_code, title=fallback_title(topic_code, topic_data), class_number=class_number, is_active=True))
-            fake_id -= 1
+            logger.info("Diary fallback topic added: subject=%s class=%s topic=%s", subject_code, class_number, topic_code)
     return merged
 
 
@@ -129,6 +132,9 @@ def build_diary_stats(repository: StatsRepository, student) -> dict:
             month_grades = [int(row.grade) for row in month_rows if row.grade is not None]
             year_grades = [int(row.grade) for row in year_rows if row.grade is not None]
             subject_data.update({"month_avg": round(sum(month_grades) / len(month_grades), 2) if month_grades else 0, "month_days": len({row.grade_date for row in month_rows}), "year_avg": round(sum(year_grades) / len(year_grades), 2) if year_grades else 0, "year_days": len({row.grade_date for row in year_rows}), "topics": build_topic_diary(topics, month_rows), "grades": [format_grade_row(row) for row in year_rows]})
+            logger.info("Diary stats built for subject=%s topics=%s month_grades=%s", subject_code, len(subject_data["topics"]), len(month_grades))
+        else:
+            logger.warning("Diary subject skipped: subject_code=%s subject_exists=%s student_exists=%s", subject_code, bool(subject), bool(student))
         result[subject_code] = subject_data
         result["subjects"].append(subject_data)
     return result
@@ -141,6 +147,7 @@ def get_diary_stats(access_token: str) -> dict:
         repository = StatsRepository(session)
         user = get_current_user(repository, user_id)
         student = repository.get_student_by_user_id(user.id)
+        logger.info("Loading diary stats: user_id=%s student_id=%s", user.id, getattr(student, "id", None))
         return build_diary_stats(repository, student)
 
 
@@ -165,13 +172,18 @@ def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
         repository = StatsRepository(session)
         user = get_current_user(repository, user_id)
         student = repository.get_student_by_user_id(user.id)
-        if not student: return {"status": "not_found", "message": "У пользователя нет ученика."}, 404
+        if not student:
+            logger.warning("Cannot save test attempt: user_id=%s has no student", user.id)
+            return {"status": "not_found", "message": "У пользователя нет ученика."}, 404
         subject = repository.get_subject(payload.subject_code)
-        if not subject: return {"status": "validation_error", "message": "Предмет не найден."}, 400
+        if not subject:
+            logger.warning("Cannot save test attempt: subject not found code=%s", payload.subject_code)
+            return {"status": "validation_error", "message": "Предмет не найден."}, 400
         topic = resolve_attempt_topic(repository, subject, payload)
         grade = calculate_grade(payload.score_percent)
         existing = repository.find_today_attempt(student.id, subject.id, topic.id if topic else None)
         previous_grade = existing.grade if existing else None
+        logger.info("Saving attempt: user=%s student=%s subject=%s class=%s topic=%s score=%s grade=%s previous=%s", user.id, student.id, payload.subject_code, payload.class_number, payload.topic_code, payload.score_percent, grade, previous_grade)
         if existing is None:
             attempt = repository.create_attempt(student.id, subject.id, payload.class_number, topic.id if topic else None, payload.total_questions, payload.correct_answers, payload.wrong_answers, payload.empty_answers, payload.score_percent, grade, payload.time_spent_seconds, payload.average_time_seconds)
             repository.replace_attempt_answers(attempt, payload.answers)
@@ -185,4 +197,5 @@ def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
         else:
             action = "lower"
         session.commit()
+        logger.info("Attempt save finished: action=%s previous_grade=%s current_grade=%s", action, previous_grade, grade)
         return {"status": "ok", "action": action, "previous_grade": previous_grade, "current_grade": grade, "saved_grade": grade if action in {"created", "improved"} else previous_grade, "message": build_save_message(previous_grade, grade, action)}, 200
