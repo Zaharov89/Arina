@@ -38,6 +38,10 @@
             dateTimeBar.textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         }
 
+        function cleanTopicTitle(value) {
+            return String(value || '').replace(/^\s*\d+\s*класс\s*[—-]\s*/i, '').replace(/\s+\d+\s*класса\s*$/i, '').trim();
+        }
+
         function formatGrade(value) {
             const numberValue = Number(value || 0);
             if (!numberValue) return '0';
@@ -75,30 +79,36 @@
         }
 
         function renderTopicTitle(topic) {
-            if (!topic.is_control_slice) return `<div class="topic-title">${topic.topic_title}</div>`;
-            return `<div class="topic-title control-topic-title">⭐ ${topic.topic_title}</div><div class="topic-class">Итоговая проверка по всем темам</div>`;
+            if (!topic.is_control_slice) return `<div class="topic-title">${cleanTopicTitle(topic.topic_title)}</div>`;
+            return `<div class="topic-title control-topic-title">⭐ ${cleanTopicTitle(topic.topic_title)}</div><div class="topic-class">Итоговая проверка по всем темам</div>`;
+        }
+
+        function getExistingClasses(subject) {
+            return new Set((subject.topics || []).map(topic => Number(topic.class_number)).filter(Boolean));
         }
 
         function getInitialClassForSubject(subject) {
+            const existingClasses = getExistingClasses(subject);
             const withGrades = (subject.topics || []).find(topic => topic.class_number && topic.month_grades && topic.month_grades.length);
             if (withGrades) return withGrades.class_number;
-            const withTopics = (subject.topics || []).find(topic => topic.class_number);
-            return withTopics ? withTopics.class_number : 1;
+            return existingClasses.size ? Math.min(...existingClasses) : 1;
         }
 
         function renderClassTabs(subject) {
-            const existingClasses = new Set((subject.topics || []).map(topic => Number(topic.class_number)).filter(Boolean));
+            const existingClasses = getExistingClasses(subject);
+            const initialClass = getInitialClassForSubject(subject);
             return `
                 <div class="diary-class-tabs" data-class-tabs-for="${subject.code}">
-                    ${SCHOOL_CLASSES.map(classNumber => `
-                        <button type="button" class="diary-class-tab ${classNumber === getInitialClassForSubject(subject) ? 'active' : ''} ${existingClasses.has(classNumber) ? '' : 'empty-class'}" data-subject-code="${subject.code}" data-class-number="${classNumber}">${classNumber}</button>
-                    `).join('')}
+                    ${SCHOOL_CLASSES.map(classNumber => {
+                        const isEnabled = existingClasses.has(classNumber);
+                        return `<button type="button" class="diary-class-tab ${classNumber === initialClass ? 'active' : ''} ${isEnabled ? '' : 'empty-class'}" data-subject-code="${subject.code}" data-class-number="${classNumber}" ${isEnabled ? '' : 'disabled'}>${classNumber} класс</button>`;
+                    }).join('')}
                 </div>
             `;
         }
 
         function renderTopicRows(topics, subjectCode, activeClassNumber) {
-            const classTopics = (topics || []).filter(topic => Number(topic.class_number || activeClassNumber) === Number(activeClassNumber));
+            const classTopics = (topics || []).filter(topic => Number(topic.class_number) === Number(activeClassNumber));
             if (!classTopics.length) return `<tr><td colspan="5" class="empty-diary">Темы для ${activeClassNumber} класса пока не добавлены в БД.</td></tr>`;
             return classTopics.map(topic => `
                 <tr class="${topic.month_grades && topic.month_grades.length ? '' : 'empty-topic-row'} ${topic.is_control_slice ? 'control-slice-row' : ''}" data-subject-code="${subjectCode}" data-class-number="${activeClassNumber}">
@@ -169,7 +179,7 @@
             content.className = 'diary-content';
             content.innerHTML = `${renderSubjectCards(subjects)}<div class="diary-panels">${subjects.map((subject, index) => renderSubjectPanel(subject, index === 0)).join('')}</div>`;
             document.querySelectorAll('.diary-subject-tab').forEach(tab => tab.addEventListener('click', () => activateSubject(tab.dataset.subjectCode)));
-            document.querySelectorAll('.diary-class-tab').forEach(tab => tab.addEventListener('click', () => activateClass(subjects, tab.dataset.subjectCode, Number(tab.dataset.classNumber))));
+            document.querySelectorAll('.diary-class-tab:not(:disabled)').forEach(tab => tab.addEventListener('click', () => activateClass(subjects, tab.dataset.subjectCode, Number(tab.dataset.classNumber))));
         }
 
         async function loadDiary() {
