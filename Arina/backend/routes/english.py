@@ -9,6 +9,8 @@ from Arina.backend.services.catalog import get_topic_or_none, merge_db_topics_wi
 from Arina.database.session import get_session_factory
 from Arina.english_language.class_2_tasks import generate_english_class_2_topic_task
 from Arina.english_language.class_2_topics import ENGLISH_CLASS_2_TOPICS
+from Arina.english_language.class_3_tasks import generate_english_class_3_topic_task
+from Arina.english_language.class_3_topics import ENGLISH_CLASS_3_TOPICS
 from Arina.english_language.vocabulary import get_english_vocabulary_words
 from Arina.russian_language.class_1_tasks import normalize_text
 
@@ -16,9 +18,11 @@ english_bp = Blueprint("english", __name__)
 
 SUPPORTED_ENGLISH_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {2, 3}
-IMPLEMENTED_LEARNING_CLASSES = {2}
+IMPLEMENTED_LEARNING_CLASSES = {2, 3}
 CONTROL_SLICE_TYPE = "control_slice"
 control_topic_cursor = 0
+TOPICS_BY_CLASS = {2: ENGLISH_CLASS_2_TOPICS, 3: ENGLISH_CLASS_3_TOPICS}
+DEFAULT_TOPIC_BY_CLASS = {2: "alphabet_en", 3: "reading_rules_3"}
 
 
 def get_english_words_for_class(class_num: str) -> list[dict]:
@@ -33,11 +37,11 @@ def get_english_class_words() -> tuple[list[dict], list[dict]]:
 
 
 def get_english_topics(class_num: int) -> dict:
-    return merge_db_topics_with_content("english", class_num, ENGLISH_CLASS_2_TOPICS)
+    return merge_db_topics_with_content("english", class_num, TOPICS_BY_CLASS.get(class_num, ENGLISH_CLASS_2_TOPICS))
 
 
 def get_english_topic(class_num: int, topic_id: str) -> dict | None:
-    return get_topic_or_none("english", class_num, topic_id, ENGLISH_CLASS_2_TOPICS)
+    return get_topic_or_none("english", class_num, topic_id, TOPICS_BY_CLASS.get(class_num, ENGLISH_CLASS_2_TOPICS))
 
 
 def normalize_used_questions(raw_used_questions: Any) -> list[str]:
@@ -50,7 +54,7 @@ def get_next_control_topic_id(class_num: int) -> str:
     global control_topic_cursor
     topic_ids = list(get_english_topics(class_num).keys())
     if not topic_ids:
-        return "alphabet_en"
+        return DEFAULT_TOPIC_BY_CLASS.get(class_num, "alphabet_en")
     topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
     control_topic_cursor += 1
     return topic_id
@@ -90,7 +94,7 @@ def english_learning_topic(topic_id: str):
 @english_bp.route("/english/topic-test")
 def english_topic_test():
     class_num = get_int_arg("class", default=2, min_value=1, max_value=11)
-    topic_id = request.args.get("type", "alphabet_en")
+    topic_id = request.args.get("type", DEFAULT_TOPIC_BY_CLASS.get(class_num, "alphabet_en"))
     total_questions = get_int_arg("questions", default=25, min_value=1, max_value=50)
     if topic_id == CONTROL_SLICE_TYPE:
         total_questions = 50
@@ -103,10 +107,13 @@ def generate_english_task():
     if error_response:
         return error_response
     class_num = int(data.get("class") or 2)
-    topic_id = str(data.get("topic") or "alphabet_en").strip()
+    topic_id = str(data.get("topic") or DEFAULT_TOPIC_BY_CLASS.get(class_num, "alphabet_en")).strip()
     if topic_id == CONTROL_SLICE_TYPE:
         topic_id = get_next_control_topic_id(class_num)
-    task = generate_english_class_2_topic_task(topic_id, normalize_used_questions(data.get("used_questions")))
+    if class_num == 3:
+        task = generate_english_class_3_topic_task(topic_id, normalize_used_questions(data.get("used_questions")))
+    else:
+        task = generate_english_class_2_topic_task(topic_id, normalize_used_questions(data.get("used_questions")))
     return jsonify(task)
 
 
