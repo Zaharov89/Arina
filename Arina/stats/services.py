@@ -8,8 +8,8 @@ from Arina.database.session import get_session_factory
 from Arina.stats.repositories import StatsRepository
 from Arina.stats.schemas import TestAttemptPayload, parse_test_attempt_payload
 from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS
-from Arina.math.class_2_topics import MATH_CLASS_2_TOPICS
-from Arina.math.class_3_topics import MATH_CLASS_3_TOPICS
+from Arina.math.class_2_topics import CLASS_2_MATH_TOPICS
+from Arina.math.class_3_topics import CLASS_3_MATH_TOPICS
 from Arina.russian_language.class_1_topics import RUSSIAN_CLASS_1_TOPICS
 from Arina.russian_language.class_2_topics import RUSSIAN_CLASS_2_TOPICS
 from Arina.russian_language.class_3_topics import RUSSIAN_CLASS_3_TOPICS
@@ -27,7 +27,7 @@ CONTROL_SLICE_CODE = "control_slice"
 CONTROL_SLICE_TITLE = "Контрольный срез"
 
 TOPIC_FALLBACKS = {
-    "math": {1: CLASS_1_MATH_TOPICS, 2: MATH_CLASS_2_TOPICS, 3: MATH_CLASS_3_TOPICS},
+    "math": {1: CLASS_1_MATH_TOPICS, 2: CLASS_2_MATH_TOPICS, 3: CLASS_3_MATH_TOPICS},
     "russian": {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS, 3: RUSSIAN_CLASS_3_TOPICS},
     "world": {1: WORLD_CLASS_1_TOPICS, 2: WORLD_CLASS_2_TOPICS, 3: WORLD_CLASS_3_TOPICS},
     "english": {2: ENGLISH_CLASS_2_TOPICS, 3: ENGLISH_CLASS_3_TOPICS},
