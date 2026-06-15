@@ -7,7 +7,7 @@
     <style>
         h2 { margin: 36px 0 20px 0; font-size: 29px; font-weight: 600; color: #295bb2; letter-spacing: .5px; text-align: center; }
         .subject-col { margin: 0 auto; max-width: 430px; display: flex; flex-direction: column; gap: 18px; }
-        .main-btn.subject-btn { background: #5d92e0; color: #fff; width: 100%; font-size: 1.13em; font-weight: 600; border: none; border-radius: 9px; padding: 19px 0; margin: 0; cursor: pointer; box-shadow: 0 2px 12px #669ff610; transition: background .18s, color .16s; text-align: center; }
+        .main-btn.subject-btn { background: #5d92e0; color: #fff; width: 100%; font-size: 1.13em; font-weight: 600; border: none; border-radius: 9px; padding: 19px 0; margin: 0; cursor: pointer; box-shadow: 0 2px 12px #669ff610; transition: background .18s, color .16s; text-align: center; text-decoration: none; display: inline-block; }
         .main-btn.subject-btn:hover { background: #3877bc !important; }
         .main-btn.back-btn { background: #dc3545; color: #fff; width: 100%; font-size: 1.13em; font-weight: 600; border: none; border-radius: 9px; padding: 19px 0; margin: 0; cursor: pointer; box-shadow: 0 2px 12px #ff6b6b10; transition: background .18s, color .16s; text-align: center; text-decoration: none; }
         .main-btn.back-btn:hover { background: #c82333 !important; }
@@ -15,14 +15,12 @@
 </head>
 <body>
     <div class="container">
-        <h2>Какой предмет будете повторять?</h2>
+        <h2>Какой предмет будем повторять?</h2>
         <div class="subject-col">
-            <a href="/diary?student={{ student }}" class="main-btn subject-btn" style="background: #e67e22; border: 2px solid #d35400; text-decoration: none; display: inline-block;">Дневник</a>
-            <a href="/math?student={{ student }}"><button class="main-btn subject-btn">Математика</button></a>
-            <a href="/russian?student={{ student }}"><button class="main-btn subject-btn">Русский язык</button></a>
-            <a href="/world?student={{ student }}"><button class="main-btn subject-btn">Окружающий мир</button></a>
-            <a href="/english/menu?student={{ student }}"><button class="main-btn subject-btn">Английский язык</button></a>
-            <a href="/" class="main-btn back-btn">Назад</a>
+            <a href="/diary?student={{ student }}" class="main-btn subject-btn" style="background: #e67e22; border: 2px solid #d35400;">Дневник</a>
+            {% for subject in subjects %}
+                <a href="{{ subject.route }}?student={{ student }}" class="main-btn subject-btn">{{ subject.title }}</a>
+            {% endfor %}
         </div>
     </div>
 </body>
