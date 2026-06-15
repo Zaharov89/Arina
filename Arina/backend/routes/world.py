@@ -6,29 +6,32 @@ from Arina.backend.routes.common import get_int_arg, get_json_body, get_student
 from Arina.backend.services.catalog import build_topic_options, get_topic_or_none, merge_db_topics_with_content
 from Arina.world.class_1_tasks import generate_world_class_1_topic_task, normalize_text
 from Arina.world.class_1_topics import WORLD_CLASS_1_TOPICS
+from Arina.world.class_2_tasks import generate_world_class_2_topic_task
+from Arina.world.class_2_topics import WORLD_CLASS_2_TOPICS
 
 world_bp = Blueprint("world", __name__)
 
 SUPPORTED_WORLD_CLASSES = list(range(1, 12))
-IMPLEMENTED_TEST_CLASSES = {1}
-IMPLEMENTED_LEARNING_CLASSES = {1}
+IMPLEMENTED_TEST_CLASSES = {1, 2}
+IMPLEMENTED_LEARNING_CLASSES = {1, 2}
 CONTROL_SLICE_TYPE = "control_slice"
 control_topic_cursor = 0
+TOPICS_BY_CLASS = {1: WORLD_CLASS_1_TOPICS, 2: WORLD_CLASS_2_TOPICS}
 
 
-def get_world_class_1_topics() -> dict:
-    return merge_db_topics_with_content("world", 1, WORLD_CLASS_1_TOPICS)
+def get_world_topics(class_num: int) -> dict:
+    return merge_db_topics_with_content("world", class_num, TOPICS_BY_CLASS.get(class_num, WORLD_CLASS_1_TOPICS))
 
 
-def get_world_class_1_topic_from_catalog(topic_id: str) -> dict | None:
-    return get_topic_or_none("world", 1, topic_id, WORLD_CLASS_1_TOPICS)
+def get_world_topic_from_catalog(class_num: int, topic_id: str) -> dict | None:
+    return get_topic_or_none("world", class_num, topic_id, TOPICS_BY_CLASS.get(class_num, WORLD_CLASS_1_TOPICS))
 
 
-def get_next_control_topic_id() -> str:
+def get_next_control_topic_id(class_num: int) -> str:
     global control_topic_cursor
-    topic_ids = list(get_world_class_1_topics().keys())
+    topic_ids = list(get_world_topics(class_num).keys())
     if not topic_ids:
-        return "living_nonliving"
+        return "living_nonliving" if class_num == 1 else "nature_living_nonliving_2"
     topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
     control_topic_cursor += 1
     return topic_id
@@ -57,6 +60,14 @@ def ensure_unique_task(task: dict, used_questions: list[str]) -> dict:
     return task
 
 
+def normalize_class_num(raw_class: Any, default: int = 1) -> int:
+    try:
+        class_num = int(raw_class)
+    except (TypeError, ValueError):
+        return default
+    return class_num if class_num in {1, 2} else default
+
+
 @world_bp.route("/world")
 def world_menu():
     return render_template("world/menu.html", student=get_student(), classes=SUPPORTED_WORLD_CLASSES, implemented_test_classes=IMPLEMENTED_TEST_CLASSES, implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES)
@@ -66,39 +77,42 @@ def world_menu():
 def world_class_page(class_num: int):
     if class_num not in SUPPORTED_WORLD_CLASSES:
         abort(404)
-    if class_num == 1:
-        return render_template("world/learning.html", student=get_student(), class_1_topics=get_world_class_1_topics())
+    if class_num in IMPLEMENTED_LEARNING_CLASSES:
+        return render_template("world/learning.html", student=get_student(), topics=get_world_topics(class_num), class_num=class_num)
     return render_template("world/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=False)
 
 
 @world_bp.route("/world/learning")
 def world_learning():
     class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
-    if class_num != 1:
+    if class_num not in IMPLEMENTED_LEARNING_CLASSES:
         return render_template("world/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=False)
-    return render_template("world/learning.html", student=get_student(), class_1_topics=get_world_class_1_topics())
+    return render_template("world/learning.html", student=get_student(), topics=get_world_topics(class_num), class_num=class_num)
 
 
 @world_bp.route("/world/learning/topic/<topic_id>")
 def world_learning_topic(topic_id: str):
-    topic = get_world_class_1_topic_from_catalog(topic_id)
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
+    topic = get_world_topic_from_catalog(class_num, topic_id)
     if not topic:
         abort(404)
-    return render_template("world/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic)
+    return render_template("world/learning_topic.html", student=get_student(), topic_id=topic_id, topic=topic, class_num=class_num)
 
 
 @world_bp.route("/world/test_setup")
 def world_test_setup():
-    return render_template("world/test_setup.html", student=get_student(), class_1_topics=build_topic_options(get_world_class_1_topics()))
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
+    return render_template("world/test_setup.html", student=get_student(), class_1_topics=build_topic_options(get_world_topics(class_num if class_num in {1, 2} else 1)))
 
 
 @world_bp.route("/world/test")
 def world_test():
-    topic_id = request.args.get("type", "living_nonliving")
+    class_num = get_int_arg("class", default=1, min_value=1, max_value=11)
+    topic_id = request.args.get("type", "living_nonliving" if class_num == 1 else "nature_living_nonliving_2")
     total_requested = get_int_arg("questions", default=25, min_value=1, max_value=50)
     if topic_id == CONTROL_SLICE_TYPE:
         total_requested = 50
-    return render_template("world/topic_test.html", test_settings={"classNum": "1", "topicId": topic_id or "living_nonliving"}, total_questions=total_requested, student=get_student())
+    return render_template("world/topic_test.html", test_settings={"classNum": str(class_num), "topicId": topic_id}, total_questions=total_requested, student=get_student())
 
 
 @world_bp.route("/world/generate_task", methods=["POST"])
@@ -106,11 +120,12 @@ def generate_world_task():
     data, error_response = get_json_body()
     if error_response:
         return error_response
-    topic_id = str(data.get("topic", "living_nonliving")).strip() or "living_nonliving"
+    class_num = normalize_class_num(data.get("class"), default=1)
+    topic_id = str(data.get("topic", "living_nonliving" if class_num == 1 else "nature_living_nonliving_2")).strip()
     if topic_id == CONTROL_SLICE_TYPE:
-        topic_id = get_next_control_topic_id()
+        topic_id = get_next_control_topic_id(class_num)
     used_questions = normalize_used_questions(data.get("used_questions"))
-    task = generate_world_class_1_topic_task(topic_id, used_questions=used_questions)
+    task = generate_world_class_2_topic_task(topic_id, used_questions=used_questions) if class_num == 2 else generate_world_class_1_topic_task(topic_id, used_questions=used_questions)
     return jsonify(ensure_unique_task(task, used_questions))
 
 
