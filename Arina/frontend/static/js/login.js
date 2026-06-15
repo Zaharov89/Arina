@@ -57,6 +57,25 @@ function validateCaptcha() {
     return true;
 }
 
+function clearAuthStorage() {
+    const keys = ['arinaAccessToken', 'arinaRefreshToken', 'arinaUserId', 'arinaUserEmail', 'arinaRememberMe'];
+    keys.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+    });
+}
+
+function saveAuthData(data, rememberMe) {
+    clearAuthStorage();
+
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem('arinaAccessToken', data.access_token);
+    storage.setItem('arinaRefreshToken', data.refresh_token);
+    storage.setItem('arinaUserId', data.user_id);
+    storage.setItem('arinaUserEmail', data.email);
+    storage.setItem('arinaRememberMe', String(rememberMe));
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('loginForm');
     if (!form) return;
@@ -74,9 +93,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const rememberMe = document.getElementById('rememberMe').checked;
         const payload = {
             login: document.getElementById('loginEmail').value.trim().toLowerCase(),
             password: document.getElementById('loginPassword').value,
+            remember_me: rememberMe,
         };
 
         try {
@@ -98,11 +119,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             failedAttempts = 0;
             localStorage.setItem('arinaLoginFailedAttempts', '0');
-            localStorage.setItem('arinaAccessToken', data.data.access_token);
-            localStorage.setItem('arinaRefreshToken', data.data.refresh_token);
-            localStorage.setItem('arinaUserId', data.data.user_id);
-            localStorage.setItem('arinaUserEmail', data.data.email);
-            setMessage('Вход выполнен успешно.', 'success');
+            saveAuthData(data.data, rememberMe);
+            setMessage(rememberMe ? 'Вход выполнен успешно. Вы останетесь авторизованы после закрытия браузера.' : 'Вход выполнен успешно. Авторизация действует до закрытия страницы или браузера.', 'success');
         } catch (error) {
             setMessage(`Ошибка авторизации: ${error}`, 'error');
         }
