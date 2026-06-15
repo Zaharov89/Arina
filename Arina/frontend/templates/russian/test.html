@@ -30,9 +30,19 @@
     <script>
         window.testWords = {{ test_words | tojson }};
         window.totalWords = {{ total_words }};
+        window.russianDictationClassNumber = "{{ request.args.get('class', '2') }}";
     </script>
 
     <script src="{{ url_for('static', filename='js/russian-common.js') }}"></script>
+    <script>
+        const originalFinishRussianDictationTest = finishTest;
+        finishTest = function () {
+            localStorage.setItem('resultSubjectCode', 'russian');
+            localStorage.setItem('resultClassNumber', window.russianDictationClassNumber || '2');
+            localStorage.setItem('resultTopicCode', '');
+            originalFinishRussianDictationTest();
+        };
+    </script>
     <script src="{{ url_for('static', filename='js/enter-submit-next.js') }}"></script>
 </body>
 </html>
