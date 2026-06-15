@@ -22,6 +22,21 @@ TEMPLATE_DIR = os.path.join(FRONTEND_DIR, "templates")
 STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
 AUTH_STATE_SCRIPT = '<script src="/static/js/auth-state.js" defer></script>'
 RESULTS_SAVE_SCRIPT = '<script src="/static/js/results-save.js" defer></script>'
+RESULTS_AUTO_SAVE_SCRIPT = """
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const path = window.location.pathname;
+    let subjectCode = '';
+    if (path.includes('/results/math')) subjectCode = 'math';
+    if (path.includes('/results/russian')) subjectCode = 'russian';
+    if (path.includes('/results/world')) subjectCode = 'world';
+    if (path.includes('/results/english')) subjectCode = 'english';
+    if (subjectCode && typeof saveTestAttemptResult === 'function') {
+        saveTestAttemptResult(subjectCode, localStorage.getItem('resultClassNumber') || '1', localStorage.getItem('resultTopicCode') || '');
+    }
+});
+</script>
+""".strip()
 
 
 def create_app() -> Flask:
@@ -68,7 +83,7 @@ def register_auth_script_injector(app: Flask) -> None:
         body = response.get_data(as_text=True)
         scripts = [AUTH_STATE_SCRIPT]
         if request.path.startswith("/results/"):
-            scripts.append(RESULTS_SAVE_SCRIPT)
+            scripts.extend([RESULTS_SAVE_SCRIPT, RESULTS_AUTO_SAVE_SCRIPT])
 
         injection = "".join(f"    {script}\n" for script in scripts if script not in body)
         if injection and "</body>" in body:
