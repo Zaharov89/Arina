@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, request
 
 from Arina.backend.routes.english import english_bp
 from Arina.backend.routes.math import math_bp
@@ -19,6 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 TEMPLATE_DIR = os.path.join(FRONTEND_DIR, "templates")
 STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
+AUTH_STATE_SCRIPT = '<script src="/static/js/auth-state.js" defer></script>'
 
 
 def create_app() -> Flask:
@@ -30,6 +31,7 @@ def create_app() -> Flask:
     )
 
     register_blueprints(app)
+    register_auth_script_injector(app)
     return app
 
 
@@ -50,6 +52,41 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(database_bp)
 
     print(f"✅ Flask blueprints registered: {', '.join(app.blueprints.keys())}")
+
+
+def register_auth_script_injector(app: Flask) -> None:
+    """Inject frontend auth guard into application HTML pages."""
+
+    @app.after_request
+    def inject_auth_state_script(response):
+        if not should_inject_auth_script(response):
+            return response
+
+        body = response.get_data(as_text=True)
+        if AUTH_STATE_SCRIPT in body:
+            return response
+
+        if "</body>" in body:
+            body = body.replace("</body>", f"    {AUTH_STATE_SCRIPT}\n</body>", 1)
+            response.set_data(body)
+            response.headers["Content-Length"] = str(len(response.get_data()))
+
+        return response
+
+
+def should_inject_auth_script(response) -> bool:
+    """Return True for protected HTML pages where frontend auth guard is needed."""
+    if request.path.startswith("/static/"):
+        return False
+    if request.path.startswith("/auth/"):
+        return False
+    if request.path.startswith("/database/"):
+        return False
+    if request.path.startswith("/api/"):
+        return False
+
+    content_type = response.headers.get("Content-Type", "")
+    return response.status_code == 200 and "text/html" in content_type
 
 
 def get_run_config() -> tuple[str, int]:
