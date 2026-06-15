@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy.exc import SQLAlchemyError
 
-from Arina.auth.services import AuthTokenError, verify_auth_token
+from Arina.auth.services import AuthTokenError, decode_jwt_token, verify_auth_token
 from Arina.database.session import get_session_factory
 
 
@@ -20,6 +20,7 @@ def current_user_api():
     token = get_access_token_from_request()
 
     try:
+        decode_jwt_token(token, expected_type="access")
         session_factory = get_session_factory()
         with session_factory() as session:
             result = verify_auth_token(session, token)

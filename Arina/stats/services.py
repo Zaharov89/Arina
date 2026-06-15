@@ -23,8 +23,8 @@ def get_user_id_from_access_token(access_token: str) -> int:
     return get_token_user_id(payload)
 
 
-def get_current_user(repository: StatsRepository, access_token: str):
-    user = repository.get_user(get_user_id_from_access_token(access_token))
+def get_current_user(repository: StatsRepository, user_id: int):
+    user = repository.get_user(user_id)
     if not user or not user.is_active:
         raise AuthTokenError("Пользователь не авторизован.")
     return user
@@ -155,10 +155,11 @@ def build_diary_stats(repository: StatsRepository, student) -> dict:
 
 
 def get_diary_stats(access_token: str) -> dict:
+    user_id = get_user_id_from_access_token(access_token)
     session_factory = get_session_factory()
     with session_factory() as session:
         repository = StatsRepository(session)
-        user = get_current_user(repository, access_token)
+        user = get_current_user(repository, user_id)
         student = repository.get_student_by_user_id(user.id)
         return build_diary_stats(repository, student)
 
@@ -181,11 +182,12 @@ def resolve_attempt_topic(repository: StatsRepository, subject, payload: TestAtt
 
 def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
     payload = parse_test_attempt_payload(raw_payload)
+    user_id = get_user_id_from_access_token(access_token)
     session_factory = get_session_factory()
 
     with session_factory() as session:
         repository = StatsRepository(session)
-        user = get_current_user(repository, access_token)
+        user = get_current_user(repository, user_id)
         student = repository.get_student_by_user_id(user.id)
         if not student:
             return {"status": "not_found", "message": "У пользователя нет ученика."}, 404

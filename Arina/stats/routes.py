@@ -42,8 +42,3 @@ def api_save_test_attempt():
         return jsonify({"status": "unauthorized", "message": str(error)}), 401
     except (RuntimeError, SQLAlchemyError, OSError) as error:
         return jsonify({"status": "error", "message": f"Не удалось сохранить результат в PostgreSQL: {error}"}), 500
-
-
-@stats_bp.route("/api/save_result", methods=["POST"])
-def api_save_result_legacy():
-    return api_save_test_attempt()
