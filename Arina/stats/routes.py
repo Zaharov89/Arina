@@ -3,11 +3,11 @@ from decimal import Decimal
 from typing import Any
 
 from flask import Blueprint, jsonify, render_template, request
-from sqlalchemy import Date, cast, func, or_, select
+from sqlalchemy import Date, cast, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from Arina.auth.services import AuthTokenError, get_token_user_id, decode_jwt_token
+from Arina.auth.services import AuthTokenError, decode_jwt_token, get_token_user_id
 from Arina.database.models import Student, Subject, TestAnswer, TestAttempt, Topic, User
 from Arina.database.session import get_session_factory
 
@@ -19,6 +19,8 @@ SUBJECT_TITLES = {
     "world": "Окружающий мир",
     "english": "Английский язык",
 }
+
+SUBJECT_ORDER = ["math", "russian", "world", "english"]
 
 
 def get_access_token_from_request() -> str:
@@ -82,58 +84,145 @@ def get_topic(session: Session, subject: Subject, class_number: int, topic_code:
     )
 
 
-def build_diary_empty_subject() -> dict:
+def get_month_dates(today: date) -> list[str]:
+    return [str(date(today.year, today.month, day)) for day in range(1, today.day + 1)]
+
+
+def build_empty_subject(subject_code: str, title: str) -> dict:
     return {
+        "code": subject_code,
+        "title": title,
         "month_avg": 0,
         "month_days": 0,
         "year_avg": 0,
         "year_days": 0,
+        "topics": [],
         "grades": [],
     }
 
 
-def build_diary_stats(session: Session, student: Student | None) -> dict:
-    result = {subject_code: build_diary_empty_subject() for subject_code in SUBJECT_TITLES}
-    if not student:
-        return result
+def format_grade_row(row) -> dict:
+    return {
+        "date": str(row.grade_date),
+        "grade": int(row.grade),
+        "topic_id": row.topic_id,
+        "topic_code": row.topic_code or "general",
+        "topic_title": row.topic_title or "Общий тест",
+    }
 
+
+def get_subject_topics(session: Session, subject: Subject) -> list[Topic]:
+    return list(
+        session.scalars(
+            select(Topic)
+            .where(Topic.subject_id == subject.id, Topic.is_active.is_(True))
+            .order_by(Topic.class_number, Topic.id)
+        ).all()
+    )
+
+
+def get_grade_rows(session: Session, student: Student, subject: Subject, start_date: date):
+    return session.execute(
+        select(
+            cast(TestAttempt.created_at, Date).label("grade_date"),
+            TestAttempt.topic_id.label("topic_id"),
+            Topic.code.label("topic_code"),
+            Topic.title.label("topic_title"),
+            func.max(TestAttempt.grade).label("grade"),
+        )
+        .select_from(TestAttempt)
+        .outerjoin(Topic, TestAttempt.topic_id == Topic.id)
+        .where(
+            TestAttempt.student_id == student.id,
+            TestAttempt.subject_id == subject.id,
+            TestAttempt.grade.is_not(None),
+            cast(TestAttempt.created_at, Date) >= start_date,
+        )
+        .group_by(cast(TestAttempt.created_at, Date), TestAttempt.topic_id, Topic.code, Topic.title)
+        .order_by(cast(TestAttempt.created_at, Date).desc(), Topic.title)
+    ).all()
+
+
+def build_topic_diary(topics: list[Topic], month_rows: list) -> list[dict]:
+    topic_map: dict[int | None, dict] = {}
+
+    for topic in topics:
+        topic_map[topic.id] = {
+            "topic_id": topic.id,
+            "topic_code": topic.code,
+            "topic_title": topic.title,
+            "class_number": topic.class_number,
+            "month_grades": [],
+            "month_avg": 0,
+            "best_grade": None,
+            "last_grade": None,
+            "last_date": None,
+        }
+
+    for row in month_rows:
+        topic_id = row.topic_id
+        if topic_id not in topic_map:
+            topic_map[topic_id] = {
+                "topic_id": topic_id,
+                "topic_code": row.topic_code or "general",
+                "topic_title": row.topic_title or "Общий тест",
+                "class_number": None,
+                "month_grades": [],
+                "month_avg": 0,
+                "best_grade": None,
+                "last_grade": None,
+                "last_date": None,
+            }
+
+        grade_item = {"date": str(row.grade_date), "grade": int(row.grade)}
+        topic_map[topic_id]["month_grades"].append(grade_item)
+
+    for topic in topic_map.values():
+        grades = [item["grade"] for item in topic["month_grades"]]
+        if grades:
+            topic["month_avg"] = round(sum(grades) / len(grades), 2)
+            topic["best_grade"] = max(grades)
+            topic["last_grade"] = topic["month_grades"][0]["grade"]
+            topic["last_date"] = topic["month_grades"][0]["date"]
+
+    return sorted(topic_map.values(), key=lambda item: (item.get("class_number") or 99, item["topic_title"]))
+
+
+def build_diary_stats(session: Session, student: Student | None) -> dict:
     today = date.today()
     month_start = today.replace(day=1)
     year_start = today.replace(month=1, day=1)
+    result = {
+        "server_date": str(today),
+        "month_dates": get_month_dates(today),
+        "subjects": [],
+    }
 
-    for subject_code in SUBJECT_TITLES:
+    for subject_code in SUBJECT_ORDER:
         subject = get_subject(session, subject_code)
-        if not subject:
-            continue
+        title = SUBJECT_TITLES.get(subject_code, subject_code)
+        subject_data = build_empty_subject(subject_code, title)
 
-        base_filters = [TestAttempt.student_id == student.id, TestAttempt.subject_id == subject.id, TestAttempt.grade.is_not(None)]
-        month_rows = session.execute(
-            select(cast(TestAttempt.created_at, Date).label("grade_date"), func.max(TestAttempt.grade).label("grade"))
-            .where(*base_filters, cast(TestAttempt.created_at, Date) >= month_start)
-            .group_by(cast(TestAttempt.created_at, Date), TestAttempt.topic_id)
-        ).all()
-        year_rows = session.execute(
-            select(cast(TestAttempt.created_at, Date).label("grade_date"), func.max(TestAttempt.grade).label("grade"))
-            .where(*base_filters, cast(TestAttempt.created_at, Date) >= year_start)
-            .group_by(cast(TestAttempt.created_at, Date), TestAttempt.topic_id)
-        ).all()
+        if subject and student:
+            topics = get_subject_topics(session, subject)
+            month_rows = get_grade_rows(session, student, subject, month_start)
+            year_rows = get_grade_rows(session, student, subject, year_start)
+            month_grades = [int(row.grade) for row in month_rows if row.grade is not None]
+            year_grades = [int(row.grade) for row in year_rows if row.grade is not None]
 
-        month_grades = [int(row.grade) for row in month_rows if row.grade is not None]
-        year_grades = [int(row.grade) for row in year_rows if row.grade is not None]
-
-        result[subject_code] = {
-            "month_avg": round(sum(month_grades) / len(month_grades), 2) if month_grades else 0,
-            "month_days": len({row.grade_date for row in month_rows}),
-            "year_avg": round(sum(year_grades) / len(year_grades), 2) if year_grades else 0,
-            "year_days": len({row.grade_date for row in year_rows}),
-            "grades": [
+            subject_data.update(
                 {
-                    "date": str(row.grade_date),
-                    "grade": int(row.grade),
+                    "month_avg": round(sum(month_grades) / len(month_grades), 2) if month_grades else 0,
+                    "month_days": len({row.grade_date for row in month_rows}),
+                    "year_avg": round(sum(year_grades) / len(year_grades), 2) if year_grades else 0,
+                    "year_days": len({row.grade_date for row in year_rows}),
+                    "topics": build_topic_diary(topics, month_rows),
+                    "grades": [format_grade_row(row) for row in year_rows],
                 }
-                for row in sorted(year_rows, key=lambda item: item.grade_date, reverse=True)
-            ],
-        }
+            )
+
+        result[subject_code] = subject_data
+        result["subjects"].append(subject_data)
 
     return result
 
@@ -171,7 +260,7 @@ def replace_attempt_answers(session: Session, attempt: TestAttempt, answers: lis
 
 def build_save_message(previous_grade: int | None, current_grade: int, action: str) -> str:
     if action == "created":
-        return f"Сегодня вы еще не проходили решали эту тему, ваша оценка {current_grade}"
+        return f"Сегодня вы еще не решали эту тему, ваша оценка {current_grade}"
     if action == "improved":
         return f"Ваша прошлая оценка {previous_grade}, сейчас получили {current_grade}, поздравляем, Вы исправили оценку!"
     if action == "same":
