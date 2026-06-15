@@ -4,9 +4,9 @@ from typing import Any, Optional
 from flask import Blueprint, abort, jsonify, render_template, request
 
 from Arina.backend.routes.common import get_int_arg, get_json_body, get_student
+from Arina.backend.services.catalog import build_topic_options, get_topic_or_none, merge_db_topics_with_content
 from Arina.math.class_1 import MathExamplesClass1
-from Arina.math.class_1_tasks import get_topic_options_for_select
-from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS, get_class_1_topic
+from Arina.math.class_1_topics import CLASS_1_MATH_TOPICS
 from Arina.math.class_2 import MathExamplesClass2
 from Arina.math.class_3 import MathExamplesClass3
 from Arina.utils.safe_math import SafeMathExpressionError, safe_eval_math_expr
@@ -16,6 +16,14 @@ math_bp = Blueprint("math", __name__)
 SUPPORTED_MATH_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1}
+
+
+def get_math_class_1_topics() -> dict:
+    return merge_db_topics_with_content("math", 1, CLASS_1_MATH_TOPICS)
+
+
+def get_math_class_1_topic(topic_id: str) -> dict | None:
+    return get_topic_or_none("math", 1, topic_id, CLASS_1_MATH_TOPICS)
 
 
 def normalize_class_num(raw_class: Any, default: int = 1) -> int:
@@ -36,7 +44,7 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
 
     example_type = str(example_type).strip()
 
-    allowed_for_class_1 = set(CLASS_1_MATH_TOPICS.keys()) | {"all", "addsub", "+", "-"}
+    allowed_for_class_1 = set(get_math_class_1_topics().keys()) | {"all", "addsub", "+", "-"}
     allowed_for_class_2 = {"all", "addsub", "+", "-"}
     allowed_for_class_3 = {"all", "addsub", "muldiv", "+", "-", "*", "/", "simple_equation", "parentheses"}
 
@@ -105,7 +113,7 @@ def math_class_page(class_num: int):
         abort(404)
 
     if class_num == 1:
-        return render_template("math/learning.html", student=get_student(), class_1_topics=CLASS_1_MATH_TOPICS, from_class_page=True)
+        return render_template("math/learning.html", student=get_student(), class_1_topics=get_math_class_1_topics(), from_class_page=True)
 
     return render_template("math/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=class_num in IMPLEMENTED_LEARNING_CLASSES, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
@@ -117,12 +125,12 @@ def math_learning():
     if class_num != 1:
         return render_template("math/class_page.html", student=get_student(), class_num=class_num, is_learning_implemented=False, is_testing_implemented=class_num in IMPLEMENTED_TEST_CLASSES)
 
-    return render_template("math/learning.html", student=get_student(), class_1_topics=CLASS_1_MATH_TOPICS, from_class_page=False)
+    return render_template("math/learning.html", student=get_student(), class_1_topics=get_math_class_1_topics(), from_class_page=False)
 
 
 @math_bp.route("/math/learning/topic/<topic_id>")
 def math_learning_topic(topic_id: str):
-    topic = get_class_1_topic(topic_id)
+    topic = get_math_class_1_topic(topic_id)
 
     if not topic:
         abort(404)
@@ -132,7 +140,7 @@ def math_learning_topic(topic_id: str):
 
 @math_bp.route("/math/test_setup")
 def math_test_setup():
-    return render_template("math/test_setup.html", student=get_student(), class_1_topics=get_topic_options_for_select())
+    return render_template("math/test_setup.html", student=get_student(), class_1_topics=build_topic_options(get_math_class_1_topics()))
 
 
 @math_bp.route("/math/test")
@@ -258,36 +266,13 @@ def check_answer():
         return jsonify({"result": "error", "message": "Введите число"}), 400
 
     a = data.get("a")
-    op = data.get("op")
     b = data.get("b")
-    expr = data.get("expr", "")
-    x_val = data.get("x")
+    op = data.get("op")
 
-    if x_val is not None and str(x_val).strip() != "":
-        try:
-            correct = int(x_val)
-        except (TypeError, ValueError):
-            return jsonify({"result": "error", "message": "Некорректное значение x"}), 400
+    correct = calculate_basic_answer(class_num, example_type, table_num, a, op, b)
 
-        status = "correct" if user_answer_num == correct else "incorrect"
-        return jsonify({"result": status, "correct_answer": correct})
+    if correct is None:
+        return jsonify({"result": "error", "message": "Некорректный пример"}), 400
 
-    if expr:
-        try:
-            correct = safe_eval_math_expr(str(expr).replace(" ", ""))
-        except SafeMathExpressionError:
-            return jsonify({"result": "error", "message": "Ошибка формата примера"}), 400
-
-        status = "correct" if user_answer_num == correct else "incorrect"
-        return jsonify({"result": status, "correct_answer": correct})
-
-    if a is not None and op is not None and b is not None:
-        correct = calculate_basic_answer(class_num, example_type, table_num, a, op, b)
-
-        if correct is None:
-            return jsonify({"result": "error", "message": "Ошибка формата примера"}), 400
-
-        status = "correct" if user_answer_num == correct else "incorrect"
-        return jsonify({"result": status, "correct_answer": correct})
-
-    return jsonify({"result": "error", "message": "Ошибка формата примера"}), 400
+    status = "correct" if user_answer_num == correct else "incorrect"
+    return jsonify({"result": status, "correct_answer": correct})
