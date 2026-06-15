@@ -1,5 +1,4 @@
 import os
-import uuid
 from datetime import datetime
 
 from flask import Blueprint, jsonify, render_template, request
@@ -53,13 +52,14 @@ def auth_status():
                 "login",
                 "password_recovery",
                 "temporary_auto_activation",
+                "integer_ids",
                 "password_hashing",
                 "input_validation",
                 "delete_user",
                 "verify_token",
                 "refresh_token",
             ],
-            "message": "Регистрация временно активирует пользователя сразу, без подтверждения почты.",
+            "message": "Регистрация активирует пользователя сразу. Пользователи используют числовые ID.",
         }
     )
 
@@ -274,12 +274,14 @@ def delete_user(user_id: str):
         ), 403
 
     try:
-        parsed_user_id = uuid.UUID(user_id)
+        parsed_user_id = int(user_id)
+        if parsed_user_id <= 0:
+            raise ValueError
     except ValueError:
         return jsonify(
             {
                 "status": "validation_error",
-                "errors": {"user_id": "Некорректный UUID пользователя."},
+                "errors": {"user_id": "Некорректный числовой id пользователя."},
             }
         ), 400
 
@@ -295,7 +297,7 @@ def delete_user(user_id: str):
                     }
                 ), 404
 
-            deleted_user = {"user_id": str(user.id), "email": user.email}
+            deleted_user = {"user_id": user.id, "email": user.email}
             session.delete(user)
             session.commit()
 

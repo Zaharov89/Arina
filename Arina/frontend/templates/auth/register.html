@@ -8,56 +8,52 @@
 <body class="auth-page">
     <main class="auth-card">
         <h1 class="auth-title">Регистрация</h1>
-        <p class="auth-intro">Создайте аккаунт. После регистрации нужно подтвердить почту по ссылке из письма.</p>
+        <p class="auth-intro">Создайте аккаунт. После регистрации можно сразу войти в приложение.</p>
 
         <form id="registrationForm" class="auth-form" novalidate>
             <div class="auth-field">
-                <label for="childFirstName">
-                    Имя ребёнка
-                    <span class="hint-icon" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
-                </label>
-                <input type="text" id="childFirstName" name="child_first_name" autocomplete="given-name" maxlength="60" placeholder="Имя ребёнка">
+                <label for="childFirstName">Имя ребёнка</label>
+                <div class="auth-input-wrapper">
+                    <input type="text" id="childFirstName" name="child_first_name" autocomplete="given-name" maxlength="60" placeholder="Имя ребёнка">
+                    <span class="hint-icon" tabindex="0" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
+                </div>
                 <div class="field-error" id="childFirstNameError"></div>
             </div>
 
             <div class="auth-field">
-                <label for="childLastName">
-                    Фамилия ребёнка
-                    <span class="hint-icon" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
-                </label>
-                <input type="text" id="childLastName" name="child_last_name" autocomplete="family-name" maxlength="60" placeholder="Фамилия ребёнка">
+                <label for="childLastName">Фамилия ребёнка</label>
+                <div class="auth-input-wrapper">
+                    <input type="text" id="childLastName" name="child_last_name" autocomplete="family-name" maxlength="60" placeholder="Фамилия ребёнка">
+                    <span class="hint-icon" tabindex="0" title="Обязательное поле. От 1 до 60 символов. Только кириллица или латиница, без пробелов и спецсимволов.">!</span>
+                </div>
                 <div class="field-error" id="childLastNameError"></div>
             </div>
 
             <div class="auth-field">
-                <label for="email">
-                    Почта
-                    <span class="hint-icon" title="Обязательное поле. От 1 до 100 символов. Только латиница. Формат: text@example.ru. Запрещены HTML/SQL-конструкции.">!</span>
-                </label>
-                <input type="email" id="email" name="email" autocomplete="email" maxlength="100" placeholder="Почта">
+                <label for="email">Почта</label>
+                <div class="auth-input-wrapper">
+                    <input type="email" id="email" name="email" autocomplete="email" maxlength="100" placeholder="Почта">
+                    <span class="hint-icon" tabindex="0" title="Обязательное поле. От 1 до 100 символов. Только латиница. Формат: text@example.ru.">!</span>
+                </div>
                 <div class="field-error" id="emailError"></div>
             </div>
 
             <div class="auth-field">
-                <label for="password">
-                    Пароль
-                    <span class="hint-icon" title="Обязательное поле. От 8 до 20 символов. Кириллица или латиница. Минимум: 1 заглавная буква, 1 строчная буква, 1 цифра и 1 спецсимвол. Запрещены опасные SQL/HTML-символы.">!</span>
-                </label>
+                <label for="password">Пароль</label>
                 <div class="auth-password-wrapper">
                     <input type="password" id="password" name="password" autocomplete="new-password" maxlength="20" placeholder="Пароль">
                     <button type="button" class="auth-eye-btn" aria-label="Показать пароль" onclick="togglePassword('password', this)">👁</button>
+                    <span class="hint-icon" tabindex="0" title="От 8 до 20 символов. Минимум: 1 заглавная буква, 1 строчная буква, 1 цифра и 1 спецсимвол.">!</span>
                 </div>
                 <div class="field-error" id="passwordError"></div>
             </div>
 
             <div class="auth-field">
-                <label for="passwordRepeat">
-                    Повторите пароль
-                    <span class="hint-icon" title="Полное соответствие с паролем.">!</span>
-                </label>
+                <label for="passwordRepeat">Повторите пароль</label>
                 <div class="auth-password-wrapper">
                     <input type="password" id="passwordRepeat" name="password_repeat" autocomplete="new-password" maxlength="20" placeholder="Повторите пароль">
                     <button type="button" class="auth-eye-btn" aria-label="Показать пароль" onclick="togglePassword('passwordRepeat', this)">👁</button>
+                    <span class="hint-icon" tabindex="0" title="Полное соответствие с паролем.">!</span>
                 </div>
                 <div class="field-error" id="passwordRepeatError"></div>
             </div>

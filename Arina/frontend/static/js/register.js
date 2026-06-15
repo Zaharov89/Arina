@@ -22,7 +22,8 @@ function togglePassword(inputId, button) {
     input.type = visible ? 'text' : 'password';
 
     if (button) {
-        button.textContent = visible ? '🙈' : '👁';
+        button.textContent = '👁';
+        button.classList.toggle('password-visible', visible);
         button.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
     }
 }
@@ -33,7 +34,7 @@ function setFieldError(fieldName, message) {
 
     const input = document.getElementById(field.input);
     const error = document.getElementById(field.error);
-    const wrapper = input ? input.closest('.auth-password-wrapper') : null;
+    const wrapper = input ? input.closest('.auth-input-wrapper, .auth-password-wrapper') : null;
 
     if (input) input.classList.toggle('invalid', Boolean(message));
     if (wrapper) wrapper.classList.toggle('invalid', Boolean(message));
@@ -135,9 +136,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            form.reset();
-            formMessage.className = 'form-message success';
-            formMessage.textContent = data.message || 'Регистрация успешно завершена. Теперь можно войти в приложение.';
+            sessionStorage.setItem('arinaAuthToast', data.message || 'Регистрация успешно завершена. Теперь можно войти в приложение.');
+            window.location.href = '/auth/login';
         } catch (error) {
             formMessage.className = 'form-message error';
             formMessage.textContent = `Ошибка отправки формы: ${error}`;

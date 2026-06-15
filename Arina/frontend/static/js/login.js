@@ -1,4 +1,4 @@
-let failedAttempts = Number(localStorage.getItem('arinaLoginFailedAttempts') || '0');
+let failedAttempts = Number(sessionStorage.getItem('arinaLoginFailedAttempts') || '0');
 let captchaResult = null;
 
 function togglePassword(inputId, button) {
@@ -9,7 +9,8 @@ function togglePassword(inputId, button) {
     input.type = visible ? 'text' : 'password';
 
     if (button) {
-        button.textContent = visible ? '🙈' : '👁';
+        button.textContent = '👁';
+        button.classList.toggle('password-visible', visible);
         button.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
     }
 }
@@ -17,7 +18,7 @@ function togglePassword(inputId, button) {
 function setError(inputId, errorId, message) {
     const input = document.getElementById(inputId);
     const error = document.getElementById(errorId);
-    const wrapper = input ? input.closest('.auth-password-wrapper') : null;
+    const wrapper = input ? input.closest('.auth-input-wrapper, .auth-password-wrapper') : null;
 
     if (input) input.classList.toggle('invalid', Boolean(message));
     if (wrapper) wrapper.classList.toggle('invalid', Boolean(message));
@@ -36,6 +37,28 @@ function setMessage(message, type) {
     box.textContent = message || '';
 }
 
+function showToast(message) {
+    if (!message) return;
+
+    const oldToast = document.querySelector('.auth-toast');
+    if (oldToast) oldToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'auth-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('hide'), 4650);
+    setTimeout(() => toast.remove(), 5000);
+}
+
+function showStoredToast() {
+    const message = sessionStorage.getItem('arinaAuthToast');
+    if (!message) return;
+    sessionStorage.removeItem('arinaAuthToast');
+    showToast(message);
+}
+
 function generateCaptcha() {
     const a = Math.floor(Math.random() * 8) + 2;
     const b = Math.floor(Math.random() * 8) + 2;
@@ -51,6 +74,8 @@ function showCaptchaIfNeeded() {
     if (failedAttempts >= 3) {
         captchaRow.style.display = 'block';
         if (captchaResult === null) generateCaptcha();
+    } else {
+        captchaRow.style.display = 'none';
     }
 }
 
@@ -97,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('loginForm');
     if (!form) return;
 
+    showStoredToast();
     showCaptchaIfNeeded();
 
     form.addEventListener('submit', async function (event) {
@@ -127,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 failedAttempts += 1;
-                localStorage.setItem('arinaLoginFailedAttempts', String(failedAttempts));
+                sessionStorage.setItem('arinaLoginFailedAttempts', String(failedAttempts));
                 setLoginFieldsError('Логин или пароль не верный');
                 setMessage(data.message || 'Неверный логин или пароль', 'error');
                 showCaptchaIfNeeded();
@@ -135,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             failedAttempts = 0;
-            localStorage.setItem('arinaLoginFailedAttempts', '0');
+            sessionStorage.setItem('arinaLoginFailedAttempts', '0');
             saveAuthData(data.data, rememberMe);
             setMessage(rememberMe ? 'Вход выполнен успешно. Вы останетесь авторизованы после закрытия браузера.' : 'Вход выполнен успешно. Авторизация действует до закрытия страницы или браузера.', 'success');
             window.location.href = getNextUrl();

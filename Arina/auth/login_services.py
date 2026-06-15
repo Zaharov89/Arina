@@ -27,7 +27,7 @@ def login_user(session: Session, payload: dict) -> dict:
 
     tokens = issue_token_pair(user, remember_me=remember_me)
     return {
-        "user_id": str(user.id),
+        "user_id": user.id,
         "email": user.email,
         "is_active": user.is_active,
         **tokens,

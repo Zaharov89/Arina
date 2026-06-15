@@ -69,7 +69,7 @@ def request_password_reset(session: Session, raw_email: str) -> dict:
     token = secrets.token_urlsafe(48)
     session.execute(
         text("INSERT INTO arina.password_reset_tokens (user_id, token, is_used, expires_at) VALUES (:user_id, :token, false, :expires_at)"),
-        {"user_id": str(user.id), "token": token, "expires_at": datetime.now() + timedelta(hours=1)},
+        {"user_id": user.id, "token": token, "expires_at": datetime.now() + timedelta(hours=1)},
     )
 
     reset_link = build_reset_link(token)
@@ -104,12 +104,12 @@ def is_old_password(session: Session, user: User, candidate: str) -> bool:
 
     rows = session.execute(
         text("SELECT password_hash FROM arina.password_history WHERE user_id = :user_id ORDER BY created_at DESC LIMIT 10"),
-        {"user_id": str(user.id)},
+        {"user_id": user.id},
     ).mappings()
     return any(check_password_hash(row["password_hash"], candidate) for row in rows)
 
 
-def keep_last_ten_passwords(session: Session, user_id: str) -> None:
+def keep_last_ten_passwords(session: Session, user_id: int) -> None:
     session.execute(
         text("DELETE FROM arina.password_history WHERE id IN (SELECT id FROM arina.password_history WHERE user_id = :user_id ORDER BY created_at DESC OFFSET 10)"),
         {"user_id": user_id},
@@ -139,8 +139,8 @@ def reset_password(session: Session, token: str, payload: dict) -> dict:
 
     old_password_hash = user.password_hash
     user.password_hash = generate_password_hash(new_password)
-    session.execute(text("INSERT INTO arina.password_history (user_id, password_hash) VALUES (:user_id, :password_hash)"), {"user_id": str(user.id), "password_hash": old_password_hash})
+    session.execute(text("INSERT INTO arina.password_history (user_id, password_hash) VALUES (:user_id, :password_hash)"), {"user_id": user.id, "password_hash": old_password_hash})
     session.execute(text("UPDATE arina.password_reset_tokens SET is_used = true, used_at = now() WHERE id = :id"), {"id": token_row["id"]})
-    keep_last_ten_passwords(session, str(user.id))
+    keep_last_ten_passwords(session, user.id)
 
-    return {"user_id": str(user.id), "email": user.email}
+    return {"user_id": user.id, "email": user.email}
