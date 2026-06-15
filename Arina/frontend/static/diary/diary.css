@@ -137,6 +137,50 @@
     line-height: 1.25;
 }
 
+.diary-class-layout {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+}
+
+.diary-class-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 10px;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 8px 32px rgba(48,100,150,0.13);
+}
+
+.diary-class-tab {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #cfe0f6;
+    border-radius: 12px;
+    background: #f8fbff;
+    color: #27407a;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.diary-class-tab:hover {
+    transform: translateY(-1px);
+    border-color: #5d92e0;
+}
+
+.diary-class-tab.active {
+    background: #5d92e0;
+    border-color: #5d92e0;
+    color: #ffffff;
+}
+
+.diary-class-tab.empty-class {
+    opacity: 0.45;
+}
+
 .diary-table-wrap {
     overflow-x: auto;
     border-radius: 18px;
@@ -147,12 +191,24 @@
 .diary-topic-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 860px;
+    min-width: 720px;
+    table-layout: fixed;
 }
+
+.diary-topic-table th:nth-child(1),
+.diary-topic-table td:nth-child(1) { width: 34%; }
+.diary-topic-table th:nth-child(2),
+.diary-topic-table td:nth-child(2) { width: 26%; }
+.diary-topic-table th:nth-child(3),
+.diary-topic-table td:nth-child(3) { width: 14%; }
+.diary-topic-table th:nth-child(4),
+.diary-topic-table td:nth-child(4) { width: 12%; }
+.diary-topic-table th:nth-child(5),
+.diary-topic-table td:nth-child(5) { width: 14%; }
 
 .diary-topic-table th,
 .diary-topic-table td {
-    padding: 15px 16px;
+    padding: 14px 12px;
     border-bottom: 1px solid #e8eef8;
     vertical-align: middle;
     text-align: left;
@@ -161,7 +217,7 @@
 .diary-topic-table th {
     background: #eef6ff;
     color: #27407a;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
@@ -185,6 +241,7 @@
 .topic-title {
     color: #1f2d4d;
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .control-topic-title {
@@ -252,5 +309,17 @@
 
     .summary-values {
         grid-template-columns: 1fr;
+    }
+
+    .diary-class-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .diary-class-tabs {
+        grid-template-columns: repeat(11, 1fr);
+    }
+
+    .diary-class-tab {
+        width: 100%;
     }
 }
