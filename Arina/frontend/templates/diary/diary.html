@@ -8,13 +8,21 @@
 </head>
 <body>
     <div id="dateTimeBar"></div>
-    <div class="container">
+    <div class="container diary-container">
         <h2 id="pageTitle">Дневник</h2>
-        <div id="statsContent">Загрузка дневника...</div>
+        <p class="diary-subtitle">Выберите предмет, чтобы посмотреть оценки по темам за текущий месяц.</p>
+        <div id="statsContent" class="diary-loading">Загрузка дневника...</div>
         <a href="/subjects" class="back-btn">← Назад</a>
     </div>
 
     <script>
+        const SUBJECT_ICONS = {
+            math: '🔢',
+            russian: '✍️',
+            world: '🌍',
+            english: '🇬🇧',
+        };
+
         function getAuthStorageForDiary() {
             if (localStorage.getItem('arinaAccessToken')) return localStorage;
             if (sessionStorage.getItem('arinaAccessToken')) return sessionStorage;
@@ -40,40 +48,114 @@
             return numberValue.toFixed(1).replace('.', ',');
         }
 
-        function renderSubjectStats(title, data) {
+        function formatDate(value) {
+            if (!value) return '—';
+            const parts = String(value).split('-');
+            if (parts.length !== 3) return value;
+            return `${parts[2]}.${parts[1]}`;
+        }
+
+        function gradeClass(grade) {
+            return grade ? `grade-pill grade-${grade}` : 'grade-empty';
+        }
+
+        function renderGradesTimeline(grades) {
+            if (!grades || grades.length === 0) {
+                return '<span class="no-grade">Нет оценок</span>';
+            }
+            return grades.map(item => `<span class="${gradeClass(item.grade)}" title="${formatDate(item.date)}">${item.grade}</span>`).join('');
+        }
+
+        function renderSubjectCards(subjects) {
             return `
-                <div class="subject-stats">
-                    <h3>${title}</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div>Средний бал (месяц)</div>
-                            <div class="stat-value">${formatGrade(data?.month_avg || 0)}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div>Дней с оценками (месяц)</div>
-                            <div class="stat-value">${data?.month_days || 0}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div>Средний бал (год)</div>
-                            <div class="stat-value">${formatGrade(data?.year_avg || 0)}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div>Дней с оценками (год)</div>
-                            <div class="stat-value">${data?.year_days || 0}</div>
-                        </div>
-                    </div>
+                <div class="diary-subject-tabs" id="diarySubjectTabs">
+                    ${subjects.map((subject, index) => `
+                        <button type="button" class="diary-subject-tab ${index === 0 ? 'active' : ''}" data-subject-code="${subject.code}">
+                            <span class="subject-icon">${SUBJECT_ICONS[subject.code] || '📘'}</span>
+                            <span>${subject.title}</span>
+                            <small>Средний бал: ${formatGrade(subject.month_avg)}</small>
+                        </button>
+                    `).join('')}
                 </div>
             `;
         }
 
+        function renderSubjectPanel(subject, isActive) {
+            const topics = subject.topics || [];
+            const filledTopics = topics.filter(topic => topic.month_grades && topic.month_grades.length > 0).length;
+            return `
+                <section class="diary-subject-panel ${isActive ? 'active' : ''}" data-subject-panel="${subject.code}">
+                    <div class="diary-summary-card">
+                        <div>
+                            <h3>${SUBJECT_ICONS[subject.code] || '📘'} ${subject.title}</h3>
+                            <p>Тем с оценками в этом месяце: ${filledTopics} из ${topics.length}</p>
+                        </div>
+                        <div class="summary-values">
+                            <div><span>${formatGrade(subject.month_avg)}</span><small>средний балл за месяц</small></div>
+                            <div><span>${subject.month_days || 0}</span><small>дней с оценками</small></div>
+                            <div><span>${formatGrade(subject.year_avg)}</span><small>средний балл за год</small></div>
+                        </div>
+                    </div>
+
+                    <div class="diary-table-wrap">
+                        <table class="diary-topic-table">
+                            <thead>
+                                <tr>
+                                    <th>Тема</th>
+                                    <th>Оценки за месяц</th>
+                                    <th>Средний балл</th>
+                                    <th>Лучшая</th>
+                                    <th>Последняя</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${topics.length ? topics.map(topic => `
+                                    <tr class="${topic.month_grades && topic.month_grades.length ? '' : 'empty-topic-row'}">
+                                        <td>
+                                            <div class="topic-title">${topic.topic_title}</div>
+                                            ${topic.class_number ? `<div class="topic-class">${topic.class_number} класс</div>` : ''}
+                                        </td>
+                                        <td><div class="grades-timeline">${renderGradesTimeline(topic.month_grades)}</div></td>
+                                        <td>${topic.month_avg ? formatGrade(topic.month_avg) : '—'}</td>
+                                        <td>${topic.best_grade ? `<span class="${gradeClass(topic.best_grade)}">${topic.best_grade}</span>` : '—'}</td>
+                                        <td>${topic.last_grade ? `<span class="${gradeClass(topic.last_grade)}">${topic.last_grade}</span><div class="last-date">${formatDate(topic.last_date)}</div>` : '—'}</td>
+                                    </tr>
+                                `).join('') : `
+                                    <tr><td colspan="5" class="empty-diary">Темы пока не добавлены в БД.</td></tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            `;
+        }
+
+        function activateSubject(code) {
+            document.querySelectorAll('.diary-subject-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.subjectCode === code);
+            });
+            document.querySelectorAll('.diary-subject-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.dataset.subjectPanel === code);
+            });
+        }
+
         function renderDiary(data) {
             const content = document.getElementById('statsContent');
-            content.innerHTML = [
-                renderSubjectStats('Математика', data.math),
-                renderSubjectStats('Русский язык', data.russian),
-                renderSubjectStats('Окружающий мир', data.world),
-                renderSubjectStats('Английский язык', data.english),
-            ].join('');
+            const subjects = data.subjects || [];
+            if (!subjects.length) {
+                content.innerHTML = '<div class="empty-diary">В дневнике пока нет предметов.</div>';
+                return;
+            }
+            content.className = 'diary-content';
+            content.innerHTML = `
+                ${renderSubjectCards(subjects)}
+                <div class="diary-panels">
+                    ${subjects.map((subject, index) => renderSubjectPanel(subject, index === 0)).join('')}
+                </div>
+            `;
+            document.querySelectorAll('.diary-subject-tab').forEach(tab => {
+                tab.addEventListener('click', () => activateSubject(tab.dataset.subjectCode));
+            });
         }
 
         async function loadDiary() {
