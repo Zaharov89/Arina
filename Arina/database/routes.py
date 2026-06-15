@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from sqlalchemy.exc import SQLAlchemyError
 
 from Arina.database.config import DATABASE_URL, get_masked_database_url, is_database_configured
@@ -7,6 +7,12 @@ from Arina.database.session import get_session_factory, ping_database
 
 
 database_bp = Blueprint("database", __name__, url_prefix="/database")
+
+
+def get_reference_repository() -> ReferenceDataRepository:
+    session_factory = get_session_factory()
+    session = session_factory()
+    return ReferenceDataRepository(session)
 
 
 @database_bp.route("/status")
@@ -52,3 +58,49 @@ def database_status():
                 "message": "Не удалось подключиться к PostgreSQL. Проверьте .env, пароль, порт и что сервер запущен.",
             }
         ), 500
+
+
+@database_bp.route("/subjects")
+def subjects_api():
+    try:
+        session_factory = get_session_factory()
+        with session_factory() as session:
+            subjects = ReferenceDataRepository(session).get_subjects()
+
+        return jsonify({"status": "ok", "data": subjects})
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        return jsonify({"status": "error", "message": "Не удалось получить список предметов.", "error": str(error)}), 500
+
+
+@database_bp.route("/school-classes")
+def school_classes_api():
+    try:
+        session_factory = get_session_factory()
+        with session_factory() as session:
+            classes = ReferenceDataRepository(session).get_school_classes()
+
+        return jsonify({"status": "ok", "data": classes})
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        return jsonify({"status": "error", "message": "Не удалось получить список классов.", "error": str(error)}), 500
+
+
+@database_bp.route("/topics")
+def topics_api():
+    subject_code = request.args.get("subject_code") or None
+    raw_class_number = request.args.get("class_number")
+    class_number = None
+
+    if raw_class_number:
+        try:
+            class_number = int(raw_class_number)
+        except ValueError:
+            return jsonify({"status": "validation_error", "message": "class_number должен быть числом."}), 400
+
+    try:
+        session_factory = get_session_factory()
+        with session_factory() as session:
+            topics = ReferenceDataRepository(session).get_topics(subject_code=subject_code, class_number=class_number)
+
+        return jsonify({"status": "ok", "data": topics})
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        return jsonify({"status": "error", "message": "Не удалось получить список тем.", "error": str(error)}), 500
