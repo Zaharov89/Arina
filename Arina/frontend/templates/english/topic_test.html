@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тренировка — Английский язык {{ class_num }} класс</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='russian/test.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container">
+        <div id="englishTopicTestBlock" class="test-block">
+            <div class="question-counter" id="questionCounter">Задание №1 из {{ total_questions }}</div>
+            <div class="question-topic" id="questionTopic" style="display: none;"></div>
+            <div class="question-container">
+                <div class="question-text" id="questionDisplay">Загрузка...</div>
+                <button class="question-sound-btn" type="button" onclick="speakQuestion('questionDisplay')">🔊 Прослушать</button>
+            </div>
+            <input type="text" id="answerInput" class="answer-input" placeholder="Введите ответ" autocomplete="off">
+            <div id="resultMessage" class="result-message"></div>
+            <div class="test-buttons">
+                <button id="checkBtn" class="test-btn" onclick="checkEnglishTopicAnswer()">Ответить</button>
+                <button id="nextBtn" class="test-btn" onclick="nextEnglishTopicQuestion()" disabled>Далее</button>
+                <button id="finishBtn" class="test-btn" onclick="finishEnglishTopicTest()">Закончить тест</button>
+            </div>
+            <div style="text-align: center; margin-top: 20px;"><div class="test-timer" id="testTimer">Время: 0:00</div></div>
+        </div>
+    </div>
+
+    <script>
+        window.englishTopicTestSettings = {{ test_settings | tojson }};
+        window.totalEnglishTopicQuestions = {{ total_questions }};
+    </script>
+    <script src="{{ url_for('static', filename='js/question-voice.js') }}"></script>
+    <script>
+        let currentQuestion = 1;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let emptyAnswers = 0;
+        let wrongAnswersList = [];
+        let currentTask = null;
+        let usedQuestions = [];
+        let testStartTime = Date.now();
+        let timerInterval = null;
+
+        function normalizeAnswer(value) { return String(value || '').trim().toLowerCase().replace(/ё/g, 'е'); }
+        function renderDateBar() {
+            const now = new Date();
+            const monthsRu = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+            document.getElementById('dateTimeBar').textContent = `${now.getDate()} ${monthsRu[now.getMonth()]} ${now.getFullYear()} года ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        }
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('testTimer').textContent = `Время: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        function generateEnglishTopicQuestion() {
+            if (currentQuestion > window.totalEnglishTopicQuestions) { finishEnglishTopicTest(); return; }
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').disabled = false;
+            document.getElementById('resultMessage').textContent = '';
+            document.getElementById('resultMessage').className = 'result-message';
+            document.getElementById('checkBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('questionCounter').textContent = `Задание №${currentQuestion} из ${window.totalEnglishTopicQuestions}`;
+            fetch('/english/generate_task', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({class: window.englishTopicTestSettings.classNum, topic: window.englishTopicTestSettings.topicId, used_questions: usedQuestions})
+            }).then(r => r.json()).then(task => {
+                currentTask = task;
+                usedQuestions.push(task.question || '');
+                const topic = document.getElementById('questionTopic');
+                topic.style.display = task.topic_title ? 'block' : 'none';
+                topic.textContent = task.topic_title || '';
+                let text = task.question || 'Задание недоступно';
+                if (Array.isArray(task.choices) && task.choices.length) text += `\nВарианты: ${task.choices.join('   ')}`;
+                document.getElementById('questionDisplay').textContent = text;
+                document.getElementById('answerInput').focus();
+            });
+        }
+        function checkEnglishTopicAnswer() {
+            const answer = document.getElementById('answerInput').value.trim();
+            const correct = currentTask?.correct || '';
+            const result = document.getElementById('resultMessage');
+            if (!answer) {
+                emptyAnswers++;
+                wrongAnswersList.push({...currentTask, userAnswer: '(пусто)', correctAnswer: correct});
+                result.textContent = `Вы ничего не ввели. Правильный ответ: ${correct}`;
+                result.className = 'result-message empty-answer';
+            } else if (normalizeAnswer(answer) === normalizeAnswer(correct)) {
+                correctAnswers++;
+                result.textContent = '✓ Правильно!';
+                result.className = 'result-message correct';
+            } else {
+                wrongAnswers++;
+                wrongAnswersList.push({...currentTask, userAnswer: answer, correctAnswer: correct});
+                result.textContent = `✗ Неправильно. Правильный ответ: ${correct}`;
+                result.className = 'result-message incorrect';
+            }
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('answerInput').disabled = true;
+        }
+        function nextEnglishTopicQuestion() { currentQuestion++; generateEnglishTopicQuestion(); }
+        function finishEnglishTopicTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            const totalTime = Math.round((Date.now() - testStartTime) / 1000);
+            localStorage.setItem('testSubject', 'Английский язык');
+            localStorage.setItem('resultSubjectCode', 'english');
+            localStorage.setItem('resultClassNumber', window.englishTopicTestSettings.classNum || '2');
+            localStorage.setItem('resultTopicCode', window.englishTopicTestSettings.topicId || '');
+            localStorage.setItem('totalQuestions', window.totalEnglishTopicQuestions);
+            localStorage.setItem('correctAnswers', correctAnswers);
+            localStorage.setItem('wrongAnswers', wrongAnswers);
+            localStorage.setItem('emptyAnswers', emptyAnswers);
+            localStorage.setItem('timeSpent', totalTime);
+            localStorage.setItem('averageTime', window.totalEnglishTopicQuestions > 0 ? (totalTime / window.totalEnglishTopicQuestions).toFixed(1) : 0);
+            localStorage.setItem('wrongAnswersList', JSON.stringify(wrongAnswersList));
+            window.location.href = '/results/english';
+        }
+        document.addEventListener('DOMContentLoaded', () => { renderDateBar(); startTimer(); generateEnglishTopicQuestion(); });
+        document.getElementById('answerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (!document.getElementById('checkBtn').disabled) checkEnglishTopicAnswer();
+                else if (!document.getElementById('nextBtn').disabled) nextEnglishTopicQuestion();
+            }
+        });
+    </script>
+</body>
+</html>
