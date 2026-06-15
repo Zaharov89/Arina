@@ -323,14 +323,16 @@ body.auth-page {
 }
 
 .auth-links a,
-.auth-register-block a {
+.auth-register-block a,
+.auth-bottom-links a {
     color: #006fff;
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 .auth-links a:hover,
-.auth-register-block a:hover {
-    text-decoration: underline;
+.auth-register-block a:hover,
+.auth-bottom-links a:hover {
+    text-decoration: none;
 }
 
 .auth-register-block {
@@ -343,6 +345,60 @@ body.auth-page {
 
 .auth-register-block a {
     display: inline-block;
+    font-size: 16px;
+}
+
+body.auth-forgot-page {
+    align-items: flex-start;
+    padding: 8px 16px 24px;
+}
+
+.auth-forgot-card {
+    width: min(396px, calc(100vw - 32px));
+    padding-top: 0;
+}
+
+.auth-forgot-card .auth-title {
+    margin: 0 0 30px;
+    font-size: 29px;
+    text-align: center;
+}
+
+.auth-field-plain {
+    margin-bottom: 12px;
+}
+
+.auth-field-plain .auth-input-wrapper {
+    height: 40px;
+}
+
+.auth-field-plain input {
+    height: 38px;
+    font-size: 16px;
+    padding-left: 12px;
+}
+
+.auth-forgot-card .auth-submit-btn {
+    height: 40px;
+}
+
+.auth-bottom-links {
+    margin-top: 96px;
+    display: flex;
+    justify-content: space-between;
+    gap: 32px;
+    color: #666666;
+    font-size: 12px;
+    text-align: center;
+}
+
+.auth-bottom-links div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.auth-bottom-links a {
     font-size: 16px;
 }
 
@@ -408,8 +464,17 @@ body.auth-page {
         padding: 16px 38px 16px 6px;
     }
 
-    .auth-card {
+    body.auth-forgot-page {
+        padding: 8px 12px 20px;
+    }
+
+    .auth-card,
+    .auth-forgot-card {
         width: calc(100vw - 56px);
+    }
+
+    .auth-forgot-card {
+        width: calc(100vw - 24px);
     }
 
     .auth-title {
@@ -425,5 +490,9 @@ body.auth-page {
     .hint-icon::after {
         right: -8px;
         width: 240px;
+    }
+
+    .auth-bottom-links {
+        gap: 16px;
     }
 }
