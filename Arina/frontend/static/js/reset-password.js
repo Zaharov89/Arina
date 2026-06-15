@@ -12,7 +12,8 @@ function togglePassword(inputId, button) {
     input.type = visible ? 'text' : 'password';
 
     if (button) {
-        button.textContent = visible ? '🙈' : '👁';
+        button.textContent = '👁';
+        button.classList.toggle('password-visible', visible);
         button.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
     }
 }
@@ -20,7 +21,7 @@ function togglePassword(inputId, button) {
 function setError(inputId, errorId, message) {
     const input = document.getElementById(inputId);
     const error = document.getElementById(errorId);
-    const wrapper = input ? input.closest('.auth-password-wrapper') : null;
+    const wrapper = input ? input.closest('.auth-input-wrapper, .auth-password-wrapper') : null;
 
     if (input) input.classList.toggle('invalid', Boolean(message));
     if (wrapper) wrapper.classList.toggle('invalid', Boolean(message));
