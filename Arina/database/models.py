@@ -1,9 +1,7 @@
-import uuid
 from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from Arina.database.config import DATABASE_SCHEMA
@@ -17,7 +15,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = {"schema": DATABASE_SCHEMA}
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     first_name: Mapped[str | None] = mapped_column(String(100))
@@ -35,8 +33,8 @@ class Student(Base):
     __tablename__ = "students"
     __table_args__ = {"schema": DATABASE_SCHEMA}
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str | None] = mapped_column(String(100))
     class_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
@@ -91,8 +89,8 @@ class TestAttempt(Base):
     __tablename__ = "test_attempts"
     __table_args__ = {"schema": DATABASE_SCHEMA}
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    student_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(f"{DATABASE_SCHEMA}.students.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.students.id", ondelete="CASCADE"), nullable=False)
     subject_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.subjects.id"), nullable=False)
     class_number: Mapped[int] = mapped_column(Integer, nullable=False)
     topic_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.topics.id"))
@@ -116,8 +114,8 @@ class TestAnswer(Base):
     __tablename__ = "test_answers"
     __table_args__ = {"schema": DATABASE_SCHEMA}
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    attempt_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(f"{DATABASE_SCHEMA}.test_attempts.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    attempt_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.test_attempts.id", ondelete="CASCADE"), nullable=False)
     question_text: Mapped[str] = mapped_column(Text, nullable=False)
     user_answer: Mapped[str | None] = mapped_column(Text)
     correct_answer: Mapped[str | None] = mapped_column(Text)
@@ -132,8 +130,8 @@ class AccountActivationToken(Base):
     __tablename__ = "account_activation_tokens"
     __table_args__ = {"schema": DATABASE_SCHEMA}
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
