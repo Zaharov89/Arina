@@ -14,6 +14,8 @@ SUBJECT_TITLES = {
 }
 
 SUBJECT_ORDER = ["math", "russian", "world", "english"]
+CONTROL_SLICE_CODE = "control_slice"
+CONTROL_SLICE_TITLE = "Контрольный срез"
 
 
 def get_user_id_from_access_token(access_token: str) -> int:
@@ -45,16 +47,17 @@ def get_month_dates(today: date) -> list[str]:
 
 
 def build_empty_subject(subject_code: str, title: str) -> dict:
-    return {
-        "code": subject_code,
-        "title": title,
-        "month_avg": 0,
-        "month_days": 0,
-        "year_avg": 0,
-        "year_days": 0,
-        "topics": [],
-        "grades": [],
-    }
+    return {"code": subject_code, "title": title, "month_avg": 0, "month_days": 0, "year_avg": 0, "year_days": 0, "topics": [], "grades": []}
+
+
+def get_topic_code(row) -> str:
+    return row.topic_code or "general"
+
+
+def get_topic_title(row) -> str:
+    if row.topic_code == CONTROL_SLICE_CODE:
+        return CONTROL_SLICE_TITLE
+    return row.topic_title or "Общий тест"
 
 
 def format_grade_row(row) -> dict:
@@ -62,8 +65,8 @@ def format_grade_row(row) -> dict:
         "date": str(row.grade_date),
         "grade": int(row.grade),
         "topic_id": row.topic_id,
-        "topic_code": row.topic_code or "general",
-        "topic_title": row.topic_title or "Общий тест",
+        "topic_code": get_topic_code(row),
+        "topic_title": get_topic_title(row),
     }
 
 
@@ -81,21 +84,25 @@ def build_topic_diary(topics: list, month_rows: list) -> list[dict]:
             "best_grade": None,
             "last_grade": None,
             "last_date": None,
+            "is_control_slice": topic.code == CONTROL_SLICE_CODE,
         }
 
     for row in month_rows:
         topic_id = row.topic_id
+        topic_code = get_topic_code(row)
+        topic_title = get_topic_title(row)
         if topic_id not in topic_map:
             topic_map[topic_id] = {
                 "topic_id": topic_id,
-                "topic_code": row.topic_code or "general",
-                "topic_title": row.topic_title or "Общий тест",
+                "topic_code": topic_code,
+                "topic_title": topic_title,
                 "class_number": None,
                 "month_grades": [],
                 "month_avg": 0,
                 "best_grade": None,
                 "last_grade": None,
                 "last_date": None,
+                "is_control_slice": topic_code == CONTROL_SLICE_CODE,
             }
 
         grade_item = {"date": str(row.grade_date), "grade": int(row.grade)}
@@ -109,18 +116,14 @@ def build_topic_diary(topics: list, month_rows: list) -> list[dict]:
             topic["last_grade"] = topic["month_grades"][0]["grade"]
             topic["last_date"] = topic["month_grades"][0]["date"]
 
-    return sorted(topic_map.values(), key=lambda item: (item.get("class_number") or 99, item["topic_title"]))
+    return sorted(topic_map.values(), key=lambda item: (item.get("class_number") or 99, 1 if item.get("is_control_slice") else 0, item["topic_title"]))
 
 
 def build_diary_stats(repository: StatsRepository, student) -> dict:
     today = date.today()
     month_start = today.replace(day=1)
     year_start = today.replace(month=1, day=1)
-    result = {
-        "server_date": str(today),
-        "month_dates": get_month_dates(today),
-        "subjects": [],
-    }
+    result = {"server_date": str(today), "month_dates": get_month_dates(today), "subjects": []}
 
     for subject_code in SUBJECT_ORDER:
         subject = repository.get_subject(subject_code)
@@ -170,6 +173,12 @@ def build_save_message(previous_grade: int | None, current_grade: int, action: s
     return f"Ваша прошлая оценка {previous_grade}, сейчас получили {current_grade}, предыдущую оценку не исправляем"
 
 
+def resolve_attempt_topic(repository: StatsRepository, subject, payload: TestAttemptPayload):
+    if payload.topic_code == CONTROL_SLICE_CODE:
+        return repository.get_or_create_inactive_topic(subject, payload.class_number, CONTROL_SLICE_CODE, CONTROL_SLICE_TITLE)
+    return repository.get_topic(subject, payload.class_number, payload.topic_code)
+
+
 def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
     payload = parse_test_attempt_payload(raw_payload)
     session_factory = get_session_factory()
@@ -185,7 +194,7 @@ def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
         if not subject:
             return {"status": "validation_error", "message": "Предмет не найден."}, 400
 
-        topic = repository.get_topic(subject, payload.class_number, payload.topic_code)
+        topic = resolve_attempt_topic(repository, subject, payload)
         grade = calculate_grade(payload.score_percent)
         existing = repository.find_today_attempt(student.id, subject.id, topic.id if topic else None)
         previous_grade = existing.grade if existing else None
@@ -208,18 +217,7 @@ def save_test_attempt(access_token: str, raw_payload) -> tuple[dict, int]:
             repository.replace_attempt_answers(attempt, payload.answers)
             action = "created"
         elif grade > (existing.grade or 0):
-            repository.update_attempt(
-                existing,
-                class_number=payload.class_number,
-                total_questions=payload.total_questions,
-                correct_answers=payload.correct_answers,
-                wrong_answers=payload.wrong_answers,
-                empty_answers=payload.empty_answers,
-                score_percent=payload.score_percent,
-                grade=grade,
-                time_spent_seconds=payload.time_spent_seconds,
-                average_time_seconds=payload.average_time_seconds,
-            )
+            repository.update_attempt(existing, payload.class_number, payload.total_questions, payload.correct_answers, payload.wrong_answers, payload.empty_answers, payload.score_percent, grade, payload.time_spent_seconds, payload.average_time_seconds)
             repository.replace_attempt_answers(existing, payload.answers)
             action = "improved"
         elif grade == existing.grade:
