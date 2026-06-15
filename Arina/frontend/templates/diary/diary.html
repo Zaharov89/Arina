@@ -16,12 +16,7 @@
     </div>
 
     <script>
-        const SUBJECT_ICONS = {
-            math: '🔢',
-            russian: '✍️',
-            world: '🌍',
-            english: '🇬🇧',
-        };
+        const SUBJECT_ICONS = { math: '🔢', russian: '✍️', world: '🌍', english: '🇬🇧' };
 
         function getAuthStorageForDiary() {
             if (localStorage.getItem('arinaAccessToken')) return localStorage;
@@ -60,9 +55,7 @@
         }
 
         function renderGradesTimeline(grades) {
-            if (!grades || grades.length === 0) {
-                return '<span class="no-grade">Нет оценок</span>';
-            }
+            if (!grades || grades.length === 0) return '<span class="no-grade">Нет оценок</span>';
             return grades.map(item => `<span class="${gradeClass(item.grade)}" title="${formatDate(item.date)}">${item.grade}</span>`).join('');
         }
 
@@ -78,6 +71,11 @@
                     `).join('')}
                 </div>
             `;
+        }
+
+        function renderTopicTitle(topic) {
+            if (!topic.is_control_slice) return `<div class="topic-title">${topic.topic_title}</div>`;
+            return `<div class="topic-title control-topic-title">⭐ ${topic.topic_title}</div><div class="topic-class">Итоговая проверка по всем темам</div>`;
         }
 
         function renderSubjectPanel(subject, isActive) {
@@ -100,29 +98,21 @@
                     <div class="diary-table-wrap">
                         <table class="diary-topic-table">
                             <thead>
-                                <tr>
-                                    <th>Тема</th>
-                                    <th>Оценки за месяц</th>
-                                    <th>Средний балл</th>
-                                    <th>Лучшая</th>
-                                    <th>Последняя</th>
-                                </tr>
+                                <tr><th>Тема</th><th>Оценки за месяц</th><th>Средний балл</th><th>Лучшая</th><th>Последняя</th></tr>
                             </thead>
                             <tbody>
                                 ${topics.length ? topics.map(topic => `
-                                    <tr class="${topic.month_grades && topic.month_grades.length ? '' : 'empty-topic-row'}">
+                                    <tr class="${topic.month_grades && topic.month_grades.length ? '' : 'empty-topic-row'} ${topic.is_control_slice ? 'control-slice-row' : ''}">
                                         <td>
-                                            <div class="topic-title">${topic.topic_title}</div>
-                                            ${topic.class_number ? `<div class="topic-class">${topic.class_number} класс</div>` : ''}
+                                            ${renderTopicTitle(topic)}
+                                            ${topic.class_number && !topic.is_control_slice ? `<div class="topic-class">${topic.class_number} класс</div>` : ''}
                                         </td>
                                         <td><div class="grades-timeline">${renderGradesTimeline(topic.month_grades)}</div></td>
                                         <td>${topic.month_avg ? formatGrade(topic.month_avg) : '—'}</td>
                                         <td>${topic.best_grade ? `<span class="${gradeClass(topic.best_grade)}">${topic.best_grade}</span>` : '—'}</td>
                                         <td>${topic.last_grade ? `<span class="${gradeClass(topic.last_grade)}">${topic.last_grade}</span><div class="last-date">${formatDate(topic.last_date)}</div>` : '—'}</td>
                                     </tr>
-                                `).join('') : `
-                                    <tr><td colspan="5" class="empty-diary">Темы пока не добавлены в БД.</td></tr>
-                                `}
+                                `).join('') : `<tr><td colspan="5" class="empty-diary">Темы пока не добавлены в БД.</td></tr>`}
                             </tbody>
                         </table>
                     </div>
@@ -131,12 +121,8 @@
         }
 
         function activateSubject(code) {
-            document.querySelectorAll('.diary-subject-tab').forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.subjectCode === code);
-            });
-            document.querySelectorAll('.diary-subject-panel').forEach(panel => {
-                panel.classList.toggle('active', panel.dataset.subjectPanel === code);
-            });
+            document.querySelectorAll('.diary-subject-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.subjectCode === code));
+            document.querySelectorAll('.diary-subject-panel').forEach(panel => panel.classList.toggle('active', panel.dataset.subjectPanel === code));
         }
 
         function renderDiary(data) {
@@ -147,15 +133,8 @@
                 return;
             }
             content.className = 'diary-content';
-            content.innerHTML = `
-                ${renderSubjectCards(subjects)}
-                <div class="diary-panels">
-                    ${subjects.map((subject, index) => renderSubjectPanel(subject, index === 0)).join('')}
-                </div>
-            `;
-            document.querySelectorAll('.diary-subject-tab').forEach(tab => {
-                tab.addEventListener('click', () => activateSubject(tab.dataset.subjectCode));
-            });
+            content.innerHTML = `${renderSubjectCards(subjects)}<div class="diary-panels">${subjects.map((subject, index) => renderSubjectPanel(subject, index === 0)).join('')}</div>`;
+            document.querySelectorAll('.diary-subject-tab').forEach(tab => tab.addEventListener('click', () => activateSubject(tab.dataset.subjectCode)));
         }
 
         async function loadDiary() {
@@ -166,9 +145,7 @@
             }
 
             try {
-                const response = await fetch('/api/stats', {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                });
+                const response = await fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await response.json();
                 if (!response.ok || data.error) {
                     document.getElementById('statsContent').innerHTML = `<p style="color: red;">Ошибка: ${data.error || data.message || response.status}</p>`;
