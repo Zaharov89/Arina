@@ -1,3 +1,4 @@
+import logging
 import random
 from typing import Any, Optional
 
@@ -15,26 +16,36 @@ from Arina.math.class_3_topics import CLASS_3_MATH_TOPICS
 from Arina.utils.safe_math import SafeMathExpressionError, safe_eval_math_expr
 
 math_bp = Blueprint("math", __name__)
+logger = logging.getLogger(__name__)
 
 SUPPORTED_MATH_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1, 2, 3}
 CONTROL_SLICE_TYPE = "control_slice"
+DEPRECATED_TOPICS_BY_CLASS = {3: {"fractions_intro"}}
 control_topic_cursor = 0
 TOPICS_BY_CLASS = {1: CLASS_1_MATH_TOPICS, 2: CLASS_2_MATH_TOPICS, 3: CLASS_3_MATH_TOPICS}
 
 
+def remove_deprecated_topics(class_num: int, topics: dict) -> dict:
+    deprecated_topics = DEPRECATED_TOPICS_BY_CLASS.get(class_num, set())
+    return {topic_id: topic for topic_id, topic in topics.items() if topic_id not in deprecated_topics}
+
+
 def get_math_topics(class_num: int) -> dict:
-    return merge_db_topics_with_content("math", class_num, TOPICS_BY_CLASS.get(class_num, CLASS_1_MATH_TOPICS))
+    topics = merge_db_topics_with_content("math", class_num, TOPICS_BY_CLASS.get(class_num, CLASS_1_MATH_TOPICS))
+    return remove_deprecated_topics(class_num, topics)
 
 
 def get_math_topic(class_num: int, topic_id: str) -> dict | None:
-    return get_topic_or_none("math", class_num, topic_id, TOPICS_BY_CLASS.get(class_num, CLASS_1_MATH_TOPICS))
+    if topic_id in DEPRECATED_TOPICS_BY_CLASS.get(class_num, set()):
+        return None
+    return get_topic_or_none("math", class_num, topic_id, get_math_topics(class_num))
 
 
 def get_control_topic_id(question_number: Any, topics: dict, default: str) -> str:
     global control_topic_cursor
-    topic_ids = list(topics.keys())
+    topic_ids = [topic_id for topic_id in topics.keys() if topic_id != CONTROL_SLICE_TYPE]
     if not topic_ids:
         return default
     try:
@@ -57,6 +68,9 @@ def normalize_math_type(class_num: int, example_type: str) -> str:
     if not example_type:
         return "all"
     example_type = str(example_type).strip()
+    if example_type in DEPRECATED_TOPICS_BY_CLASS.get(class_num, set()):
+        logger.warning("Deprecated math topic requested and replaced: class=%s topic=%s", class_num, example_type)
+        return next(iter(get_math_topics(class_num).keys()), "numbers_to_1000")
     if class_num in {1, 2, 3}:
         topics = get_math_topics(class_num)
         allowed = set(topics.keys()) | {CONTROL_SLICE_TYPE, "all", "addsub", "muldiv", "+", "-", "*", "/", "simple_equation", "parentheses"}
@@ -100,6 +114,29 @@ def calculate_basic_answer(class_num: int, example_type: str, table_num: str, a:
     return math.calculate_answer(a_int, op, b_int)
 
 
+def is_valid_example(example: dict) -> bool:
+    if not isinstance(example, dict):
+        return False
+    if example.get("correct") is None:
+        return False
+    has_question = bool(str(example.get("question") or "").strip())
+    has_expr = bool(str(example.get("expr") or "").strip())
+    has_basic = all(key in example and example.get(key) is not None for key in ("a", "op", "b"))
+    return has_question or has_expr or has_basic
+
+
+def example_error_response(class_num: int, example_type: str, example: Any):
+    logger.error("Invalid generated math example: class=%s type=%s payload=%s", class_num, example_type, example)
+    return jsonify({"error": "invalid_generated_example", "message": "Не удалось сформировать корректный пример. Подробности записаны в лог."}), 500
+
+
+def jsonify_valid_example(example: dict, class_num: int, example_type: str):
+    example.setdefault("answer_type", "number")
+    if not is_valid_example(example):
+        return example_error_response(class_num, example_type, example)
+    return jsonify(example)
+
+
 @math_bp.route("/math")
 def math_menu():
     return render_template("math/menu.html", student=get_student(), classes=SUPPORTED_MATH_CLASSES, implemented_test_classes=IMPLEMENTED_TEST_CLASSES, implemented_learning_classes=IMPLEMENTED_LEARNING_CLASSES)
@@ -133,13 +170,7 @@ def math_learning_topic(topic_id: str):
 
 @math_bp.route("/math/test_setup")
 def math_test_setup():
-    return render_template(
-        "math/test_setup.html",
-        student=get_student(),
-        class_1_topics=build_topic_options(get_math_topics(1)),
-        class_2_topics=build_topic_options(get_math_topics(2)),
-        class_3_topics=build_topic_options(get_math_topics(3)),
-    )
+    return render_template("math/test_setup.html", student=get_student(), class_1_topics=build_topic_options(get_math_topics(1)), class_2_topics=build_topic_options(get_math_topics(2)), class_3_topics=build_topic_options(get_math_topics(3)))
 
 
 @math_bp.route("/math/test")
@@ -168,11 +199,10 @@ def generate_example():
             example_type = get_control_topic_id(data.get("question_number"), get_math_topics(1), "add_sub_to_20")
         math = MathExamplesClass1(example_type, table_num, used_questions=used_questions)
         example = math.generate_example()
-        if "question" in example and "correct" in example:
-            return jsonify(example)
-        example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
-        example["answer_type"] = "number"
-        return jsonify(example)
+        if "question" not in example and all(key in example for key in ("a", "op", "b")):
+            example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
+            example["answer_type"] = "number"
+        return jsonify_valid_example(example, class_num, example_type)
     if class_num == 2:
         if example_type == CONTROL_SLICE_TYPE:
             example_type = get_control_topic_id(data.get("question_number"), get_math_topics(2), "numbers_to_100")
@@ -180,12 +210,11 @@ def generate_example():
         example = math.generate_example()
         if "correct" not in example and all(key in example for key in ("a", "op", "b")):
             example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
-        example.setdefault("answer_type", "number")
-        return jsonify(example)
+        return jsonify_valid_example(example, class_num, example_type)
     if example_type == CONTROL_SLICE_TYPE:
         example_type = get_control_topic_id(data.get("question_number"), get_math_topics(3), "numbers_to_1000")
     if example_type in get_math_topics(3):
-        return jsonify(generate_math_class_3_topic_task(example_type))
+        return jsonify_valid_example(generate_math_class_3_topic_task(example_type), class_num, example_type)
     math = MathExamplesClass3(example_type, table_num)
     options = ["default"]
     if include_equation and any(op in allowed_ops for op in ["+", "-"]):
@@ -195,8 +224,8 @@ def generate_example():
     selected = random.choice(options)
     if selected == "equation":
         example = math.generate_simple_equation(allowed_ops=allowed_ops)
-        example["correct"] = example["x"]
-        return jsonify(example)
+        example["correct"] = example.get("x")
+        return jsonify_valid_example(example, class_num, example_type)
     if selected == "parentheses":
         example = math.generate_parentheses_example(allowed_ops=allowed_ops)
         expr = example.get("expr", "")
@@ -205,10 +234,11 @@ def generate_example():
         except SafeMathExpressionError:
             correct = None
         example["correct"] = correct
-        return jsonify(example)
+        return jsonify_valid_example(example, class_num, example_type)
     example = math.generate_example()
-    example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
-    return jsonify(example)
+    if all(key in example for key in ("a", "op", "b")):
+        example["correct"] = math.calculate_answer(example["a"], example["op"], example["b"])
+    return jsonify_valid_example(example, class_num, example_type)
 
 
 @math_bp.route("/check_answer", methods=["POST"])
@@ -238,5 +268,6 @@ def check_answer():
         return jsonify({"result": "error", "message": "Введите число"}), 400
     correct = calculate_basic_answer(class_num, example_type, data.get("table_num", "all"), data.get("a"), data.get("op"), data.get("b"))
     if correct is None:
+        logger.error("Cannot calculate answer: class=%s type=%s payload=%s", class_num, example_type, data)
         return jsonify({"result": "error", "message": "Некорректный пример"}), 400
     return jsonify({"result": "correct" if user_answer_num == correct else "incorrect", "correct_answer": correct})
