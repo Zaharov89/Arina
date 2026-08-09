@@ -21,6 +21,7 @@ arina
 007_seed_class_3_topics.sql
 008_merge_world_topics.sql
 009_seed_english_topics_2_3.sql
+010_disable_math_class_3_fractions.sql
 ```
 
 После этого приложение готово к регистрации пользователей, прохождению тестов и сохранению оценок.
@@ -68,6 +69,17 @@ WHERE t.class_number IN (2, 3)
 ORDER BY s.code, t.class_number, t.is_active DESC, t.title;
 ```
 
+### Проверить, что дроби в математике 3 класса отключены
+
+```sql
+SELECT t.class_number, t.code, t.title, t.is_active
+FROM arina.topics t
+JOIN arina.subjects s ON s.id = t.subject_id
+WHERE s.code = 'math'
+  AND t.class_number = 3
+  AND t.code = 'fractions_intro';
+```
+
 ### Проверить английские темы в дневнике
 
 ```sql
@@ -109,6 +121,7 @@ psql -U postgres -d arina_db -f database/migrations/006_seed_class_2_topics.sql
 psql -U postgres -d arina_db -f database/migrations/007_seed_class_3_topics.sql
 psql -U postgres -d arina_db -f database/migrations/008_merge_world_topics.sql
 psql -U postgres -d arina_db -f database/migrations/009_seed_english_topics_2_3.sql
+psql -U postgres -d arina_db -f database/migrations/010_disable_math_class_3_fractions.sql
 ```
 
 ## Что хранится в БД после миграций
