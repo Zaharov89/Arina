@@ -4,6 +4,9 @@ from Arina.math.class_3_topics import CLASS_3_MATH_TOPICS
 from Arina.utils.safe_math import safe_eval_math_expr, SafeMathExpressionError
 
 
+DEPRECATED_MATH_CLASS_3_TOPICS = {"fractions_intro"}
+
+
 def topic_title(topic: str) -> str:
     return CLASS_3_MATH_TOPICS.get(topic, {}).get("title") or CLASS_3_MATH_TOPICS.get(topic, {}).get("description") or "Математика 3 класс"
 
@@ -17,6 +20,8 @@ def choice_task(question: str, choices: list[str], correct: str, topic: str) -> 
 
 
 def generate_math_class_3_topic_task(topic_id: str) -> dict:
+    if topic_id in DEPRECATED_MATH_CLASS_3_TOPICS:
+        topic_id = "numbers_to_1000"
     generators = {
         "numbers_to_1000": generate_numbers_to_1000,
         "compare_to_1000": generate_compare_to_1000,
@@ -29,7 +34,6 @@ def generate_math_class_3_topic_task(topic_id: str) -> dict:
         "word_problems_3": generate_word_problem,
         "measurements_3": generate_measurements,
         "area_perimeter": generate_area_perimeter,
-        "fractions_intro": generate_fractions_intro,
     }
     return generators.get(topic_id, generate_numbers_to_1000)()
 
@@ -122,10 +126,3 @@ def generate_area_perimeter() -> dict:
     if random.choice([True, False]):
         return number_task(f"Найди площадь прямоугольника со сторонами {a} см и {b} см.", a * b, "area_perimeter")
     return number_task(f"Найди периметр прямоугольника со сторонами {a} см и {b} см.", 2 * (a + b), "area_perimeter")
-
-
-def generate_fractions_intro() -> dict:
-    return random.choice([
-        choice_task("Как называется одна из двух равных частей?", ["половина", "треть", "четверть"], "половина", "fractions_intro"),
-        choice_task("Как записать половину?", ["1/2", "1/3", "2/1"], "1/2", "fractions_intro"),
-    ])
