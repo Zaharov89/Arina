@@ -22,7 +22,7 @@ SUPPORTED_MATH_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1, 2, 3}
 CONTROL_SLICE_TYPE = "control_slice"
-DEPRECATED_TOPICS_BY_CLASS = {3: {"fractions_intro"}}
+DEPRECATED_TOPICS_BY_CLASS = {3: {"fractions_intro", "multiply_divide_by_10_100"}}
 control_topic_cursor = 0
 TOPICS_BY_CLASS = {1: CLASS_1_MATH_TOPICS, 2: CLASS_2_MATH_TOPICS, 3: CLASS_3_MATH_TOPICS}
 
