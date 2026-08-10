@@ -4,7 +4,7 @@ from Arina.math.class_3_topics import CLASS_3_MATH_TOPICS
 from Arina.utils.safe_math import safe_eval_math_expr, SafeMathExpressionError
 
 
-DEPRECATED_MATH_CLASS_3_TOPICS = {"fractions_intro"}
+DEPRECATED_MATH_CLASS_3_TOPICS = {"fractions_intro", "multiply_divide_by_10_100"}
 
 
 def topic_title(topic: str) -> str:
@@ -16,18 +16,19 @@ def number_task(question: str, correct: int, topic: str) -> dict:
 
 
 def choice_task(question: str, choices: list[str], correct: str, topic: str) -> dict:
-    return {"question": question, "answer_type": "choice", "choices": choices, "correct": correct, "topic": topic, "topic_title": topic_title(topic)}
+    shuffled_choices = [choice for choice in choices]
+    random.shuffle(shuffled_choices)
+    return {"question": question, "answer_type": "choice", "choices": shuffled_choices, "correct": correct, "topic": topic, "topic_title": topic_title(topic)}
 
 
 def generate_math_class_3_topic_task(topic_id: str) -> dict:
     if topic_id in DEPRECATED_MATH_CLASS_3_TOPICS:
-        topic_id = "numbers_to_1000"
+        topic_id = "multiplication_division_table" if topic_id == "multiply_divide_by_10_100" else "numbers_to_1000"
     generators = {
         "numbers_to_1000": generate_numbers_to_1000,
         "compare_to_1000": generate_compare_to_1000,
         "add_sub_to_1000": generate_add_sub_to_1000,
         "multiplication_division_table": generate_multiplication_division_table,
-        "multiply_divide_by_10_100": generate_multiply_divide_by_10_100,
         "division_with_remainder": generate_division_with_remainder,
         "order_of_operations_3": generate_order_of_operations,
         "equations_3": generate_equation,
@@ -72,14 +73,6 @@ def generate_multiplication_division_table() -> dict:
         return {"a": a, "op": "*", "b": b, "answer_type": "number", "correct": a * b, "topic": "multiplication_division_table", "topic_title": topic_title("multiplication_division_table")}
     product = a * b
     return {"a": product, "op": "/", "b": a, "answer_type": "number", "correct": b, "topic": "multiplication_division_table", "topic_title": topic_title("multiplication_division_table")}
-
-
-def generate_multiply_divide_by_10_100() -> dict:
-    n = random.randint(2, 90)
-    factor = random.choice([10, 100])
-    if random.choice([True, False]):
-        return {"a": n, "op": "*", "b": factor, "answer_type": "number", "correct": n * factor, "topic": "multiply_divide_by_10_100", "topic_title": topic_title("multiply_divide_by_10_100")}
-    return {"a": n * factor, "op": "/", "b": factor, "answer_type": "number", "correct": n, "topic": "multiply_divide_by_10_100", "topic_title": topic_title("multiply_divide_by_10_100")}
 
 
 def generate_division_with_remainder() -> dict:
