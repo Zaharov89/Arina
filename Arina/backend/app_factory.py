@@ -1,6 +1,8 @@
 import logging
 import os
+import random
 import time
+from typing import Any
 
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
@@ -26,6 +28,12 @@ FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 TEMPLATE_DIR = os.path.join(FRONTEND_DIR, "templates")
 STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
 AUTH_STATE_SCRIPT = '<script src="/static/js/auth-state.js" defer></script>'
+TASK_GENERATION_PATHS = {
+    "/generate_example",
+    "/russian/generate_task",
+    "/world/generate_task",
+    "/english/generate_task",
+}
 
 
 def create_app() -> Flask:
@@ -35,6 +43,7 @@ def create_app() -> Flask:
     register_request_logging(app)
     register_error_handlers(app)
     register_blueprints(app)
+    register_choice_shuffle(app)
     register_auth_script_injector(app)
     logger.info("Flask app created: template_dir=%s static_dir=%s", TEMPLATE_DIR, STATIC_DIR)
     return app
@@ -60,6 +69,39 @@ def register_request_logging(app: Flask) -> None:
         duration_ms = round((time.monotonic() - started_at) * 1000, 2) if started_at else None
         logger.info("HTTP request finished: method=%s path=%s status=%s duration_ms=%s", request.method, request.path, response.status_code, duration_ms)
         return response
+
+
+def register_choice_shuffle(app: Flask) -> None:
+    """Shuffle answer choices for generated tasks so the correct answer is not always first."""
+
+    @app.after_request
+    def shuffle_generated_task_choices(response):
+        if request.path not in TASK_GENERATION_PATHS or response.status_code != 200:
+            return response
+        if "application/json" not in response.headers.get("Content-Type", ""):
+            return response
+        payload = response.get_json(silent=True)
+        if payload is None:
+            return response
+        shuffle_choices(payload)
+        shuffled_response = jsonify(payload)
+        shuffled_response.status_code = response.status_code
+        return shuffled_response
+
+
+def shuffle_choices(payload: Any) -> None:
+    """Recursively shuffle any `choices` arrays in task JSON payloads."""
+    if isinstance(payload, dict):
+        choices = payload.get("choices")
+        if isinstance(choices, list) and len(choices) > 1:
+            shuffled = [choice for choice in choices]
+            random.shuffle(shuffled)
+            payload["choices"] = shuffled
+        for value in payload.values():
+            shuffle_choices(value)
+    elif isinstance(payload, list):
+        for item in payload:
+            shuffle_choices(item)
 
 
 def register_error_handlers(app: Flask) -> None:
