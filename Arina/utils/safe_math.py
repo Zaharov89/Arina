@@ -84,10 +84,6 @@ def _eval_node(node: ast.AST) -> Number:
             return node.value
         raise SafeMathExpressionError("Only numbers are allowed")
 
-    # Для совместимости со старыми версиями Python
-    if isinstance(node, ast.Num):
-        return node.n
-
     if isinstance(node, ast.BinOp):
         operator_type = type(node.op)
 
