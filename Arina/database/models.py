@@ -138,3 +138,45 @@ class AccountActivationToken(Base):
     used_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     user: Mapped[User] = relationship(back_populates="activation_tokens")
+
+
+class TypingTrainerProgress(Base):
+    __tablename__ = "typing_trainer_progress"
+    __table_args__ = (
+        UniqueConstraint("user_id", "layout_code", name="typing_trainer_progress_user_layout_key"),
+        {"schema": DATABASE_SCHEMA},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
+    layout_code: Mapped[str] = mapped_column(String(10), nullable=False)
+    animal_code: Mapped[str] = mapped_column(String(30), nullable=False, default="dino")
+    current_level: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    max_unlocked_level: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    total_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    best_accuracy: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, default=0)
+    best_speed_cpm: Mapped[Decimal] = mapped_column(Numeric(7, 2), nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class TypingTrainerAttempt(Base):
+    __tablename__ = "typing_trainer_attempts"
+    __table_args__ = {"schema": DATABASE_SCHEMA}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{DATABASE_SCHEMA}.users.id", ondelete="CASCADE"), nullable=False)
+    layout_code: Mapped[str] = mapped_column(String(10), nullable=False)
+    level_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    animal_code: Mapped[str] = mapped_column(String(30), nullable=False, default="dino")
+    total_letters: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    correct_letters: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    wrong_letters: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    missed_letters: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    early_hits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    late_hits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    accuracy_percent: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, default=0)
+    duration_seconds: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False, default=0)
+    speed_cpm: Mapped[Decimal] = mapped_column(Numeric(7, 2), nullable=False, default=0)
+    is_passed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())

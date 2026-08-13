@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Дополнительное обучение</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-container">
+        <h1 class="typing-title">Дополнительное обучение</h1>
+        <p class="typing-subtitle">Здесь будут программы, которые развивают полезные навыки и не входят напрямую в школьную программу.</p>
+        <div class="typing-card-grid">
+            <a class="typing-program-card" href="/typing-trainer?student={{ student }}">
+                <div class="typing-card-icon">⌨️</div>
+                <h2>Клавиатурный тренажёр</h2>
+                <p>Учимся печатать вслепую: правильная постановка рук, игровые уровни, скорость и точность.</p>
+                <span>Открыть тренажёр</span>
+            </a>
+        </div>
+        <div class="typing-actions"><a href="/subjects?student={{ student }}" class="typing-btn red-btn">Назад к предметам</a></div>
+    </div>
+</body>
+</html>

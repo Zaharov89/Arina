@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Клавиатурный тренажёр — уровень {{ level.level }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-game-container">
+        <h1 class="typing-title">{{ layout_title }} — уровень {{ level.level }}: {{ level.title }}</h1>
+        <div class="typing-game-stats">
+            <span>Жизни: <strong id="livesValue">3</strong></span>
+            <span>Правильно: <strong id="correctValue">0</strong></span>
+            <span>Точность: <strong id="accuracyValue">0%</strong></span>
+            <span>Скорость: <strong id="speedValue">0 зн/мин</strong></span>
+        </div>
+        <div class="typing-game-scene" id="gameScene">
+            <div class="typing-hit-zone"></div>
+            <div class="typing-animal" id="typingAnimal">{{ animal.emoji }}</div>
+            <div class="typing-ground"></div>
+        </div>
+        <div class="typing-message" id="typingMessage">Нажимай букву, когда кубик дошёл до зверька.</div>
+        <div class="typing-level-letters">Буквы уровня: {% for letter in level.letters %}<span>{{ letter }}</span>{% endfor %}</div>
+        <div class="typing-actions">
+            <a href="/typing-trainer/hand-position?layout={{ layout_code }}&animal={{ animal_code }}&student={{ student }}" class="typing-btn red-btn">К постановке рук</a>
+            <button type="button" class="typing-btn blue-btn" onclick="restartTypingGame()">Заново</button>
+        </div>
+    </div>
+    <script>
+        window.typingTrainerConfig = {
+            layoutCode: {{ layout_code | tojson }},
+            animalCode: {{ animal_code | tojson }},
+            level: {{ level | tojson }},
+            student: {{ student | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='typing_trainer/typing_trainer_game.js') }}"></script>
+</body>
+</html>

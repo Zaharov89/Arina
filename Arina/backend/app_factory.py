@@ -7,6 +7,7 @@ from typing import Any
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
 
+from Arina.additional.routes import additional_bp
 from Arina.backend.routes.english import english_bp
 from Arina.backend.routes.math import math_bp
 from Arina.backend.routes.pages import pages_bp
@@ -20,6 +21,7 @@ from Arina.config import FLASK_HOST, FLASK_PORT
 from Arina.database.routes import database_bp
 from Arina.logging_config import configure_logging
 from Arina.stats.routes import stats_bp
+from Arina.typing_trainer.routes import typing_trainer_bp
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +53,7 @@ def create_app() -> Flask:
 
 def register_blueprints(app: Flask) -> None:
     """Register all application blueprints in one place."""
-    blueprints = [pages_bp, english_bp, russian_bp, math_bp, world_bp, results_bp, vocabulary_api_bp, stats_bp, auth_bp, auth_me_bp, database_bp]
+    blueprints = [pages_bp, additional_bp, typing_trainer_bp, english_bp, russian_bp, math_bp, world_bp, results_bp, vocabulary_api_bp, stats_bp, auth_bp, auth_me_bp, database_bp]
     for blueprint in blueprints:
         app.register_blueprint(blueprint)
     logger.info("Flask blueprints registered: %s", ", ".join(app.blueprints.keys()))
