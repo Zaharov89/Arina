@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from Arina.database.models import TypingTrainerAttempt, TypingTrainerProgress
@@ -13,6 +13,7 @@ class TypingTrainerRepository:
         self.session = session
 
     def get_progress(self, user_id: int, layout_code: str) -> TypingTrainerProgress | None:
+        """Return user progress for one keyboard layout."""
         return self.session.scalar(
             select(TypingTrainerProgress).where(
                 TypingTrainerProgress.user_id == user_id,
@@ -21,6 +22,7 @@ class TypingTrainerRepository:
         )
 
     def get_or_create_progress(self, user_id: int, layout_code: str, animal_code: str = "dino") -> TypingTrainerProgress:
+        """Return existing progress or create first progress row for a layout."""
         progress = self.get_progress(user_id, layout_code)
         if progress:
             return progress
@@ -30,10 +32,48 @@ class TypingTrainerRepository:
         return progress
 
     def update_animal(self, user_id: int, layout_code: str, animal_code: str) -> TypingTrainerProgress:
+        """Save selected game character for a layout."""
         progress = self.get_or_create_progress(user_id, layout_code, animal_code)
         progress.animal_code = animal_code
         self.session.flush()
         return progress
+
+    def get_recent_attempts(self, user_id: int, layout_code: str, limit: int = 10) -> list[TypingTrainerAttempt]:
+        """Return recent attempts for the selected keyboard layout."""
+        return list(
+            self.session.scalars(
+                select(TypingTrainerAttempt)
+                .where(
+                    TypingTrainerAttempt.user_id == user_id,
+                    TypingTrainerAttempt.layout_code == layout_code,
+                )
+                .order_by(desc(TypingTrainerAttempt.created_at), desc(TypingTrainerAttempt.id))
+                .limit(limit)
+            )
+        )
+
+    def get_best_attempts_by_level(self, user_id: int, layout_code: str) -> dict[int, TypingTrainerAttempt]:
+        """Return best saved attempt for every level by accuracy and speed."""
+        attempts = list(
+            self.session.scalars(
+                select(TypingTrainerAttempt)
+                .where(
+                    TypingTrainerAttempt.user_id == user_id,
+                    TypingTrainerAttempt.layout_code == layout_code,
+                )
+                .order_by(
+                    TypingTrainerAttempt.level_number,
+                    desc(TypingTrainerAttempt.is_passed),
+                    desc(TypingTrainerAttempt.accuracy_percent),
+                    desc(TypingTrainerAttempt.speed_cpm),
+                    desc(TypingTrainerAttempt.created_at),
+                )
+            )
+        )
+        best_by_level: dict[int, TypingTrainerAttempt] = {}
+        for attempt in attempts:
+            best_by_level.setdefault(attempt.level_number, attempt)
+        return best_by_level
 
     def create_attempt(
         self,
@@ -52,6 +92,7 @@ class TypingTrainerRepository:
         speed_cpm: Decimal,
         is_passed: bool,
     ) -> TypingTrainerAttempt:
+        """Create one completed level attempt."""
         attempt = TypingTrainerAttempt(
             user_id=user_id,
             layout_code=layout_code,
@@ -74,6 +115,7 @@ class TypingTrainerRepository:
 
     @staticmethod
     def apply_attempt_to_progress(progress: TypingTrainerProgress, level_number: int, accuracy_percent: Decimal, speed_cpm: Decimal, is_passed: bool, max_level: int) -> None:
+        """Update aggregate progress after saving one attempt."""
         progress.total_attempts += 1
         if accuracy_percent > progress.best_accuracy:
             progress.best_accuracy = accuracy_percent
