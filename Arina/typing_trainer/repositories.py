@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
 from Arina.database.models import TypingTrainerAttempt, TypingTrainerProgress
@@ -71,6 +71,42 @@ class TypingTrainerRepository:
         self.session.add(attempt)
         self.session.flush()
         return attempt
+
+    def get_recent_attempts(self, user_id: int, layout_code: str, limit: int = 8) -> list[TypingTrainerAttempt]:
+        return list(
+            self.session.scalars(
+                select(TypingTrainerAttempt)
+                .where(
+                    TypingTrainerAttempt.user_id == user_id,
+                    TypingTrainerAttempt.layout_code == layout_code,
+                )
+                .order_by(desc(TypingTrainerAttempt.created_at))
+                .limit(limit)
+            )
+        )
+
+    def get_best_attempts_by_level(self, user_id: int, layout_code: str) -> dict[int, dict]:
+        rows = self.session.execute(
+            select(
+                TypingTrainerAttempt.level_number,
+                func.max(TypingTrainerAttempt.accuracy_percent).label("best_accuracy"),
+                func.max(TypingTrainerAttempt.speed_cpm).label("best_speed"),
+                func.bool_or(TypingTrainerAttempt.is_passed).label("is_passed"),
+            )
+            .where(
+                TypingTrainerAttempt.user_id == user_id,
+                TypingTrainerAttempt.layout_code == layout_code,
+            )
+            .group_by(TypingTrainerAttempt.level_number)
+        ).all()
+        return {
+            int(row.level_number): {
+                "best_accuracy": float(row.best_accuracy or 0),
+                "best_speed_cpm": float(row.best_speed or 0),
+                "is_passed": bool(row.is_passed),
+            }
+            for row in rows
+        }
 
     @staticmethod
     def apply_attempt_to_progress(progress: TypingTrainerProgress, level_number: int, accuracy_percent: Decimal, speed_cpm: Decimal, is_passed: bool, max_level: int) -> None:
