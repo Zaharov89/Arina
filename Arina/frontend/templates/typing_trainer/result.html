@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат уровня — Клавиатурный тренажёр</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-container">
+        <h1 class="typing-title">Результат уровня</h1>
+        <div id="typingResultCard" class="typing-info-card">Загружаю результат...</div>
+        <div class="typing-actions">
+            <a href="/typing-trainer/levels?layout={{ layout_code }}&student={{ student }}" class="typing-btn blue-btn">К уровням</a>
+            <a id="typingRepeatLink" href="/typing-trainer/game?layout={{ layout_code }}&animal={{ animal_code }}&level=1&student={{ student }}" class="typing-btn orange-btn">Повторить уровень</a>
+            <a id="typingNextLink" href="/typing-trainer/levels?layout={{ layout_code }}&student={{ student }}" class="typing-btn green-btn" style="display:none;">Следующий уровень</a>
+        </div>
+    </div>
+    <script>
+        window.typingResultConfig = {
+            layoutCode: {{ layout_code | tojson }},
+            animalCode: {{ animal_code | tojson }},
+            student: {{ student | tojson }},
+            animal: {{ animal | tojson }},
+            layoutTitle: {{ layout_title | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='typing_trainer/typing_trainer_result.js') }}"></script>
+</body>
+</html>
