@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Постановка рук</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-container">
+        <h1 class="typing-title">Поставь руки правильно</h1>
+        <p class="typing-subtitle">{{ layout_title }}. {{ hand_position.hint }}</p>
+        <div class="typing-info-card">
+            <h2>Левая рука</h2>
+            <div class="finger-grid">{% for finger, letter in hand_position.left %}<div class="finger-card"><strong>{{ letter }}</strong><span>{{ finger }}</span></div>{% endfor %}</div>
+            <h2>Правая рука</h2>
+            <div class="finger-grid">{% for finger, letter in hand_position.right %}<div class="finger-card"><strong>{{ letter }}</strong><span>{{ finger }}</span></div>{% endfor %}</div>
+            <h2>Домашний ряд</h2>
+            <div class="keyboard-row">{% for letter in hand_position.home_row %}<span>{{ letter }}</span>{% endfor %}</div>
+        </div>
+        <div class="typing-animal-preview"><span>{{ animal.emoji }}</span><p>{{ animal.title }} готовится к забегу!</p></div>
+        <div class="typing-actions">
+            <a href="/typing-trainer/animal?layout={{ layout_code }}&student={{ student }}" class="typing-btn red-btn">Назад</a>
+            <a href="/typing-trainer/game?layout={{ layout_code }}&animal={{ animal_code }}&level=1&student={{ student }}" class="typing-btn green-btn">Начать уровень 1</a>
+        </div>
+    </div>
+</body>
+</html>
