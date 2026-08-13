@@ -3,14 +3,16 @@
 .typing-title { margin: 30px 0 10px; text-align: center; color: #27407a; font-size: 34px; font-weight: 900; }
 .typing-subtitle { max-width: 760px; margin: 0 auto 24px; text-align: center; color: #53627a; font-size: 17px; line-height: 1.45; }
 .typing-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin: 24px 0; }
-.typing-program-card { min-height: 210px; padding: 24px; border: 2px solid #d7e7fb; border-radius: 20px; background: #fff; color: #27407a; text-decoration: none; box-shadow: 0 8px 28px rgba(48,100,150,.13); cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
-.typing-program-card:hover { transform: translateY(-3px); border-color: #5d92e0; box-shadow: 0 14px 34px rgba(48,100,150,.18); }
+.typing-program-card { min-height: 210px; padding: 24px; border: 2px solid #d7e7fb; border-radius: 20px; background: #fff; color: #27407a; text-decoration: none; box-shadow: 0 8px 28px rgba(48,100,150,.13); cursor: default; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; transition: none; }
+.typing-program-card:hover { transform: none; border-color: #d7e7fb; box-shadow: 0 8px 28px rgba(48,100,150,.13); }
 .typing-program-card h2 { margin: 8px 0; color: #27407a; font-size: 24px; }
 .typing-program-card p { color: #64748b; line-height: 1.4; }
 .typing-program-card span { color: #2f80ed; font-weight: 900; }
+.typing-card-button-wrap { width: 100%; display: flex; justify-content: center; margin-top: 18px; }
 .typing-card-icon { font-size: 36px; font-weight: 900; }
 .animal-grid .typing-program-card { align-items: center; text-align: center; }
-.animal-card { border: 2px solid #d7e7fb; width: 100%; }
+.animal-card { border: 2px solid #d7e7fb; width: 100%; cursor: pointer; }
+.animal-card:hover { border-color: #5d92e0; box-shadow: 0 14px 34px rgba(48,100,150,.18); }
 .animal-emoji { font-size: 72px; }
 .typing-info-card, .typing-progress-card, .typing-result-page { margin: 22px auto; padding: 24px; border-radius: 20px; background: #fff; box-shadow: 0 8px 28px rgba(48,100,150,.13); color: #27407a; }
 .typing-info-card h2 { margin: 16px 0 12px; color: #27407a; }
@@ -57,9 +59,35 @@
 .typing-hit-zone { position: absolute; left: 190px; bottom: 76px; width: 86px; height: 100px; border: 4px dashed rgba(47,128,237,.65); border-radius: 18px; z-index: 2; }
 .letter-block { position: absolute; bottom: 92px; width: 60px; height: 60px; border-radius: 14px; background: #fff4d6; border: 3px solid #f2994a; color: #8a5a00; font-size: 34px; font-weight: 900; display: flex; align-items: center; justify-content: center; z-index: 3; box-shadow: 0 4px 16px rgba(0,0,0,.14); }
 .letter-block.chunk-block { width: auto; min-width: 82px; padding: 0 12px; font-size: 28px; letter-spacing: 1px; }
+.typed-part { color: #188038; opacity: .55; }
 .letter-block.success { background: #d5f4e6; border-color: #188038; color: #137333; }
 .letter-block.fail { background: #ffe0e0; border-color: #d93025; color: #a50e0e; }
 .typing-message { margin: 18px 0; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 4px 18px rgba(48,100,150,.10); color: #27407a; font-weight: 900; text-align: center; }
 .typing-level-letters { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; color: #27407a; font-weight: 800; }
 .typing-result-card { margin-top: 20px; padding: 20px; border-radius: 20px; background: #fff; box-shadow: 0 8px 28px rgba(48,100,150,.13); text-align: center; }
+.typing-keyboard-practice, .typing-game-helper { display: grid; grid-template-columns: 150px minmax(0, 1fr) 150px; gap: 16px; align-items: center; margin: 22px auto; }
+.typing-game-helper { padding: 16px; border-radius: 20px; background: #e9f7ff; box-shadow: 0 8px 28px rgba(48,100,150,.10); }
+.typing-keyboard-visual { padding: 14px; border-radius: 14px; background: #dfe8f2; border: 2px solid #bdd0e8; box-shadow: 0 6px 18px rgba(48,100,150,.16); }
+.typing-keyboard-row { display: flex; justify-content: center; gap: 4px; margin: 4px 0; flex-wrap: nowrap; }
+.typing-key { min-width: 38px; height: 36px; padding: 0 7px; border-radius: 6px; border: 1px solid #7f93aa; background: #f6f7fb; color: #26354a; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
+.typing-space-key { min-width: 220px; }
+.finger-l-pinky, .finger-r-pinky { background: #ffd7d7; }
+.finger-l-ring, .finger-r-ring { background: #ffe6a8; }
+.finger-l-middle, .finger-r-middle { background: #caf7cf; }
+.finger-l-index, .finger-r-index { background: #bce8ff; }
+.index-key { background: #ff3030; color: #fff; border-color: #b80000; }
+.active-key { outline: 4px solid #ff3030; outline-offset: 2px; transform: translateY(-2px); box-shadow: 0 0 0 4px rgba(255,48,48,.18); }
+.typing-hand { position: relative; width: 130px; height: 130px; border-radius: 55% 55% 48% 48%; background: #fff; border: 6px solid #111; box-shadow: 0 5px 14px rgba(0,0,0,.12); }
+.typing-hand.left-hand { transform: rotate(-12deg); justify-self: end; }
+.typing-hand.right-hand { transform: rotate(12deg); justify-self: start; }
+.typing-hand::before, .typing-hand::after { content: ''; position: absolute; top: -30px; width: 24px; height: 74px; border-radius: 18px; border: 5px solid #111; background: #76d079; }
+.typing-hand.left-hand::before { left: 8px; transform: rotate(-35deg); background: #e593a3; }
+.typing-hand.left-hand::after { right: 6px; transform: rotate(30deg); background: #65c6c8; }
+.typing-hand.right-hand::before { left: 8px; transform: rotate(-30deg); background: #b86bd1; }
+.typing-hand.right-hand::after { right: 6px; transform: rotate(35deg); background: #76d079; }
+.finger-dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: transparent; box-shadow: none; }
+.dot-l-pinky { left: 18px; top: 38px; } .dot-l-ring { left: 38px; top: 22px; } .dot-l-middle { left: 62px; top: 18px; } .dot-l-index { left: 86px; top: 34px; }
+.dot-r-index { left: 26px; top: 34px; } .dot-r-middle { left: 52px; top: 18px; } .dot-r-ring { left: 76px; top: 22px; } .dot-r-pinky { left: 96px; top: 38px; }
+.active-finger { background: #ff3030; box-shadow: 0 0 0 5px rgba(255,48,48,.2); }
+@media (max-width: 900px) { .typing-keyboard-practice, .typing-game-helper { grid-template-columns: 1fr; } .typing-hand.left-hand, .typing-hand.right-hand { justify-self: center; } .typing-keyboard-row { flex-wrap: wrap; } }
 @media (max-width: 700px) { .typing-animal { left: 110px; } .typing-hit-zone { left: 132px; } .typing-game-scene { height: 300px; } .typing-attempt-row { grid-template-columns: 1fr 1fr; } }
