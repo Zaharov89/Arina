@@ -21,6 +21,26 @@
             <div class="typing-animal" id="typingAnimal">{{ animal.emoji }}</div>
             <div class="typing-ground"></div>
         </div>
+        <div class="typing-game-helper">
+            <div class="typing-hand left-hand" id="leftGameHand" aria-label="Левая рука">
+                <span class="finger-dot dot-l-pinky" data-finger="l-pinky"></span><span class="finger-dot dot-l-ring" data-finger="l-ring"></span><span class="finger-dot dot-l-middle" data-finger="l-middle"></span><span class="finger-dot dot-l-index" data-finger="l-index"></span>
+            </div>
+            <div class="typing-keyboard-visual game-keyboard" id="typingGameKeyboard" data-layout="{{ layout_code }}">
+                {% if layout_code == 'en' %}
+                    <div class="typing-keyboard-row"><span class="typing-key" data-key="Q">Q</span><span class="typing-key" data-key="W">W</span><span class="typing-key" data-key="E">E</span><span class="typing-key" data-key="R">R</span><span class="typing-key" data-key="T">T</span><span class="typing-key" data-key="Y">Y</span><span class="typing-key" data-key="U">U</span><span class="typing-key" data-key="I">I</span><span class="typing-key" data-key="O">O</span><span class="typing-key" data-key="P">P</span></div>
+                    <div class="typing-keyboard-row"><span class="typing-key finger-l-pinky" data-key="A">A</span><span class="typing-key finger-l-ring" data-key="S">S</span><span class="typing-key finger-l-middle" data-key="D">D</span><span class="typing-key finger-l-index index-key" data-key="F">F</span><span class="typing-key finger-r-index index-key" data-key="J">J</span><span class="typing-key finger-r-middle" data-key="K">K</span><span class="typing-key finger-r-ring" data-key="L">L</span><span class="typing-key finger-r-pinky" data-key=";">;</span></div>
+                    <div class="typing-keyboard-row"><span class="typing-key" data-key="Z">Z</span><span class="typing-key" data-key="X">X</span><span class="typing-key" data-key="C">C</span><span class="typing-key" data-key="V">V</span><span class="typing-key" data-key="B">B</span><span class="typing-key" data-key="N">N</span><span class="typing-key" data-key="M">M</span></div>
+                {% else %}
+                    <div class="typing-keyboard-row"><span class="typing-key" data-key="Й">Й</span><span class="typing-key" data-key="Ц">Ц</span><span class="typing-key" data-key="У">У</span><span class="typing-key" data-key="К">К</span><span class="typing-key" data-key="Е">Е</span><span class="typing-key" data-key="Н">Н</span><span class="typing-key" data-key="Г">Г</span><span class="typing-key" data-key="Ш">Ш</span><span class="typing-key" data-key="Щ">Щ</span><span class="typing-key" data-key="З">З</span><span class="typing-key" data-key="Х">Х</span></div>
+                    <div class="typing-keyboard-row"><span class="typing-key finger-l-pinky" data-key="Ф">Ф</span><span class="typing-key finger-l-ring" data-key="Ы">Ы</span><span class="typing-key finger-l-middle" data-key="В">В</span><span class="typing-key finger-l-index index-key" data-key="А">А</span><span class="typing-key finger-r-index index-key" data-key="О">О</span><span class="typing-key finger-r-middle" data-key="Л">Л</span><span class="typing-key finger-r-ring" data-key="Д">Д</span><span class="typing-key finger-r-pinky" data-key="Ж">Ж</span><span class="typing-key finger-r-pinky" data-key="Э">Э</span></div>
+                    <div class="typing-keyboard-row"><span class="typing-key" data-key="Я">Я</span><span class="typing-key" data-key="Ч">Ч</span><span class="typing-key" data-key="С">С</span><span class="typing-key" data-key="М">М</span><span class="typing-key" data-key="И">И</span><span class="typing-key" data-key="Т">Т</span><span class="typing-key" data-key="Ь">Ь</span><span class="typing-key" data-key="Б">Б</span><span class="typing-key" data-key="Ю">Ю</span></div>
+                {% endif %}
+                <div class="typing-keyboard-row"><span class="typing-key typing-space-key" data-key=" ">Пробел</span></div>
+            </div>
+            <div class="typing-hand right-hand" id="rightGameHand" aria-label="Правая рука">
+                <span class="finger-dot dot-r-index" data-finger="r-index"></span><span class="finger-dot dot-r-middle" data-finger="r-middle"></span><span class="finger-dot dot-r-ring" data-finger="r-ring"></span><span class="finger-dot dot-r-pinky" data-finger="r-pinky"></span>
+            </div>
+        </div>
         <div class="typing-message" id="typingMessage">Нажимай букву, когда кубик дошёл до зверька.</div>
         <div class="typing-level-letters">Буквы уровня: {% for letter in level.letters %}<span>{{ letter }}</span>{% endfor %}</div>
         <div class="typing-actions">
