@@ -12,18 +12,22 @@
         <h1 class="typing-title">Клавиатурный тренажёр</h1>
         <p class="typing-subtitle">Учимся печатать вслепую в игровой форме: пальцы стоят на домашнем ряду, зверёк бежит, а кубики с буквами нужно нажимать вовремя.</p>
         <div class="typing-card-grid">
-            <a class="typing-program-card" href="/typing-trainer/layout?mode=learn&student={{ student }}">
+            <div class="typing-program-card">
                 <div class="typing-card-icon">⌨️</div>
                 <h2>Начать обучение</h2>
                 <p>Обучающий путь: раскладка, зверёк, постановка рук и первый уровень.</p>
-                <span>Старт</span>
-            </a>
-            <a class="typing-program-card" href="/typing-trainer/levels?layout=ru&student={{ student }}">
+                <div class="typing-card-button-wrap">
+                    <a class="typing-btn blue-btn" href="/typing-trainer/layout?mode=learn&student={{ student }}">Старт</a>
+                </div>
+            </div>
+            <div class="typing-program-card">
                 <div class="typing-card-icon">🏆</div>
                 <h2>Мои уровни</h2>
                 <p>Результаты, открытые уровни, лучшие показатели и последние попытки.</p>
-                <span>Открыть</span>
-            </a>
+                <div class="typing-card-button-wrap">
+                    <a class="typing-btn blue-btn" href="/typing-trainer/levels?layout=ru&student={{ student }}">Открыть</a>
+                </div>
+            </div>
         </div>
         <div class="typing-info-card">
             <h2>Что будем тренировать</h2>
