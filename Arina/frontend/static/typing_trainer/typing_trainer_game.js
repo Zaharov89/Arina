@@ -13,6 +13,7 @@ let missed = 0;
 let earlyHits = 0;
 let lateHits = 0;
 let spawned = 0;
+let currentTargetIndex = 0;
 let finished = false;
 let currentBlock = null;
 let startTime = Date.now();
@@ -22,6 +23,21 @@ const hitZoneRight = 282;
 const startX = 1050;
 const speedPx = 8;
 const frameMs = 24;
+
+const FINGER_BY_KEY = {
+    ru: {
+        'Ф': 'l-pinky', 'Ы': 'l-ring', 'В': 'l-middle', 'А': 'l-index',
+        'О': 'r-index', 'Л': 'r-middle', 'Д': 'r-ring', 'Ж': 'r-pinky', 'Э': 'r-pinky',
+        'П': 'l-pinky', 'Р': 'l-index', 'К': 'l-middle', 'Е': 'l-index',
+        'М': 'l-index', 'И': 'r-index', 'С': 'l-middle', 'Т': 'r-index'
+    },
+    en: {
+        'A': 'l-pinky', 'S': 'l-ring', 'D': 'l-middle', 'F': 'l-index',
+        'J': 'r-index', 'K': 'r-middle', 'L': 'r-ring', ';': 'r-pinky',
+        'E': 'l-middle', 'I': 'r-middle', 'R': 'l-index', 'U': 'r-index',
+        'T': 'l-index', 'Y': 'r-index', 'C': 'l-middle', 'M': 'r-index'
+    }
+};
 
 function getAuthStorage() {
     if (localStorage.getItem('arinaAccessToken')) return localStorage;
@@ -59,6 +75,37 @@ function randomTarget() {
     return targets[Math.floor(Math.random() * targets.length)];
 }
 
+function getExpectedChar() {
+    if (!currentBlock) return '';
+    const target = currentBlock.dataset.letter || '';
+    return target.charAt(currentTargetIndex).toUpperCase();
+}
+
+function clearKeyboardHighlights() {
+    document.querySelectorAll('.typing-key.active-key').forEach(key => key.classList.remove('active-key'));
+    document.querySelectorAll('.finger-dot.active-finger').forEach(dot => dot.classList.remove('active-finger'));
+}
+
+function highlightExpectedKey() {
+    clearKeyboardHighlights();
+    const expected = getExpectedChar();
+    if (!expected) return;
+    const keyElement = document.querySelector(`.typing-key[data-key="${CSS.escape(expected)}"]`);
+    if (keyElement) keyElement.classList.add('active-key');
+    const finger = (FINGER_BY_KEY[config.layoutCode] || {})[expected];
+    if (finger) {
+        document.querySelectorAll(`.finger-dot[data-finger="${finger}"]`).forEach(dot => dot.classList.add('active-finger'));
+    }
+}
+
+function renderTargetProgress() {
+    if (!currentBlock) return;
+    const target = currentBlock.dataset.letter || '';
+    const done = target.slice(0, currentTargetIndex);
+    const rest = target.slice(currentTargetIndex);
+    currentBlock.innerHTML = `<span class="typed-part">${done}</span><span>${rest}</span>`;
+}
+
 function updateStats() {
     const totalAnswered = correct + wrong + missed;
     const accuracy = totalAnswered ? Math.round((correct / totalAnswered) * 100) : 0;
@@ -84,8 +131,11 @@ function createBlock() {
     if (block.textContent.length > 1) block.classList.add('chunk-block');
     scene.appendChild(block);
     currentBlock = block;
+    currentTargetIndex = 0;
     spawned += 1;
     message.textContent = `Нажми: ${block.dataset.letter}`;
+    renderTargetProgress();
+    highlightExpectedKey();
     animateBlock(block);
 }
 
@@ -105,9 +155,11 @@ function animateBlock(block) {
 
 function removeBlock(block) {
     clearInterval(blockTimer);
+    clearKeyboardHighlights();
     setTimeout(() => {
         if (block && block.parentElement) block.remove();
         currentBlock = null;
+        currentTargetIndex = 0;
         if (!finished) setTimeout(createBlock, 260);
     }, 180);
 }
@@ -144,7 +196,7 @@ function missBlock(block) {
 function handleKey(event) {
     if (finished || !currentBlock) return;
     const pressed = event.key.length === 1 ? event.key.toUpperCase() : event.key;
-    const expected = currentBlock.dataset.letter.toUpperCase();
+    const expected = getExpectedChar();
     const x = Number(currentBlock.dataset.x);
     if (pressed !== expected) {
         failBlock(currentBlock, 'wrong');
@@ -158,7 +210,15 @@ function handleKey(event) {
         failBlock(currentBlock, 'late');
         return;
     }
-    hitBlock(currentBlock);
+    currentTargetIndex += 1;
+    const target = currentBlock.dataset.letter || '';
+    if (currentTargetIndex >= target.length) {
+        hitBlock(currentBlock);
+        return;
+    }
+    renderTargetProgress();
+    highlightExpectedKey();
+    message.textContent = `Продолжай: ${target.slice(currentTargetIndex)}`;
 }
 
 async function saveAttempt(result) {
@@ -176,6 +236,7 @@ async function finishGame() {
     if (finished) return;
     finished = true;
     clearInterval(blockTimer);
+    clearKeyboardHighlights();
     const total = correct + wrong + missed;
     const durationSeconds = Math.max((Date.now() - startTime) / 1000, 1);
     const accuracy = total ? Math.round((correct / total) * 100) : 0;
