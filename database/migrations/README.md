@@ -23,9 +23,10 @@ arina
 009_seed_english_topics_2_3.sql
 010_disable_math_class_3_fractions.sql
 011_disable_math_class_3_multiply_divide_by_10_100.sql
+012_create_typing_trainer_tables.sql
 ```
 
-После этого приложение готово к регистрации пользователей, прохождению тестов и сохранению оценок.
+После этого приложение готово к регистрации пользователей, прохождению тестов, сохранению оценок и сохранению прогресса клавиатурного тренажёра.
 
 ## Важное про 003
 
@@ -68,6 +69,22 @@ FROM arina.topics t
 JOIN arina.subjects s ON s.id = t.subject_id
 WHERE t.class_number IN (2, 3)
 ORDER BY s.code, t.class_number, t.is_active DESC, t.title;
+```
+
+### Проверить клавиатурный тренажёр
+
+```sql
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'arina'
+  AND table_name IN ('typing_trainer_progress', 'typing_trainer_attempts')
+ORDER BY table_name;
+```
+
+```sql
+SELECT user_id, layout_code, animal_code, current_level, max_unlocked_level, total_attempts, best_accuracy, best_speed_cpm
+FROM arina.typing_trainer_progress
+ORDER BY updated_at DESC;
 ```
 
 ### Проверить, что дроби и умножение/деление на 10/100 в математике 3 класса отключены
@@ -124,6 +141,7 @@ psql -U postgres -d arina_db -f database/migrations/008_merge_world_topics.sql
 psql -U postgres -d arina_db -f database/migrations/009_seed_english_topics_2_3.sql
 psql -U postgres -d arina_db -f database/migrations/010_disable_math_class_3_fractions.sql
 psql -U postgres -d arina_db -f database/migrations/011_disable_math_class_3_multiply_divide_by_10_100.sql
+psql -U postgres -d arina_db -f database/migrations/012_create_typing_trainer_tables.sql
 ```
 
 ## Что хранится в БД после миграций
@@ -141,8 +159,10 @@ password_reset_tokens
 password_history
 russian_vocabulary_words
 english_vocabulary_words
+typing_trainer_progress
+typing_trainer_attempts
 ```
 
 ## Что остаётся в коде
 
-В коде остаётся генерация заданий, логика проверки ответов, правила обучения и озвучка вопросов/слов.
+В коде остаётся генерация заданий, логика проверки ответов, правила обучения, озвучка вопросов/слов и игровая логика клавиатурного тренажёра.
