@@ -12,8 +12,16 @@
         <h1 class="typing-title">Поставь руки правильно</h1>
         <p class="typing-subtitle">{{ layout_title }}. Красным отмечены клавиши указательных пальцев. Остальные клавиши домашнего ряда подсвечены по пальцам.</p>
         <div class="typing-keyboard-practice" data-layout="{{ layout_code }}">
-            <div class="typing-hand left-hand" aria-label="Левая рука">
-                <span class="finger-dot dot-l-pinky"></span><span class="finger-dot dot-l-ring"></span><span class="finger-dot dot-l-middle"></span><span class="finger-dot dot-l-index"></span>
+            <div class="typing-hand-svg-wrap" aria-label="Левая рука">
+                <svg class="typing-hand-svg left-hand-svg" viewBox="0 0 260 260" role="img">
+                    <path class="hand-palm" d="M72 122 C58 139 53 163 61 189 C72 225 101 243 136 239 C174 235 201 209 205 172 C208 142 196 120 175 104 C145 82 97 91 72 122 Z"/>
+                    <path class="finger finger-l-pinky" d="M65 125 C47 106 32 83 34 67 C35 56 45 49 55 55 C68 63 78 91 86 114 Z"/>
+                    <path class="finger finger-l-ring" d="M91 106 C80 78 75 47 84 34 C91 24 104 25 110 36 C119 52 115 84 111 108 Z"/>
+                    <path class="finger finger-l-middle" d="M121 101 C118 67 120 34 132 23 C142 14 156 19 159 33 C163 52 150 83 140 106 Z"/>
+                    <path class="finger finger-l-index active-finger" d="M151 112 C165 82 181 56 196 52 C209 49 219 59 216 72 C212 90 188 112 169 127 Z"/>
+                    <path class="finger thumb-finger" d="M69 174 C48 176 25 171 17 158 C10 147 16 136 29 134 C47 132 66 146 81 158 Z"/>
+                    <circle class="finger-marker left-index-marker" cx="165" cy="121" r="8"/>
+                </svg>
             </div>
             <div class="typing-keyboard-visual">
                 {% if layout_code == 'en' %}
@@ -27,8 +35,16 @@
                 {% endif %}
                 <div class="typing-keyboard-row"><span class="typing-key typing-space-key">Пробел</span></div>
             </div>
-            <div class="typing-hand right-hand" aria-label="Правая рука">
-                <span class="finger-dot dot-r-index"></span><span class="finger-dot dot-r-middle"></span><span class="finger-dot dot-r-ring"></span><span class="finger-dot dot-r-pinky"></span>
+            <div class="typing-hand-svg-wrap" aria-label="Правая рука">
+                <svg class="typing-hand-svg right-hand-svg" viewBox="0 0 260 260" role="img">
+                    <path class="hand-palm" d="M188 122 C202 139 207 163 199 189 C188 225 159 243 124 239 C86 235 59 209 55 172 C52 142 64 120 85 104 C115 82 163 91 188 122 Z"/>
+                    <path class="finger finger-r-pinky" d="M195 125 C213 106 228 83 226 67 C225 56 215 49 205 55 C192 63 182 91 174 114 Z"/>
+                    <path class="finger finger-r-ring" d="M169 106 C180 78 185 47 176 34 C169 24 156 25 150 36 C141 52 145 84 149 108 Z"/>
+                    <path class="finger finger-r-middle" d="M139 101 C142 67 140 34 128 23 C118 14 104 19 101 33 C97 52 110 83 120 106 Z"/>
+                    <path class="finger finger-r-index active-finger" d="M109 112 C95 82 79 56 64 52 C51 49 41 59 44 72 C48 90 72 112 91 127 Z"/>
+                    <path class="finger thumb-finger" d="M191 174 C212 176 235 171 243 158 C250 147 244 136 231 134 C213 132 194 146 179 158 Z"/>
+                    <circle class="finger-marker right-index-marker" cx="95" cy="121" r="8"/>
+                </svg>
             </div>
         </div>
         <div class="typing-info-card">
