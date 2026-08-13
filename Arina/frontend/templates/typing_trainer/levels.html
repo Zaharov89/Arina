@@ -2,21 +2,24 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Клавиатурный тренажёр — уровни</title>
+    <title>Клавиатурный тренажёр — мои уровни</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
 </head>
 <body>
     <div id="dateTimeBar"></div>
     <div class="container typing-container">
-        <h1 class="typing-title">{{ layout_title }}</h1>
-        <p class="typing-subtitle">Выбирай открытый уровень. Закрытые уровни откроются после прохождения предыдущих.</p>
+        <div class="typing-top-left-actions">
+            <a href="/typing-trainer?student={{ student }}" class="typing-btn red-btn">Назад</a>
+        </div>
+        <h1 class="typing-title">Мои уровни — {{ layout_title }}</h1>
+        <p class="typing-subtitle">Здесь показаны результаты прохождения, открытые уровни, лучшие показатели и последние попытки.</p>
+        <div class="typing-layout-switch">
+            <a href="/typing-trainer/levels?layout=ru&student={{ student }}" class="typing-btn {% if layout_code == 'ru' %}green-btn{% else %}blue-btn{% endif %}">Кириллица</a>
+            <a href="/typing-trainer/levels?layout=en&student={{ student }}" class="typing-btn {% if layout_code == 'en' %}green-btn{% else %}blue-btn{% endif %}">Латиница</a>
+        </div>
         <div id="typingAuthWarning" class="typing-warning" style="display:none;">Чтобы сохранять прогресс, нужно войти в аккаунт.</div>
         <div class="typing-progress-card" id="typingProgressCard">Загрузка прогресса...</div>
-        <div class="typing-actions">
-            <a href="/typing-trainer/layout?student={{ student }}" class="typing-btn red-btn">К выбору раскладки</a>
-            <a id="changeAnimalLink" href="/typing-trainer/animal?layout={{ layout_code }}&student={{ student }}" class="typing-btn orange-btn">Сменить зверька</a>
-        </div>
         <div class="typing-level-grid" id="typingLevelGrid"></div>
         <div class="typing-info-card">
             <h2>Последние попытки</h2>
