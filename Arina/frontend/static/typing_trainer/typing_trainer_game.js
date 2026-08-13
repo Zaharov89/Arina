@@ -17,6 +17,7 @@ let finished = false;
 let currentBlock = null;
 let startTime = Date.now();
 let blockTimer = null;
+let missTimer = null;
 const hitZoneLeft = 180;
 const hitZoneRight = 282;
 const startX = 1050;
@@ -34,23 +35,17 @@ function getAccessToken() {
     return storage ? storage.getItem('arinaAccessToken') : '';
 }
 
-async function loadProgress() {
+function requireAuthBeforeGame() {
     const token = getAccessToken();
-    if (!token) return null;
-    const response = await fetch(`/api/typing-trainer/progress?layout=${config.layoutCode}`, {
-        headers: {'Authorization': `Bearer ${token}`}
-    });
-    if (!response.ok) return null;
-    return response.json();
-}
-
-async function ensureLevelIsUnlocked() {
-    const progressPayload = await loadProgress().catch(() => null);
-    const progress = progressPayload && progressPayload.progress ? progressPayload.progress : null;
-    if (!progress) return true;
-    if (Number(config.level.level) <= Number(progress.max_unlocked_level || 1)) return true;
+    if (token) return true;
     finished = true;
-    message.innerHTML = `<div class="typing-result-card"><h2>Уровень пока закрыт</h2><p>Сначала пройди уровень ${progress.max_unlocked_level}.</p><div class="typing-actions"><a class="typing-btn blue-btn" href="/typing-trainer/game?layout=${config.layoutCode}&animal=${config.animalCode}&level=${progress.max_unlocked_level}&student=${encodeURIComponent(config.student)}">К открытому уровню</a></div></div>`;
+    message.innerHTML = `
+        <div class="typing-result-card">
+            <h2>Нужно войти в аккаунт</h2>
+            <p>Тренажёр сохраняет прогресс по каждому пользователю. Без входа уровень не будет засчитан.</p>
+            <div class="typing-actions"><a class="typing-btn blue-btn" href="/auth/login">Войти</a></div>
+        </div>
+    `;
     return false;
 }
 
@@ -90,6 +85,7 @@ function createBlock() {
 
 function animateBlock(block) {
     clearInterval(blockTimer);
+    clearTimeout(missTimer);
     blockTimer = setInterval(() => {
         if (finished || block !== currentBlock) {
             clearInterval(blockTimer);
@@ -98,12 +94,15 @@ function animateBlock(block) {
         const x = Number(block.dataset.x) - speedPx;
         block.dataset.x = String(x);
         block.style.left = `${x}px`;
-        if (x < 95) missBlock(block);
+        if (x < 95) {
+            missBlock(block);
+        }
     }, frameMs);
 }
 
 function removeBlock(block) {
     clearInterval(blockTimer);
+    clearTimeout(missTimer);
     setTimeout(() => {
         if (block && block.parentElement) block.remove();
         currentBlock = null;
@@ -162,7 +161,7 @@ function handleKey(event) {
 
 async function saveAttempt(result) {
     const token = getAccessToken();
-    if (!token) return null;
+    if (!token) return {status: 'unauthorized', message: 'Нет токена авторизации.'};
     const response = await fetch('/api/typing-trainer/attempts', {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
@@ -171,33 +170,70 @@ async function saveAttempt(result) {
     return response.json();
 }
 
+function buildResultPayload(isPassed, accuracy, speed, durationSeconds, total, saveResult) {
+    return {
+        layout_code: config.layoutCode,
+        animal_code: config.animalCode,
+        level_number: config.level.level,
+        total_letters: total,
+        correct_letters: correct,
+        wrong_letters: wrong,
+        missed_letters: missed,
+        early_hits: earlyHits,
+        late_hits: lateHits,
+        accuracy_percent: accuracy,
+        duration_seconds: durationSeconds,
+        speed_cpm: speed,
+        is_passed: isPassed,
+        required_accuracy: Number(config.level.required_accuracy || 80),
+        saved: saveResult?.status === 'ok',
+        attempt: saveResult?.attempt || null,
+        progress: saveResult?.progress || null
+    };
+}
+
 async function finishGame() {
     if (finished) return;
     finished = true;
     clearInterval(blockTimer);
+    clearTimeout(missTimer);
     const total = correct + wrong + missed;
     const durationSeconds = Math.max((Date.now() - startTime) / 1000, 1);
     const accuracy = total ? Math.round((correct / total) * 100) : 0;
     const speed = Math.round(correct / (durationSeconds / 60));
     const isPassed = lives > 0 && accuracy >= Number(config.level.required_accuracy || 80) && correct >= Math.floor(config.level.total_letters * 0.7);
-    const result = {layout_code: config.layoutCode, animal_code: config.animalCode, level_number: config.level.level, total_letters: total, correct_letters: correct, wrong_letters: wrong, missed_letters: missed, early_hits: earlyHits, late_hits: lateHits, accuracy_percent: accuracy, duration_seconds: durationSeconds, speed_cpm: speed, is_passed: isPassed};
+    const result = {
+        layout_code: config.layoutCode,
+        animal_code: config.animalCode,
+        level_number: config.level.level,
+        total_letters: total,
+        correct_letters: correct,
+        wrong_letters: wrong,
+        missed_letters: missed,
+        early_hits: earlyHits,
+        late_hits: lateHits,
+        accuracy_percent: accuracy,
+        duration_seconds: durationSeconds,
+        speed_cpm: speed,
+        is_passed: isPassed
+    };
     let saveResult = null;
     try { saveResult = await saveAttempt(result); } catch (error) { console.error('typing trainer save failed', error); }
+    const resultPayload = buildResultPayload(saveResult?.is_passed ?? isPassed, accuracy, speed, durationSeconds, total, saveResult);
+    sessionStorage.setItem('typingTrainerLastResult', JSON.stringify(resultPayload));
+    const finalPassed = Boolean(saveResult?.is_passed ?? isPassed);
     const nextLevel = config.level.level + 1;
-    const maxUnlocked = saveResult && saveResult.progress ? Number(saveResult.progress.max_unlocked_level) : config.level.level;
-    const nextLink = isPassed && nextLevel <= maxUnlocked ? `<a class="typing-btn green-btn" href="/typing-trainer/game?layout=${config.layoutCode}&animal=${config.animalCode}&level=${nextLevel}&student=${encodeURIComponent(config.student)}">Следующий уровень</a>` : '';
-    message.innerHTML = `<div class="typing-result-card"><h2>${isPassed ? 'Уровень пройден!' : 'Попробуй ещё раз'}</h2><p>Точность: ${accuracy}%</p><p>Скорость: ${speed} зн/мин</p><p>Правильно: ${correct}, ошибок: ${wrong}, пропущено: ${missed}</p><div class="typing-actions"><button class="typing-btn blue-btn" onclick="restartTypingGame()">Повторить</button>${nextLink}</div></div>`;
+    const nextLink = finalPassed ? `<a class="typing-btn green-btn" href="/typing-trainer/game?layout=${config.layoutCode}&animal=${config.animalCode}&level=${nextLevel}&student=${encodeURIComponent(config.student)}">Следующий уровень</a>` : '';
+    const saveWarning = saveResult?.status === 'unauthorized' ? '<p class="typing-warning">Результат не сохранён: нужно войти в аккаунт.</p>' : '';
+    message.innerHTML = `<div class="typing-result-card"><h2>${finalPassed ? 'Уровень пройден!' : 'Попробуй ещё раз'}</h2><p>Точность: ${accuracy}%</p><p>Скорость: ${speed} зн/мин</p><p>Правильно: ${correct}, ошибок: ${wrong}, пропущено: ${missed}</p>${saveWarning}<div class="typing-actions"><button class="typing-btn blue-btn" onclick="restartTypingGame()">Повторить</button><a class="typing-btn orange-btn" href="/typing-trainer/result?layout=${config.layoutCode}&animal=${config.animalCode}&student=${encodeURIComponent(config.student)}">Результат</a>${nextLink}</div></div>`;
 }
 
 function restartTypingGame() {
     window.location.reload();
 }
 
-async function startTypingGame() {
-    document.addEventListener('keydown', handleKey);
-    updateStats();
-    const unlocked = await ensureLevelIsUnlocked();
-    if (unlocked) setTimeout(createBlock, 700);
+document.addEventListener('keydown', handleKey);
+updateStats();
+if (requireAuthBeforeGame()) {
+    setTimeout(createBlock, 700);
 }
-
-startTypingGame();
