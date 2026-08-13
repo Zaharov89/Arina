@@ -25,6 +25,8 @@
 .typing-animal-preview { display: flex; align-items: center; justify-content: center; gap: 16px; color: #27407a; font-size: 20px; font-weight: 800; }
 .typing-animal-preview span { font-size: 64px; }
 .typing-actions { margin: 24px 0; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.typing-top-left-actions { display: flex; justify-content: flex-start; margin: 16px 0 4px; }
+.typing-layout-switch { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 18px 0 22px; }
 .typing-btn { border: 0; border-radius: 12px; color: #fff; padding: 13px 22px; text-decoration: none; font-weight: 900; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .red-btn { background: #dc3545; }
 .blue-btn { background: #2f80ed; }
@@ -54,6 +56,7 @@
 @keyframes animalRun { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 .typing-hit-zone { position: absolute; left: 190px; bottom: 76px; width: 86px; height: 100px; border: 4px dashed rgba(47,128,237,.65); border-radius: 18px; z-index: 2; }
 .letter-block { position: absolute; bottom: 92px; width: 60px; height: 60px; border-radius: 14px; background: #fff4d6; border: 3px solid #f2994a; color: #8a5a00; font-size: 34px; font-weight: 900; display: flex; align-items: center; justify-content: center; z-index: 3; box-shadow: 0 4px 16px rgba(0,0,0,.14); }
+.letter-block.chunk-block { width: auto; min-width: 82px; padding: 0 12px; font-size: 28px; letter-spacing: 1px; }
 .letter-block.success { background: #d5f4e6; border-color: #188038; color: #137333; }
 .letter-block.fail { background: #ffe0e0; border-color: #d93025; color: #a50e0e; }
 .typing-message { margin: 18px 0; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 4px 18px rgba(48,100,150,.10); color: #27407a; font-weight: 900; text-align: center; }

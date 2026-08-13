@@ -19,6 +19,12 @@ def get_access_token_from_request() -> str:
     return ""
 
 
+def get_flow_mode() -> str:
+    """Return typing trainer flow mode: learning or progress."""
+    mode = request.args.get("mode", "learn").strip().lower()
+    return "progress" if mode == "progress" else "learn"
+
+
 @typing_trainer_bp.route("/typing-trainer")
 def typing_trainer_index():
     return render_template("typing_trainer/index.html", student=get_student())
@@ -26,7 +32,7 @@ def typing_trainer_index():
 
 @typing_trainer_bp.route("/typing-trainer/layout")
 def typing_trainer_layout():
-    return render_template("typing_trainer/layout_select.html", student=get_student(), layouts=LAYOUT_TITLES)
+    return render_template("typing_trainer/layout_select.html", student=get_student(), layouts=LAYOUT_TITLES, mode=get_flow_mode())
 
 
 @typing_trainer_bp.route("/typing-trainer/levels")
@@ -58,7 +64,7 @@ def typing_trainer_result():
 @typing_trainer_bp.route("/typing-trainer/animal")
 def typing_trainer_animal():
     layout_code = request.args.get("layout", "ru")
-    return render_template("typing_trainer/animal_select.html", student=get_student(), layout_code=layout_code, animals=ANIMALS)
+    return render_template("typing_trainer/animal_select.html", student=get_student(), layout_code=layout_code, animals=ANIMALS, mode=get_flow_mode())
 
 
 @typing_trainer_bp.route("/typing-trainer/hand-position")

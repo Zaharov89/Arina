@@ -54,9 +54,9 @@ async function ensureLevelIsUnlocked() {
     return false;
 }
 
-function randomLetter() {
-    const letters = config.level.letters;
-    return letters[Math.floor(Math.random() * letters.length)];
+function randomTarget() {
+    const targets = Array.isArray(config.level.chunks) && config.level.chunks.length ? config.level.chunks : config.level.letters;
+    return targets[Math.floor(Math.random() * targets.length)];
 }
 
 function updateStats() {
@@ -77,10 +77,11 @@ function createBlock() {
     }
     const block = document.createElement('div');
     block.className = 'letter-block';
-    block.textContent = randomLetter();
+    block.textContent = randomTarget();
     block.dataset.letter = block.textContent;
     block.dataset.x = String(startX);
     block.style.left = `${startX}px`;
+    if (block.textContent.length > 1) block.classList.add('chunk-block');
     scene.appendChild(block);
     currentBlock = block;
     spawned += 1;
