@@ -2,7 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from Arina.auth.services import AuthTokenError, decode_jwt_token, get_token_user_id
 from Arina.database.session import get_session_factory
-from Arina.typing_trainer.levels import ANIMALS, LAYOUT_TITLES, get_level, get_max_level
+from Arina.typing_trainer.levels import ANIMALS, LAYOUT_TITLES, get_layout_levels, get_level, get_max_level
 from Arina.typing_trainer.repositories import TypingTrainerRepository
 
 
@@ -45,6 +45,25 @@ def progress_to_dict(progress) -> dict:
     }
 
 
+def attempt_to_dict(attempt) -> dict:
+    return {
+        "layout_code": attempt.layout_code,
+        "level_number": attempt.level_number,
+        "animal_code": attempt.animal_code,
+        "total_letters": attempt.total_letters,
+        "correct_letters": attempt.correct_letters,
+        "wrong_letters": attempt.wrong_letters,
+        "missed_letters": attempt.missed_letters,
+        "early_hits": attempt.early_hits,
+        "late_hits": attempt.late_hits,
+        "accuracy_percent": float(attempt.accuracy_percent or 0),
+        "duration_seconds": float(attempt.duration_seconds or 0),
+        "speed_cpm": float(attempt.speed_cpm or 0),
+        "is_passed": bool(attempt.is_passed),
+        "created_at": attempt.created_at.isoformat() if attempt.created_at else None,
+    }
+
+
 def get_progress(access_token: str, layout_code: str) -> dict:
     user_id = get_user_id_from_access_token(access_token)
     layout = validate_layout(layout_code)
@@ -54,6 +73,40 @@ def get_progress(access_token: str, layout_code: str) -> dict:
         progress = repository.get_or_create_progress(user_id, layout)
         session.commit()
         return {"status": "ok", "progress": progress_to_dict(progress)}
+
+
+def get_levels_progress(access_token: str, layout_code: str) -> dict:
+    user_id = get_user_id_from_access_token(access_token)
+    layout = validate_layout(layout_code)
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        repository = TypingTrainerRepository(session)
+        progress = repository.get_or_create_progress(user_id, layout)
+        best_by_level = repository.get_best_attempts_by_level(user_id, layout)
+        recent_attempts = repository.get_recent_attempts(user_id, layout)
+        levels = []
+        for level in get_layout_levels(layout):
+            level_number = int(level["level"])
+            best = best_by_level.get(level_number, {})
+            is_unlocked = level_number <= progress.max_unlocked_level
+            is_passed = bool(best.get("is_passed"))
+            status = "locked"
+            if is_passed:
+                status = "passed"
+            elif level_number == progress.current_level:
+                status = "current"
+            elif is_unlocked:
+                status = "unlocked"
+            levels.append({**level, "status": status, "is_unlocked": is_unlocked, "is_passed": is_passed, "best": best})
+        session.commit()
+        return {
+            "status": "ok",
+            "layout_code": layout,
+            "layout_title": LAYOUT_TITLES[layout],
+            "progress": progress_to_dict(progress),
+            "levels": levels,
+            "recent_attempts": [attempt_to_dict(attempt) for attempt in recent_attempts],
+        }
 
 
 def save_animal(access_token: str, layout_code: str, animal_code: str) -> dict:
@@ -91,7 +144,13 @@ def save_attempt(access_token: str, payload: dict) -> dict:
     with session_factory() as session:
         repository = TypingTrainerRepository(session)
         progress = repository.get_or_create_progress(user_id, layout, animal)
-        repository.create_attempt(user_id, layout, level_number, animal, total_letters, correct_letters, wrong_letters, missed_letters, early_hits, late_hits, accuracy_percent, duration_seconds, speed_cpm, is_passed)
+        attempt = repository.create_attempt(user_id, layout, level_number, animal, total_letters, correct_letters, wrong_letters, missed_letters, early_hits, late_hits, accuracy_percent, duration_seconds, speed_cpm, is_passed)
         repository.apply_attempt_to_progress(progress, level_number, accuracy_percent, speed_cpm, is_passed, get_max_level(layout))
         session.commit()
-        return {"status": "ok", "is_passed": is_passed, "required_accuracy": float(required_accuracy), "progress": progress_to_dict(progress)}
+        return {
+            "status": "ok",
+            "is_passed": is_passed,
+            "required_accuracy": float(required_accuracy),
+            "attempt": attempt_to_dict(attempt),
+            "progress": progress_to_dict(progress),
+        }
