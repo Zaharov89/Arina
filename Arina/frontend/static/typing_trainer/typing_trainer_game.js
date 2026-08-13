@@ -33,12 +33,28 @@ function getAuthStorage() { if (localStorage.getItem('arinaAccessToken')) return
 function getAccessToken() { const storage = getAuthStorage(); return storage ? storage.getItem('arinaAccessToken') : ''; }
 async function loadProgress() { const token = getAccessToken(); if (!token) return null; const response = await fetch(`/api/typing-trainer/progress?layout=${config.layoutCode}`, {headers: {'Authorization': `Bearer ${token}`}}); if (!response.ok) return null; return response.json(); }
 
+function freezeGameScene() {
+    document.body.classList.add('typing-game-ended');
+    if (scene) scene.classList.add('game-ended');
+    const animal = document.getElementById('typingAnimal');
+    if (animal) animal.classList.add('animal-stopped');
+}
+
+function removeAllBlocks() {
+    document.querySelectorAll('.letter-block').forEach(block => block.remove());
+    currentBlock = null;
+}
+
 async function ensureLevelIsUnlocked() {
     const progressPayload = await loadProgress().catch(() => null);
     const progress = progressPayload && progressPayload.progress ? progressPayload.progress : null;
     if (!progress) return true;
     if (Number(config.level.level) <= Number(progress.max_unlocked_level || 1)) return true;
     finished = true;
+    freezeGameScene();
+    clearInterval(blockTimer);
+    removeAllBlocks();
+    clearKeyboardHighlights();
     message.innerHTML = `<div class="typing-result-card"><h2>Уровень пока закрыт</h2><p>Сначала пройди уровень ${progress.max_unlocked_level}.</p><div class="typing-actions"><a class="typing-btn blue-btn" href="/typing-trainer/game?layout=${config.layoutCode}&animal=${config.animalCode}&level=${progress.max_unlocked_level}&student=${encodeURIComponent(config.student)}">К открытому уровню</a></div></div>`;
     return false;
 }
@@ -100,8 +116,25 @@ function animateBlock(block) {
 }
 function removeBlock(block) { clearInterval(blockTimer); clearKeyboardHighlights(); setTimeout(() => { if (block && block.parentElement) block.remove(); currentBlock = null; currentTargetIndex = 0; if (!finished) setTimeout(createBlock, 260); }, 180); }
 function hitBlock(block) { block.classList.add('success'); correct += 1; message.textContent = 'Отлично!'; updateStats(); removeBlock(block); }
-function failBlock(block, reason) { block.classList.add('fail'); wrong += 1; lives -= 1; if (reason === 'early') earlyHits += 1; if (reason === 'late') lateHits += 1; message.textContent = reason === 'wrong' ? 'Не та клавиша!' : reason === 'early' ? 'Рано!' : 'Поздно!'; updateStats(); removeBlock(block); if (lives <= 0) setTimeout(finishGame, 300); }
-function missBlock(block) { missed += 1; lives -= 1; message.textContent = 'Поздно! Кубик убежал.'; updateStats(); removeBlock(block); if (lives <= 0) setTimeout(finishGame, 300); }
+function failBlock(block, reason) {
+    block.classList.add('fail');
+    wrong += 1;
+    lives -= 1;
+    if (reason === 'early') earlyHits += 1;
+    if (reason === 'late') lateHits += 1;
+    message.textContent = reason === 'wrong' ? 'Не та клавиша!' : reason === 'early' ? 'Рано!' : 'Поздно!';
+    updateStats();
+    if (lives <= 0) { setTimeout(finishGame, 180); return; }
+    removeBlock(block);
+}
+function missBlock(block) {
+    missed += 1;
+    lives -= 1;
+    message.textContent = 'Поздно! Кубик убежал.';
+    updateStats();
+    if (lives <= 0) { setTimeout(finishGame, 180); return; }
+    removeBlock(block);
+}
 
 function handleKey(event) {
     if (finished || !currentBlock) return;
@@ -125,6 +158,8 @@ async function finishGame() {
     finished = true;
     clearInterval(blockTimer);
     clearKeyboardHighlights();
+    freezeGameScene();
+    removeAllBlocks();
     const total = correct + wrong + missed;
     const durationSeconds = Math.max((Date.now() - startTime) / 1000, 1);
     const accuracy = total ? Math.round((correct / total) * 100) : 0;

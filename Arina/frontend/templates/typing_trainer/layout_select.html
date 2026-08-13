@@ -18,18 +18,30 @@
             {% endif %}
         </p>
         <div class="typing-card-grid">
-            <a class="typing-program-card" href="{% if mode == 'progress' %}/typing-trainer/levels?layout=ru&student={{ student }}{% else %}/typing-trainer/animal?layout=ru&mode=learn&student={{ student }}{% endif %}">
-                <div class="typing-card-icon">ФЫВА</div>
-                <h2>Кириллица</h2>
-                <p>Русская раскладка. Домашний ряд: Ф Ы В А — О Л Д Ж.</p>
-                <span>{% if mode == 'progress' %}Показать результаты{% else %}Начать{% endif %}</span>
-            </a>
-            <a class="typing-program-card" href="{% if mode == 'progress' %}/typing-trainer/levels?layout=en&student={{ student }}{% else %}/typing-trainer/animal?layout=en&mode=learn&student={{ student }}{% endif %}">
-                <div class="typing-card-icon">ASDF</div>
-                <h2>Латиница</h2>
-                <p>Английская раскладка. Home row: A S D F — J K L ;.</p>
-                <span>{% if mode == 'progress' %}Показать результаты{% else %}Начать{% endif %}</span>
-            </a>
+            <div class="typing-program-card typing-layout-card">
+                <div>
+                    <div class="typing-card-icon">ФЫВА</div>
+                    <h2>Кириллица</h2>
+                    <p>Русская раскладка. Домашний ряд: Ф Ы В А — О Л Д Ж.</p>
+                </div>
+                <div class="typing-card-button-wrap">
+                    <a class="typing-btn blue-btn" href="{% if mode == 'progress' %}/typing-trainer/levels?layout=ru&student={{ student }}{% else %}/typing-trainer/animal?layout=ru&mode=learn&student={{ student }}{% endif %}">
+                        {% if mode == 'progress' %}Показать результаты{% else %}Начать{% endif %}
+                    </a>
+                </div>
+            </div>
+            <div class="typing-program-card typing-layout-card">
+                <div>
+                    <div class="typing-card-icon">ASDF</div>
+                    <h2>Латиница</h2>
+                    <p>Английская раскладка. Home row: A S D F — J K L ;.</p>
+                </div>
+                <div class="typing-card-button-wrap">
+                    <a class="typing-btn blue-btn" href="{% if mode == 'progress' %}/typing-trainer/levels?layout=en&student={{ student }}{% else %}/typing-trainer/animal?layout=en&mode=learn&student={{ student }}{% endif %}">
+                        {% if mode == 'progress' %}Показать результаты{% else %}Начать{% endif %}
+                    </a>
+                </div>
+            </div>
         </div>
         <div class="typing-actions"><a href="/typing-trainer?student={{ student }}" class="typing-btn red-btn">Назад</a></div>
     </div>
