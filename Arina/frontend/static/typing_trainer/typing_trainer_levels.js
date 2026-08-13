@@ -3,7 +3,6 @@ const progressCard = document.getElementById('typingProgressCard');
 const levelGrid = document.getElementById('typingLevelGrid');
 const attemptsContainer = document.getElementById('typingRecentAttempts');
 const authWarning = document.getElementById('typingAuthWarning');
-const changeAnimalLink = document.getElementById('changeAnimalLink');
 
 function getAuthStorage() {
     if (localStorage.getItem('arinaAccessToken')) return localStorage;
@@ -37,7 +36,6 @@ function renderProgress(progress) {
             <span>Лучшая скорость: <strong>${fmt(progress.best_speed_cpm, ' зн/мин')}</strong></span>
         </div>
     `;
-    changeAnimalLink.href = `/typing-trainer/animal?layout=${encodeURIComponent(levelsConfig.layoutCode)}&student=${encodeURIComponent(levelsConfig.student)}`;
 }
 
 function levelStatusTitle(status) {
