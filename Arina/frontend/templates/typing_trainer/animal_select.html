@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Выбор персонажа</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-container">
+        <h1 class="typing-title">Выбери зверька</h1>
+        <p class="typing-subtitle">Он будет бежать вместе с тобой по уровням.</p>
+        <div class="typing-card-grid animal-grid">
+            {% for animal_code, animal in animals.items() %}
+                <button class="typing-program-card animal-card" type="button" onclick="selectAnimal('{{ animal_code }}')">
+                    <div class="animal-emoji">{{ animal.emoji }}</div>
+                    <h2>{{ animal.title }}</h2>
+                    <span>Выбрать</span>
+                </button>
+            {% endfor %}
+        </div>
+        <div class="typing-actions"><a href="/typing-trainer/layout?student={{ student }}" class="typing-btn red-btn">Назад</a></div>
+    </div>
+    <script>
+        function getAuthStorage() { if (localStorage.getItem('arinaAccessToken')) return localStorage; if (sessionStorage.getItem('arinaAccessToken')) return sessionStorage; return null; }
+        async function selectAnimal(animalCode) {
+            const storage = getAuthStorage();
+            const token = storage ? storage.getItem('arinaAccessToken') : '';
+            if (token) {
+                await fetch('/api/typing-trainer/animal', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`}, body: JSON.stringify({layout_code:'{{ layout_code }}', animal_code:animalCode})}).catch(() => {});
+            }
+            window.location.href = `/typing-trainer/hand-position?layout={{ layout_code }}&animal=${animalCode}&student={{ student }}`;
+        }
+    </script>
+</body>
+</html>
