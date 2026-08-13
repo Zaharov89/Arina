@@ -36,6 +36,8 @@ TYPING_LEVELS = {
         {"level": 8, "kind": "letters", "title": "С и Т", "letters": ["Ф", "Ы", "В", "А", "О", "Л", "Д", "Ж", "П", "Р", "К", "Е", "М", "И", "С", "Т"], "total_letters": 40, "required_accuracy": 88},
         {"level": 9, "kind": "chunks", "title": "Первые слоги", "letters": ["А", "О", "В", "Л", "М", "И"], "chunks": ["МА", "МО", "МИ", "ЛА", "ЛО", "ВА", "ВО"], "total_letters": 24, "required_accuracy": 88},
         {"level": 10, "kind": "chunks", "title": "Слоги домашнего ряда", "letters": ["Ф", "Ы", "В", "А", "О", "Л", "Д", "Ж"], "chunks": ["ВА", "ВО", "ЛА", "ЛО", "ДА", "ДО", "ЖА"], "total_letters": 28, "required_accuracy": 90},
+        {"level": 11, "kind": "words", "title": "Короткие слова", "letters": ["А", "О", "В", "Л", "М", "И", "С", "Т"], "chunks": ["МАМА", "ЛАМА", "МАЛО", "ВОЛ", "МИЛА", "САМ", "ТОМ"], "total_letters": 24, "required_accuracy": 90},
+        {"level": 12, "kind": "words", "title": "Слова домашнего ряда", "letters": ["Ф", "Ы", "В", "А", "О", "Л", "Д", "Ж", "М", "И", "С", "Т"], "chunks": ["ДОМ", "ЛАД", "ВОДА", "ДАЛА", "ЖАЛО", "САД", "МОДА"], "total_letters": 26, "required_accuracy": 92},
     ],
     "en": [
         {"level": 1, "kind": "letters", "title": "F and J", "letters": ["F", "J"], "total_letters": 20, "required_accuracy": 80},
@@ -48,6 +50,8 @@ TYPING_LEVELS = {
         {"level": 8, "kind": "letters", "title": "C and M", "letters": ["A", "S", "D", "F", "J", "K", "L", ";", "E", "I", "R", "U", "T", "Y", "C", "M"], "total_letters": 40, "required_accuracy": 88},
         {"level": 9, "kind": "chunks", "title": "First syllables", "letters": ["A", "S", "D", "F", "J", "K", "L"], "chunks": ["FA", "JA", "LA", "SA", "DA", "KA"], "total_letters": 24, "required_accuracy": 88},
         {"level": 10, "kind": "chunks", "title": "Short letter groups", "letters": ["A", "S", "D", "F", "J", "K", "L", "E", "I"], "chunks": ["FAD", "JAK", "LAD", "KID", "FALL", "DILL"], "total_letters": 30, "required_accuracy": 90},
+        {"level": 11, "kind": "words", "title": "Short words", "letters": ["A", "S", "D", "F", "J", "K", "L", "E", "I", "C", "M"], "chunks": ["DAD", "KID", "FALL", "SAIL", "MILK", "LAKE", "CALL"], "total_letters": 26, "required_accuracy": 90},
+        {"level": 12, "kind": "words", "title": "Easy words", "letters": ["A", "S", "D", "F", "J", "K", "L", "E", "I", "C", "M", "T", "Y"], "chunks": ["CAT", "MAY", "DAY", "TELL", "CITY", "TIME", "SILK"], "total_letters": 28, "required_accuracy": 92},
     ],
 }
 
