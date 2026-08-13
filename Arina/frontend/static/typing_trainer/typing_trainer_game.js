@@ -183,10 +183,13 @@ async function finishGame() {
     const result = {layout_code: config.layoutCode, animal_code: config.animalCode, level_number: config.level.level, total_letters: total, correct_letters: correct, wrong_letters: wrong, missed_letters: missed, early_hits: earlyHits, late_hits: lateHits, accuracy_percent: accuracy, duration_seconds: durationSeconds, speed_cpm: speed, is_passed: isPassed};
     let saveResult = null;
     try { saveResult = await saveAttempt(result); } catch (error) { console.error('typing trainer save failed', error); }
+    const storedResult = {...result, save_status: saveResult ? saveResult.status : 'not_saved'};
+    sessionStorage.setItem('typingTrainerLastResult', JSON.stringify(storedResult));
     const nextLevel = config.level.level + 1;
     const maxUnlocked = saveResult && saveResult.progress ? Number(saveResult.progress.max_unlocked_level) : config.level.level;
     const nextLink = isPassed && nextLevel <= maxUnlocked ? `<a class="typing-btn green-btn" href="/typing-trainer/game?layout=${config.layoutCode}&animal=${config.animalCode}&level=${nextLevel}&student=${encodeURIComponent(config.student)}">Следующий уровень</a>` : '';
-    message.innerHTML = `<div class="typing-result-card"><h2>${isPassed ? 'Уровень пройден!' : 'Попробуй ещё раз'}</h2><p>Точность: ${accuracy}%</p><p>Скорость: ${speed} зн/мин</p><p>Правильно: ${correct}, ошибок: ${wrong}, пропущено: ${missed}</p><div class="typing-actions"><button class="typing-btn blue-btn" onclick="restartTypingGame()">Повторить</button>${nextLink}</div></div>`;
+    const resultLink = `<a class="typing-btn orange-btn" href="/typing-trainer/result?layout=${config.layoutCode}&animal=${config.animalCode}&student=${encodeURIComponent(config.student)}">Подробный результат</a>`;
+    message.innerHTML = `<div class="typing-result-card"><h2>${isPassed ? 'Уровень пройден!' : 'Попробуй ещё раз'}</h2><p>Точность: ${accuracy}%</p><p>Скорость: ${speed} зн/мин</p><p>Правильно: ${correct}, ошибок: ${wrong}, пропущено: ${missed}</p><div class="typing-actions"><button class="typing-btn blue-btn" onclick="restartTypingGame()">Повторить</button>${resultLink}${nextLink}</div></div>`;
 }
 
 function restartTypingGame() {

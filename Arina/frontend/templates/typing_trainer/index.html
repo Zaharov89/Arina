@@ -11,6 +11,20 @@
     <div class="container typing-container">
         <h1 class="typing-title">Клавиатурный тренажёр</h1>
         <p class="typing-subtitle">Учимся печатать вслепую в игровой форме: пальцы стоят на домашнем ряду, зверёк бежит, а кубики с буквами нужно нажимать вовремя.</p>
+        <div class="typing-card-grid">
+            <a class="typing-program-card" href="/typing-trainer/layout?student={{ student }}">
+                <div class="typing-card-icon">⌨️</div>
+                <h2>Начать обучение</h2>
+                <p>Выбрать раскладку, зверька и пройти постановку рук.</p>
+                <span>Старт</span>
+            </a>
+            <a class="typing-program-card" href="/typing-trainer/levels?layout=ru&student={{ student }}">
+                <div class="typing-card-icon">🏆</div>
+                <h2>Мои уровни</h2>
+                <p>Посмотреть открытые уровни, лучшие результаты и последние попытки.</p>
+                <span>Открыть</span>
+            </a>
+        </div>
         <div class="typing-info-card">
             <h2>Что будем тренировать</h2>
             <ul>
@@ -22,7 +36,6 @@
         </div>
         <div class="typing-actions">
             <a href="/additional?student={{ student }}" class="typing-btn red-btn">Назад</a>
-            <a href="/typing-trainer/layout?student={{ student }}" class="typing-btn blue-btn">Начать обучение</a>
         </div>
     </div>
 </body>

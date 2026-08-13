@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Клавиатурный тренажёр — уровни</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-container">
+        <h1 class="typing-title">{{ layout_title }}</h1>
+        <p class="typing-subtitle">Выбирай открытый уровень. Закрытые уровни откроются после прохождения предыдущих.</p>
+        <div id="typingAuthWarning" class="typing-warning" style="display:none;">Чтобы сохранять прогресс, нужно войти в аккаунт.</div>
+        <div class="typing-progress-card" id="typingProgressCard">Загрузка прогресса...</div>
+        <div class="typing-actions">
+            <a href="/typing-trainer/layout?student={{ student }}" class="typing-btn red-btn">К выбору раскладки</a>
+            <a id="changeAnimalLink" href="/typing-trainer/animal?layout={{ layout_code }}&student={{ student }}" class="typing-btn orange-btn">Сменить зверька</a>
+        </div>
+        <div class="typing-level-grid" id="typingLevelGrid"></div>
+        <div class="typing-info-card">
+            <h2>Последние попытки</h2>
+            <div id="typingRecentAttempts">Пока нет сохранённых попыток.</div>
+        </div>
+    </div>
+    <script>
+        window.typingLevelsPageConfig = {
+            layoutCode: {{ layout_code | tojson }},
+            layoutTitle: {{ layout_title | tojson }},
+            student: {{ student | tojson }},
+            animals: {{ animals | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='typing_trainer/typing_trainer_levels.js') }}"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from Arina.auth.services import AuthTokenError
 from Arina.backend.routes.common import get_int_arg, get_student
 from Arina.typing_trainer.levels import ANIMALS, HAND_POSITIONS, LAYOUT_TITLES, get_level, get_layout_levels
-from Arina.typing_trainer.services import TypingTrainerValidationError, get_progress, save_animal, save_attempt
+from Arina.typing_trainer.services import TypingTrainerValidationError, get_levels_progress, get_progress, save_animal, save_attempt
 
 logger = logging.getLogger(__name__)
 typing_trainer_bp = Blueprint("typing_trainer", __name__)
@@ -27,6 +27,32 @@ def typing_trainer_index():
 @typing_trainer_bp.route("/typing-trainer/layout")
 def typing_trainer_layout():
     return render_template("typing_trainer/layout_select.html", student=get_student(), layouts=LAYOUT_TITLES)
+
+
+@typing_trainer_bp.route("/typing-trainer/levels")
+def typing_trainer_levels():
+    layout_code = request.args.get("layout", "ru")
+    return render_template(
+        "typing_trainer/levels.html",
+        student=get_student(),
+        layout_code=layout_code,
+        layout_title=LAYOUT_TITLES.get(layout_code, "Русская раскладка"),
+        animals=ANIMALS,
+    )
+
+
+@typing_trainer_bp.route("/typing-trainer/result")
+def typing_trainer_result():
+    layout_code = request.args.get("layout", "ru")
+    animal_code = request.args.get("animal", "dino")
+    return render_template(
+        "typing_trainer/result.html",
+        student=get_student(),
+        layout_code=layout_code,
+        animal_code=animal_code,
+        layout_title=LAYOUT_TITLES.get(layout_code, "Русская раскладка"),
+        animal=ANIMALS.get(animal_code, ANIMALS["dino"]),
+    )
 
 
 @typing_trainer_bp.route("/typing-trainer/animal")
@@ -64,6 +90,20 @@ def api_typing_trainer_progress():
     except (RuntimeError, SQLAlchemyError, OSError) as error:
         logger.exception("Typing trainer progress failed")
         return jsonify({"status": "error", "message": f"Не удалось получить прогресс тренажёра: {error}"}), 500
+
+
+@typing_trainer_bp.route("/api/typing-trainer/levels")
+def api_typing_trainer_levels():
+    try:
+        layout_code = request.args.get("layout", "ru")
+        return jsonify(get_levels_progress(get_access_token_from_request(), layout_code))
+    except AuthTokenError as error:
+        return jsonify({"status": "unauthorized", "message": str(error)}), 401
+    except (TypingTrainerValidationError, ValueError) as error:
+        return jsonify({"status": "validation_error", "message": str(error)}), 400
+    except (RuntimeError, SQLAlchemyError, OSError) as error:
+        logger.exception("Typing trainer levels failed")
+        return jsonify({"status": "error", "message": f"Не удалось получить уровни тренажёра: {error}"}), 500
 
 
 @typing_trainer_bp.route("/api/typing-trainer/animal", methods=["POST"])
