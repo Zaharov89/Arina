@@ -29,6 +29,30 @@
 .blue-btn { background: #2f80ed; }
 .green-btn { background: #188038; }
 .orange-btn { background: #f2994a; }
+.locked-btn { background: #94a3b8; cursor: not-allowed; }
+.typing-layout-switch { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 18px 0; }
+.typing-progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 14px; }
+.typing-progress-grid div { padding: 14px; border-radius: 14px; background: #f8fbff; border: 2px solid #d7e7fb; text-align: center; }
+.typing-progress-grid strong { display: block; color: #27407a; font-size: 24px; }
+.typing-progress-grid span { color: #64748b; font-weight: 800; font-size: 13px; }
+.typing-level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 22px 0; }
+.typing-level-card { position: relative; padding: 20px; border-radius: 20px; background: #fff; box-shadow: 0 8px 28px rgba(48,100,150,.13); border: 2px solid #d7e7fb; color: #27407a; overflow: hidden; }
+.typing-level-card h2 { margin: 20px 0 8px; font-size: 21px; color: #27407a; }
+.typing-level-card p { color: #64748b; }
+.typing-level-status { position: absolute; top: 12px; right: 12px; padding: 6px 10px; border-radius: 999px; background: #eef6ff; color: #295bb2; font-weight: 900; font-size: 12px; }
+.completed-level { border-color: #60c98b; }
+.completed-level .typing-level-status { background: #d5f4e6; color: #137333; }
+.current-level { border-color: #f2994a; }
+.current-level .typing-level-status { background: #fff4d6; color: #8a5a00; }
+.locked-level { opacity: .7; filter: grayscale(.1); }
+.locked-level .typing-level-status { background: #e2e8f0; color: #475569; }
+.typing-level-best { margin-top: 12px; font-weight: 800; }
+.typing-table-wrap { overflow-x: auto; }
+.typing-table { width: 100%; border-collapse: collapse; }
+.typing-table th, .typing-table td { padding: 10px; border-bottom: 1px solid #d7e7fb; text-align: center; color: #27407a; }
+.typing-table th { background: #eef6ff; font-weight: 900; }
+.typing-warning { color: #a50e0e; font-weight: 900; }
+.typing-result-hero { text-align: center; font-size: 82px; }
 .typing-game-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 18px 0; }
 .typing-game-stats span { padding: 12px; border-radius: 14px; background: #fff; box-shadow: 0 4px 18px rgba(48,100,150,.10); color: #27407a; text-align: center; }
 .typing-game-scene { position: relative; height: 330px; overflow: hidden; border-radius: 24px; background: linear-gradient(#bfe7ff 0%, #eaf8ff 58%, #87d37c 59%, #64b564 100%); box-shadow: 0 8px 28px rgba(48,100,150,.16); }
