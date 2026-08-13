@@ -10,7 +10,7 @@
     <div id="dateTimeBar"></div>
     <div class="container typing-container">
         <h1 class="typing-title">Выбери зверька</h1>
-        <p class="typing-subtitle">Он будет бежать вместе с тобой по уровням.</p>
+        <p class="typing-subtitle">Он будет бежать вместе с тобой по обучающим уровням.</p>
         <div class="typing-card-grid animal-grid">
             {% for animal_code, animal in animals.items() %}
                 <button class="typing-program-card animal-card" type="button" onclick="selectAnimal('{{ animal_code }}')">
@@ -20,17 +20,24 @@
                 </button>
             {% endfor %}
         </div>
-        <div class="typing-actions"><a href="/typing-trainer/layout?student={{ student }}" class="typing-btn red-btn">Назад</a></div>
+        <div class="typing-actions"><a href="/typing-trainer/layout?mode=learn&student={{ student }}" class="typing-btn red-btn">Назад</a></div>
     </div>
     <script>
+        const trainerMode = {{ mode | tojson }};
+        const layoutCode = {{ layout_code | tojson }};
+        const student = {{ student | tojson }};
         function getAuthStorage() { if (localStorage.getItem('arinaAccessToken')) return localStorage; if (sessionStorage.getItem('arinaAccessToken')) return sessionStorage; return null; }
         async function selectAnimal(animalCode) {
             const storage = getAuthStorage();
             const token = storage ? storage.getItem('arinaAccessToken') : '';
             if (token) {
-                await fetch('/api/typing-trainer/animal', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`}, body: JSON.stringify({layout_code:'{{ layout_code }}', animal_code:animalCode})}).catch(() => {});
+                await fetch('/api/typing-trainer/animal', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`}, body: JSON.stringify({layout_code: layoutCode, animal_code: animalCode})}).catch(() => {});
             }
-            window.location.href = `/typing-trainer/hand-position?layout={{ layout_code }}&animal=${animalCode}&student={{ student }}`;
+            if (trainerMode === 'progress') {
+                window.location.href = `/typing-trainer/levels?layout=${encodeURIComponent(layoutCode)}&student=${encodeURIComponent(student)}`;
+                return;
+            }
+            window.location.href = `/typing-trainer/hand-position?layout=${encodeURIComponent(layoutCode)}&animal=${encodeURIComponent(animalCode)}&student=${encodeURIComponent(student)}`;
         }
     </script>
 </body>
