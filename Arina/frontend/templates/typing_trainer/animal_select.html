@@ -11,6 +11,7 @@
     <div class="container typing-container">
         <h1 class="typing-title">Выбери зверька</h1>
         <p class="typing-subtitle">Он будет бежать вместе с тобой по уровням.</p>
+        <div id="animalSelectMessage" class="typing-info-card" style="display:none;"></div>
         <div class="typing-card-grid animal-grid">
             {% for animal_code, animal in animals.items() %}
                 <button class="typing-program-card animal-card" type="button" onclick="selectAnimal('{{ animal_code }}')">
@@ -20,17 +21,30 @@
                 </button>
             {% endfor %}
         </div>
-        <div class="typing-actions"><a href="/typing-trainer/layout?student={{ student }}" class="typing-btn red-btn">Назад</a></div>
+        <div class="typing-actions"><a href="/typing-trainer/levels?layout={{ layout_code }}&student={{ student }}" class="typing-btn red-btn">Назад</a></div>
     </div>
     <script>
+        const animalSelectConfig = { layoutCode: {{ layout_code | tojson }}, student: {{ student | tojson }} };
         function getAuthStorage() { if (localStorage.getItem('arinaAccessToken')) return localStorage; if (sessionStorage.getItem('arinaAccessToken')) return sessionStorage; return null; }
+        function showAnimalMessage(text) { const el = document.getElementById('animalSelectMessage'); el.style.display = 'block'; el.textContent = text; }
         async function selectAnimal(animalCode) {
             const storage = getAuthStorage();
             const token = storage ? storage.getItem('arinaAccessToken') : '';
-            if (token) {
-                await fetch('/api/typing-trainer/animal', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`}, body: JSON.stringify({layout_code:'{{ layout_code }}', animal_code:animalCode})}).catch(() => {});
+            if (!token) {
+                showAnimalMessage('Нужно войти в аккаунт, чтобы сохранить персонажа и прогресс.');
+                return;
             }
-            window.location.href = `/typing-trainer/hand-position?layout={{ layout_code }}&animal=${animalCode}&student={{ student }}`;
+            try {
+                const response = await fetch('/api/typing-trainer/animal', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`}, body: JSON.stringify({layout_code: animalSelectConfig.layoutCode, animal_code: animalCode})});
+                if (!response.ok) {
+                    showAnimalMessage('Не удалось сохранить персонажа. Попробуй войти заново.');
+                    return;
+                }
+            } catch (error) {
+                showAnimalMessage('Ошибка сохранения персонажа. Проверь, что приложение и база данных запущены.');
+                return;
+            }
+            window.location.href = `/typing-trainer/hand-position?layout=${animalSelectConfig.layoutCode}&animal=${animalCode}&student=${encodeURIComponent(animalSelectConfig.student)}`;
         }
     </script>
 </body>
