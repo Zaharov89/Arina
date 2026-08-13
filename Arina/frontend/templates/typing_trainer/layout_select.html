@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Выбор раскладки</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-container">
+        <h1 class="typing-title">Выбери раскладку</h1>
+        <p class="typing-subtitle">Можно тренироваться на русской клавиатуре или на английской.</p>
+        <div class="typing-card-grid">
+            <a class="typing-program-card" href="/typing-trainer/animal?layout=ru&student={{ student }}"><div class="typing-card-icon">ФЫВА</div><h2>Русская раскладка</h2><p>Кириллица. Домашний ряд: Ф Ы В А — О Л Д Ж.</p><span>Выбрать</span></a>
+            <a class="typing-program-card" href="/typing-trainer/animal?layout=en&student={{ student }}"><div class="typing-card-icon">ASDF</div><h2>Английская раскладка</h2><p>Латиница. Home row: A S D F — J K L ;.</p><span>Выбрать</span></a>
+        </div>
+        <div class="typing-actions"><a href="/typing-trainer?student={{ student }}" class="typing-btn red-btn">Назад</a></div>
+    </div>
+</body>
+</html>
