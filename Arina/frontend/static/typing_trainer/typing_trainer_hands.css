@@ -1,0 +1,183 @@
+.typing-hand-svg-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 150px;
+}
+
+.typing-hand-svg {
+    width: 170px;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 7px 14px rgba(0, 0, 0, .14));
+}
+
+.hand-palm {
+    fill: #fffdf9;
+    stroke: #111;
+    stroke-width: 6;
+    stroke-linejoin: round;
+}
+
+.finger {
+    stroke: #111;
+    stroke-width: 6;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.finger-l-pinky, .finger-r-pinky { fill: #f5a1b4; }
+.finger-l-ring, .finger-r-ring { fill: #f5d46f; }
+.finger-l-middle, .finger-r-middle { fill: #66cfd0; }
+.finger-l-index, .finger-r-index { fill: #83dd89; }
+.thumb-finger { fill: #9f88df; }
+
+.finger-marker {
+    fill: #ff3030;
+    stroke: #fff;
+    stroke-width: 3;
+}
+
+.svg-finger-dot {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 0;
+}
+
+.svg-finger-dot.active-finger {
+    fill: #ff3030;
+    stroke: #fff;
+    stroke-width: 3;
+    filter: drop-shadow(0 0 7px rgba(255, 48, 48, .65));
+}
+
+/* Улучшенная рука для игрового экрана, где HTML уже содержит блок .typing-hand и точки пальцев. */
+.typing-game-helper .typing-hand {
+    position: relative;
+    width: 150px;
+    height: 175px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+
+.typing-game-helper .typing-hand::before {
+    content: '';
+    position: absolute;
+    left: 32px;
+    top: 78px;
+    width: 86px;
+    height: 78px;
+    border-radius: 48% 48% 44% 44%;
+    background: #fffdf9;
+    border: 6px solid #111;
+    z-index: 2;
+}
+
+.typing-game-helper .typing-hand::after {
+    content: '';
+    position: absolute;
+    top: 112px;
+    width: 32px;
+    height: 62px;
+    border-radius: 18px;
+    background: #9f88df;
+    border: 6px solid #111;
+    z-index: 1;
+}
+
+.typing-game-helper .left-hand::after {
+    left: 8px;
+    transform: rotate(-45deg);
+}
+
+.typing-game-helper .right-hand::after {
+    right: 8px;
+    transform: rotate(45deg);
+}
+
+.typing-game-helper .finger-dot {
+    position: absolute;
+    display: block;
+    width: 24px;
+    height: 76px;
+    border-radius: 17px;
+    border: 5px solid #111;
+    background: #ddd;
+    z-index: 3;
+    box-shadow: none;
+}
+
+.typing-game-helper .dot-l-pinky {
+    left: 16px;
+    top: 44px;
+    transform: rotate(-36deg);
+    background: #f5a1b4;
+}
+
+.typing-game-helper .dot-l-ring {
+    left: 47px;
+    top: 20px;
+    transform: rotate(-14deg);
+    background: #f5d46f;
+}
+
+.typing-game-helper .dot-l-middle {
+    left: 78px;
+    top: 14px;
+    transform: rotate(6deg);
+    background: #66cfd0;
+}
+
+.typing-game-helper .dot-l-index {
+    left: 108px;
+    top: 34px;
+    transform: rotate(30deg);
+    background: #83dd89;
+}
+
+.typing-game-helper .dot-r-index {
+    left: 18px;
+    top: 34px;
+    transform: rotate(-30deg);
+    background: #83dd89;
+}
+
+.typing-game-helper .dot-r-middle {
+    left: 48px;
+    top: 14px;
+    transform: rotate(-6deg);
+    background: #66cfd0;
+}
+
+.typing-game-helper .dot-r-ring {
+    left: 79px;
+    top: 20px;
+    transform: rotate(14deg);
+    background: #f5d46f;
+}
+
+.typing-game-helper .dot-r-pinky {
+    left: 110px;
+    top: 44px;
+    transform: rotate(36deg);
+    background: #f5a1b4;
+}
+
+.typing-game-helper .finger-dot.active-finger {
+    background: #ff3030;
+    box-shadow: 0 0 0 7px rgba(255, 48, 48, .25), 0 0 16px rgba(255, 48, 48, .8);
+}
+
+@media (max-width: 900px) {
+    .typing-hand-svg {
+        width: 145px;
+    }
+
+    .typing-game-helper .typing-hand {
+        margin: 0 auto;
+    }
+}
