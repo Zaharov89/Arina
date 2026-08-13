@@ -10,10 +10,26 @@
     <div id="dateTimeBar"></div>
     <div class="container typing-container">
         <h1 class="typing-title">Выбери раскладку</h1>
-        <p class="typing-subtitle">Можно тренироваться на русской клавиатуре или на английской.</p>
+        <p class="typing-subtitle">
+            {% if mode == 'progress' %}
+                Выбери, какие результаты посмотреть.
+            {% else %}
+                Выбери раскладку, с которой начнём обучение печати вслепую.
+            {% endif %}
+        </p>
         <div class="typing-card-grid">
-            <a class="typing-program-card" href="/typing-trainer/levels?layout=ru&student={{ student }}"><div class="typing-card-icon">ФЫВА</div><h2>Русская раскладка</h2><p>Кириллица. Домашний ряд: Ф Ы В А — О Л Д Ж.</p><span>Выбрать</span></a>
-            <a class="typing-program-card" href="/typing-trainer/levels?layout=en&student={{ student }}"><div class="typing-card-icon">ASDF</div><h2>Английская раскладка</h2><p>Латиница. Home row: A S D F — J K L ;.</p><span>Выбрать</span></a>
+            <a class="typing-program-card" href="{% if mode == 'progress' %}/typing-trainer/levels?layout=ru&student={{ student }}{% else %}/typing-trainer/animal?layout=ru&mode=learn&student={{ student }}{% endif %}">
+                <div class="typing-card-icon">ФЫВА</div>
+                <h2>Кириллица</h2>
+                <p>Русская раскладка. Домашний ряд: Ф Ы В А — О Л Д Ж.</p>
+                <span>{% if mode == 'progress' %}Показать результаты{% else %}Начать{% endif %}</span>
+            </a>
+            <a class="typing-program-card" href="{% if mode == 'progress' %}/typing-trainer/levels?layout=en&student={{ student }}{% else %}/typing-trainer/animal?layout=en&mode=learn&student={{ student }}{% endif %}">
+                <div class="typing-card-icon">ASDF</div>
+                <h2>Латиница</h2>
+                <p>Английская раскладка. Home row: A S D F — J K L ;.</p>
+                <span>{% if mode == 'progress' %}Показать результаты{% else %}Начать{% endif %}</span>
+            </a>
         </div>
         <div class="typing-actions"><a href="/typing-trainer?student={{ student }}" class="typing-btn red-btn">Назад</a></div>
     </div>
