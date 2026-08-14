@@ -30,6 +30,11 @@ def typing_trainer_index():
     return render_template("typing_trainer/index.html", student=get_student())
 
 
+@typing_trainer_bp.route("/typing-trainer/success")
+def typing_trainer_success():
+    return render_template("typing_trainer/success.html", student=get_student())
+
+
 @typing_trainer_bp.route("/typing-trainer/layout")
 def typing_trainer_layout():
     return render_template("typing_trainer/layout_select.html", student=get_student(), layouts=LAYOUT_TITLES, mode=get_flow_mode())
