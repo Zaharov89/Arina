@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мои успехи — клавиатурный тренажёр</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typing_trainer/typing_trainer_fix.css') }}">
+</head>
+<body>
+    <div id="dateTimeBar"></div>
+    <div class="container typing-container">
+        <div class="typing-top-left-actions">
+            <a href="/typing-trainer?student={{ student }}" class="typing-btn red-btn">Назад</a>
+        </div>
+        <h1 class="typing-title">Мои успехи</h1>
+        <p class="typing-subtitle">Общая статистика по кириллице и латинице: открытые уровни, точность, скорость и последние тренировки.</p>
+        <div id="typingSuccessStatus" class="typing-warning">Загружаю результаты...</div>
+        <div id="typingSuccessDashboard"></div>
+        <div class="typing-actions">
+            <a href="/typing-trainer/levels?layout=ru&student={{ student }}" class="typing-btn blue-btn">Кириллица</a>
+            <a href="/typing-trainer/levels?layout=en&student={{ student }}" class="typing-btn blue-btn">Латиница</a>
+            <a href="/typing-trainer/layout?mode=learn&student={{ student }}" class="typing-btn green-btn">Продолжить обучение</a>
+        </div>
+    </div>
+    <script>
+        window.typingSuccessConfig = {student: {{ student | tojson }}};
+    </script>
+    <script src="{{ url_for('static', filename='typing_trainer/typing_trainer_success.js') }}"></script>
+</body>
+</html>
