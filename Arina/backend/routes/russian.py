@@ -21,7 +21,6 @@ SUPPORTED_RUSSIAN_CLASSES = list(range(1, 12))
 IMPLEMENTED_TEST_CLASSES = {1, 2, 3}
 IMPLEMENTED_LEARNING_CLASSES = {1, 2, 3}
 CONTROL_SLICE_TYPE = "control_slice"
-control_topic_cursor = 0
 TOPICS_BY_CLASS = {1: RUSSIAN_CLASS_1_TOPICS, 2: RUSSIAN_CLASS_2_TOPICS, 3: RUSSIAN_CLASS_3_TOPICS}
 DEFAULT_TOPIC_BY_CLASS = {1: "sounds_and_letters", 2: "sounds_letters_review", 3: "word_structure"}
 VOCABULARY_TOPIC_CODES = {"mini_dictations", "vocabulary_words_2", "vocabulary_words_3"}
@@ -35,14 +34,43 @@ def get_russian_topic_from_catalog(class_num: int, topic_id: str) -> dict | None
     return get_topic_or_none("russian", class_num, topic_id, TOPICS_BY_CLASS.get(class_num, RUSSIAN_CLASS_1_TOPICS))
 
 
-def get_next_control_topic_id(class_num: int) -> str:
-    global control_topic_cursor
-    topic_ids = [topic_id for topic_id in get_russian_topics(class_num).keys() if topic_id not in VOCABULARY_TOPIC_CODES]
-    if not topic_ids:
-        return DEFAULT_TOPIC_BY_CLASS.get(class_num, "sounds_and_letters")
-    topic_id = topic_ids[control_topic_cursor % len(topic_ids)]
-    control_topic_cursor += 1
-    return topic_id
+def get_control_topic_ids(class_num: int) -> list[str]:
+    topic_ids = [
+        topic_id
+        for topic_id in get_russian_topics(class_num).keys()
+        if topic_id not in VOCABULARY_TOPIC_CODES
+    ]
+    return topic_ids or [DEFAULT_TOPIC_BY_CLASS.get(class_num, "sounds_and_letters")]
+
+
+def build_control_topics_plan(class_num: int, total_questions: int = 50) -> list[str]:
+    topic_ids = get_control_topic_ids(class_num)
+    plan: list[str] = []
+    target_size = max(1, min(int(total_questions or 50), 50))
+    while len(plan) < target_size:
+        batch = topic_ids[:]
+        random.shuffle(batch)
+        plan.extend(batch)
+    return plan[:target_size]
+
+
+def normalize_control_topics_plan(raw_plan: Any, class_num: int, total_questions: int = 50) -> list[str]:
+    allowed_topic_ids = set(get_control_topic_ids(class_num))
+    if not isinstance(raw_plan, list):
+        return build_control_topics_plan(class_num, total_questions)
+    plan = [str(topic_id).strip() for topic_id in raw_plan if str(topic_id).strip() in allowed_topic_ids]
+    if not plan:
+        return build_control_topics_plan(class_num, total_questions)
+    return plan
+
+
+def get_control_topic_id(class_num: int, used_questions: list[str], raw_plan: Any, total_questions: int = 50) -> tuple[str, list[str]]:
+    plan = normalize_control_topics_plan(raw_plan, class_num, total_questions)
+    question_index = len(used_questions)
+    if question_index >= len(plan):
+        extra_plan = build_control_topics_plan(class_num, total_questions)
+        plan.extend(extra_plan)
+    return plan[question_index], plan
 
 
 def get_russian_vocabulary_words_for_class(class_num: str) -> list[str]:
@@ -82,6 +110,14 @@ def normalize_class_num(raw_class: Any, default: int = 1) -> int:
     except (TypeError, ValueError):
         return default
     return class_num if class_num in (1, 2, 3) else default
+
+
+def normalize_total_questions(raw_total: Any, default: int = 50) -> int:
+    try:
+        total_questions = int(raw_total)
+    except (TypeError, ValueError):
+        return default
+    return max(1, min(total_questions, 50))
 
 
 def build_task_key(task: dict) -> str:
@@ -196,16 +232,29 @@ def generate_russian_task():
         return error_response
     class_num = normalize_class_num(data.get("class"), default=1)
     topic_id = str(data.get("topic", DEFAULT_TOPIC_BY_CLASS.get(class_num, "sounds_and_letters"))).strip()
-    if topic_id == CONTROL_SLICE_TYPE:
-        topic_id = get_next_control_topic_id(class_num)
     used_questions = normalize_used_questions(data.get("used_questions"))
+    control_topics_plan: list[str] | None = None
+    control_topic_index: int | None = None
+    if topic_id == CONTROL_SLICE_TYPE:
+        total_questions = normalize_total_questions(data.get("total_questions"), default=50)
+        topic_id, control_topics_plan = get_control_topic_id(
+            class_num,
+            used_questions,
+            data.get("control_topics_plan"),
+            total_questions,
+        )
+        control_topic_index = len(used_questions)
     if class_num == 3:
         task = generate_russian_class_3_topic_task(topic_id, used_questions=used_questions)
     elif class_num == 2:
         task = generate_russian_class_2_topic_task(topic_id, used_questions=used_questions)
     else:
         task = generate_russian_class_1_topic_task(topic_id, used_questions=used_questions)
-    return jsonify(ensure_unique_task(task, used_questions))
+    result = ensure_unique_task(task, used_questions)
+    if control_topics_plan is not None:
+        result["control_topics_plan"] = control_topics_plan
+        result["control_topic_index"] = control_topic_index
+    return jsonify(result)
 
 
 @russian_bp.route("/russian/check_task", methods=["POST"])

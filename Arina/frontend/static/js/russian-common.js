@@ -8,6 +8,7 @@ let wrongAnswersList = [];
 let currentWord = null;
 let currentRussianTask = null;
 let usedRussianQuestionTexts = [];
+let russianControlTopicsPlan = [];
 let testStartTime = null;
 let questionStartTime = null;
 let testTimerInterval = null;
@@ -348,11 +349,16 @@ function generateRussianTopicQuestion() {
             class: window.russianTopicTestSettings?.classNum || '1',
             topic: window.russianTopicTestSettings?.topicId || 'sounds_and_letters',
             used_questions: usedRussianQuestionTexts,
+            control_topics_plan: russianControlTopicsPlan,
+            total_questions: totalWords,
         })
     })
     .then(response => response.json())
     .then(task => {
         currentRussianTask = task;
+        if (Array.isArray(task.control_topics_plan)) {
+            russianControlTopicsPlan = task.control_topics_plan;
+        }
         rememberRussianTaskQuestion(task);
 
         const topicEl = document.getElementById('questionTopic');
@@ -498,6 +504,7 @@ document.addEventListener('DOMContentLoaded', function () {
             emptyAnswers = 0;
             wrongAnswersList = [];
             usedRussianQuestionTexts = [];
+            russianControlTopicsPlan = [];
             currentRussianTask = null;
             startTestTimer();
             generateRussianTopicQuestion();
